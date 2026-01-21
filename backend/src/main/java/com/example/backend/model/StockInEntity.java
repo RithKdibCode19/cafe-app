@@ -1,0 +1,59 @@
+package com.example.backend.model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "tblstock")
+public class StockInEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "stock_id")
+    private Long stockId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
+    private SupplierEntity supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingredient_id", nullable = false)
+    private IngredientEntity ingredient;
+
+    @Column(name = "qty_in", nullable = false)
+    private Double qtyIn;
+
+    @Column(name = "unit_cost", nullable = false)
+    private Double unitCost;
+
+    @Column(name = "total_cost", nullable = false)
+    private Double totalCost;
+
+    @Column(name = "invoice_no")
+    private String invoiceNo;
+
+    @Column(name = "received_date", nullable = false)
+    private LocalDateTime receivedDate;
+
+    @Column(name = "received_by", nullable = false)
+    private Long receivedBy;
+
+}
+
