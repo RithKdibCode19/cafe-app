@@ -3,8 +3,8 @@ package com.example.backend.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.example.backend.dto.UserRequest;
-import com.example.backend.dto.UserResponse;
+import com.example.backend.dto.user.UserRequest;
+import com.example.backend.dto.user.UserResponse;
 import com.example.backend.model.UserEntity;
 
 @Mapper(componentModel = "spring")

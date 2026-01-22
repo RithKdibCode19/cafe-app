@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.example.backend.dto.UserRequest;
-import com.example.backend.dto.UserResponse;
+import com.example.backend.dto.user.UserRequest;
+import com.example.backend.dto.user.UserResponse;
 import com.example.backend.mapper.UserMap;
 import com.example.backend.model.UserEntity;
 import com.example.backend.repository.UserRepository;
