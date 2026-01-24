@@ -3,6 +3,7 @@ package com.example.backend.services;
 
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.dto.user.UserRequest;
@@ -20,7 +21,7 @@ public class UserService {
         this.userRepository = userRepository;
         this.userMap = userMap;
     }
-
+    @Transactional
     public UserResponse createUser(UserRequest request){
         // 1. Convert DTO to Entity
         UserEntity userEntity = userMap.toEntity(request);
@@ -35,6 +36,7 @@ public class UserService {
                 .map(userMap::toResponse)
                 .toList();
     }
+    @Transactional
     public UserResponse updateUser(Long id, UserRequest request){
         UserEntity userExsiting = userRepository.findById(id).orElseThrow();
         userExsiting.setUserName(request.getUsername());
@@ -42,6 +44,7 @@ public class UserService {
         UserEntity updateUser = userRepository.save(userExsiting);
         return userMap.toResponse(updateUser);
     }
+    @Transactional
     public UserResponse deleteUser(Long id){
         UserEntity userExsit = userRepository.findById(id).orElseThrow();
         userExsit.setIsDeleted(true);
