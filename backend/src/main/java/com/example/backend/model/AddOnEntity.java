@@ -29,7 +29,4 @@ public class AddOnEntity extends BaseEntity {
 
     @Column(nullable = false)
     private Double price;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
 }

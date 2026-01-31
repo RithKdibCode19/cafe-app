@@ -22,7 +22,5 @@ public class MenuItemRequestDTO {
     @Positive(message = "Base price must be positive")
     private Double basePrice;
 
-    private Boolean isActive = true;
-
     private String imageUrl;
 }

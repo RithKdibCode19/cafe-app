@@ -15,7 +15,6 @@ public class VariantResponseDTO {
     private Long menuItemId;
     private String name;
     private Double priceAdjustment;
-    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

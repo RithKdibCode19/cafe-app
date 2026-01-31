@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 public class BranchResponseDTO {
 
     private Long branchId;
+    private String code;
     private String name;
-    private String address;
+    private String location;
     private String phone;
-    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

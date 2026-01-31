@@ -10,12 +10,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BranchRequestDTO {
 
+    @NotBlank(message = "Code is required")
+    private String code;
     @NotBlank(message = "Name is required")
     private String name;
 
-    private String address;
+    private String location;
 
     private String phone;
-
-    private Boolean isActive = true;
 }

@@ -15,7 +15,6 @@ public class UserResponseDTO {
     private EmployeeResponseDTO employee;
     private String userName;
     private RoleResponseDTO role;
-    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

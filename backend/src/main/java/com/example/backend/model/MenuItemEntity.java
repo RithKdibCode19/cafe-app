@@ -21,8 +21,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "tblmenu_items", indexes = {
-        @Index(name = "idx_category_id", columnList = "category_id"),
-        @Index(name = "idx_is_active", columnList = "is_active")
+        @Index(name = "idx_category_id", columnList = "category_id")
 })
 public class MenuItemEntity extends BaseEntity {
 
@@ -40,9 +39,6 @@ public class MenuItemEntity extends BaseEntity {
 
     @Column(name = "base_price", nullable = false)
     private Double basePrice;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
 
     @Column(name = "image_url")
     private String imageUrl;

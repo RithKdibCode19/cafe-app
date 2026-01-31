@@ -22,7 +22,6 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
     UserEntity toEntity(UserRequestDTO requestDTO);
 
@@ -32,7 +31,6 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
     void updateEntityFromDTO(UserRequestDTO requestDTO, @MappingTarget UserEntity entity);
 }

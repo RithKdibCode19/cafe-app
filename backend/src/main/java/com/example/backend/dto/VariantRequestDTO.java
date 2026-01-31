@@ -20,5 +20,4 @@ public class VariantRequestDTO {
     @NotNull(message = "Price adjustment is required")
     private Double priceAdjustment;
 
-    private Boolean isActive = true;
 }

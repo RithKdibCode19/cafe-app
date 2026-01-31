@@ -1,14 +1,15 @@
 package com.example.backend.services;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import com.example.backend.repository.CategoryRepository;
-import com.example.backend.mapper.CategoryMapper;
-import com.example.backend.model.CategoryEntity;
 import com.example.backend.dto.CategoryRequestDTO;
 import com.example.backend.dto.CategoryResponseDTO;
-import java.util.List;
-import java.time.LocalDateTime;
+import com.example.backend.mapper.CategoryMapper;
+import com.example.backend.model.CategoryEntity;
+import com.example.backend.repository.CategoryRepository;
 
 
 @Service
@@ -26,7 +27,7 @@ public class CategoryService {
         return categoryMapper.toResponseDTO(savedCategory);
     }   
     public List<CategoryResponseDTO> getAllCategories() {
-        List<CategoryEntity> categoryEntities = categoryRepository.findAll();
+        List<CategoryEntity> categoryEntities = categoryRepository.findAllActive();
         return categoryEntities.stream()
                 .map(categoryMapper::toResponseDTO)
                 .toList();
@@ -43,9 +44,7 @@ public class CategoryService {
     }
     public void deleteCategory(Long id) {
         CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
-        categoryEntity.setIsDeleted(true);
         categoryEntity.setDeletedAt(LocalDateTime.now());
-        categoryEntity.setDeletedBy(null);
         categoryRepository.save(categoryEntity);
     }
 }

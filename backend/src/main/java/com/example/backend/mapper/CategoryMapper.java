@@ -14,11 +14,14 @@ public interface CategoryMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
-    @Mapping(target = "isActive", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
 
     CategoryEntity toEntity(CategoryRequestDTO requestDTO);
     CategoryResponseDTO toResponseDTO(CategoryEntity entity);
+    @Mapping(target = "categoryId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "deletedBy", ignore = true)
     void updateEntityFromDTO(CategoryRequestDTO requestDTO, @MappingTarget CategoryEntity entity);
 }

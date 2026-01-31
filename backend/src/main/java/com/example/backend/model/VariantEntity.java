@@ -42,10 +42,7 @@ public class VariantEntity extends BaseEntity {
 
     @Column(nullable = false)
     private Double price;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-
+    
     public enum Size {
         S,
         M,

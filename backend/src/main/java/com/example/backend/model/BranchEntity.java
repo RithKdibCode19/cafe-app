@@ -37,8 +37,4 @@ public class BranchEntity extends BaseEntity {
 
     private String location;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-
-    // getters & setters
 }

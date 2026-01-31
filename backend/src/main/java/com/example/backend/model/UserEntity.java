@@ -44,7 +44,4 @@ public class UserEntity extends BaseEntity {
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-
 }
