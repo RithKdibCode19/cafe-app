@@ -14,6 +14,7 @@ public class DashboardStatsDTO {
     private List<PaymentMethodBreakdown> paymentBreakdown;
     private List<TopSellingItem> topSellingItems;
     private List<RecentOrder> recentOrders;
+    private List<DailySales> dailySales;
 
     // Nested DTOs
     public static class PaymentMethodBreakdown {
@@ -164,6 +165,45 @@ public class DashboardStatsDTO {
         }
     }
 
+    public static class DailySales {
+        private String date;
+        private Double revenue;
+        private Integer orderCount;
+
+        public DailySales() {
+        }
+
+        public DailySales(String date, Double revenue, Integer orderCount) {
+            this.date = date;
+            this.revenue = revenue;
+            this.orderCount = orderCount;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public Double getRevenue() {
+            return revenue;
+        }
+
+        public void setRevenue(Double revenue) {
+            this.revenue = revenue;
+        }
+
+        public Integer getOrderCount() {
+            return orderCount;
+        }
+
+        public void setOrderCount(Integer orderCount) {
+            this.orderCount = orderCount;
+        }
+    }
+
     // Main DTO Getters/Setters
     public Double getTodayRevenue() {
         return todayRevenue;
@@ -235,5 +275,13 @@ public class DashboardStatsDTO {
 
     public void setRecentOrders(List<RecentOrder> recentOrders) {
         this.recentOrders = recentOrders;
+    }
+
+    public List<DailySales> getDailySales() {
+        return dailySales;
+    }
+
+    public void setDailySales(List<DailySales> dailySales) {
+        this.dailySales = dailySales;
     }
 }

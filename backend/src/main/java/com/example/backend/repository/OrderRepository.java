@@ -72,7 +72,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
         // Calculate total sales for date range
         @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
-                        "JOIN o.items oi WHERE o.status = 'PAID' " +
+                        "JOIN o.items oi WHERE o.status IN ('PAID', 'PREPARING', 'READY', 'COMPLETED') " +
                         "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
                         "AND o.deletedAt IS NULL")
         Double calculateTotalSalesForPeriod(@Param("startDate") LocalDateTime startDate,
@@ -81,7 +81,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         // Calculate total sales for branch and date range
         @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
                         "JOIN o.items oi WHERE o.branch.branchId = :branchId " +
-                        "AND o.status = 'PAID' " +
+                        "AND o.status IN ('PAID', 'PREPARING', 'READY', 'COMPLETED') " +
                         "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
                         "AND o.deletedAt IS NULL")
         Double calculateTotalSalesForBranchAndPeriod(@Param("branchId") Long branchId,
@@ -100,4 +100,11 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
         // Check if order number exists
         boolean existsByOrderNoAndDeletedAtIsNull(String orderNo);
+
+        @Query("SELECT DISTINCT o FROM OrderEntity o " +
+                        "LEFT JOIN FETCH o.items " +
+                        "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL")
+        List<OrderEntity> findByCreatedAtBetweenWithItems(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 }

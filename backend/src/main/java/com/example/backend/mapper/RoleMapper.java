@@ -18,6 +18,11 @@ public interface RoleMapper {
     RoleResponseDTO toResponseDTO(RoleEntity entity);
 
     @Mapping(target = "permissions", ignore = true) // Handled in Service
+    @Mapping(target = "roleId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "deletedBy", ignore = true)
     RoleEntity toEntity(RoleRequestDTO requestDTO);
 
     @Mapping(target = "permissions", ignore = true) // Handled in Service

@@ -37,6 +37,7 @@ public class OrderRequestDTO {
     private Double discountAmount;
 
     @NotEmpty(message = "Order items are required")
+    @jakarta.validation.Valid
     private List<OrderItemRequestDTO> items;
 
     // Optional Payment Details (for immediate payment creation)

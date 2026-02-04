@@ -1,13 +1,16 @@
 # Multi-stage build for Spring Boot application
 
 # Stage 1: Build stage
-FROM maven:3.9-eclipse-temurin-25 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copy Maven wrapper and pom.xml first for better layer caching
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
+
+# Ensure mvnw is executable
+RUN chmod +x mvnw
 
 # Download dependencies (this layer will be cached unless pom.xml changes)
 RUN ./mvnw dependency:go-offline -B
@@ -19,7 +22,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Runtime stage
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Create a non-root user for security

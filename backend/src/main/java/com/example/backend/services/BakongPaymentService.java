@@ -23,25 +23,31 @@ public class BakongPaymentService {
 
     public BakongKhqrResponseDTO generateKhqr(BakongKhqrRequestDTO request) {
         String url = apiUrl + "/bakong/khqr/generate";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-API-Key", apiKey);
 
-        HttpEntity<BakongKhqrRequestDTO> entity = new HttpEntity<>(request, headers);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("X-API-Key", apiKey);
 
-        return restTemplate.postForObject(url, entity, BakongKhqrResponseDTO.class);
+            HttpEntity<BakongKhqrRequestDTO> entity = new HttpEntity<>(request, headers);
+            return restTemplate.postForObject(url, entity, BakongKhqrResponseDTO.class);
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new RuntimeException("Bakong Gateway Unreachable: " + e.getMessage());
+        }
     }
 
     public BakongPaymentCheckResponseDTO checkPaymentStatus(BakongPaymentCheckRequestDTO request) {
         String url = apiUrl + "/bakong/payment/check";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-API-Key", apiKey);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("X-API-Key", apiKey);
 
-        HttpEntity<BakongPaymentCheckRequestDTO> entity = new HttpEntity<>(request, headers);
-
-        return restTemplate.postForObject(url, entity, BakongPaymentCheckResponseDTO.class);
+            HttpEntity<BakongPaymentCheckRequestDTO> entity = new HttpEntity<>(request, headers);
+            return restTemplate.postForObject(url, entity, BakongPaymentCheckResponseDTO.class);
+        } catch (org.springframework.web.client.RestClientException e) {
+            throw new RuntimeException("Bakong Status Check Failed: " + e.getMessage());
+        }
     }
 }

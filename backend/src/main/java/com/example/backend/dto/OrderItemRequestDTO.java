@@ -20,8 +20,6 @@ public class OrderItemRequestDTO {
     @Positive(message = "Quantity must be positive")
     private Integer quantity;
 
-    @NotNull(message = "Unit price is required")
-    @Positive(message = "Unit price must be positive")
     private Double unitPrice;
 
     private String note;
@@ -29,21 +27,51 @@ public class OrderItemRequestDTO {
     private java.util.List<Long> addOnIds;
 
     // Manual Getters/Setters
-    public Long getMenuItemId() { return menuItemId; }
-    public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; }
+    public Long getMenuItemId() {
+        return menuItemId;
+    }
 
-    public Long getVariantId() { return variantId; }
-    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    public void setMenuItemId(Long menuItemId) {
+        this.menuItemId = menuItemId;
+    }
 
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public Long getVariantId() {
+        return variantId;
+    }
 
-    public Double getUnitPrice() { return unitPrice; }
-    public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
+    public void setVariantId(Long variantId) {
+        this.variantId = variantId;
+    }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public Integer getQuantity() {
+        return quantity;
+    }
 
-    public java.util.List<Long> getAddOnIds() { return addOnIds; }
-    public void setAddOnIds(java.util.List<Long> addOnIds) { this.addOnIds = addOnIds; }
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public java.util.List<Long> getAddOnIds() {
+        return addOnIds;
+    }
+
+    public void setAddOnIds(java.util.List<Long> addOnIds) {
+        this.addOnIds = addOnIds;
+    }
 }

@@ -57,13 +57,9 @@ public class ReportService {
                 LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
                 LocalDateTime endOfDay = startOfDay.plusDays(1);
 
-                // Get today's orders
-                List<OrderEntity> todayOrders = orderRepository.findAll().stream()
-                                .filter(o -> o.getCreatedAt() != null &&
-                                                o.getCreatedAt().isAfter(startOfDay) &&
-                                                o.getCreatedAt().isBefore(endOfDay) &&
-                                                o.getDeletedAt() == null)
-                                .collect(Collectors.toList());
+                // Get today's orders using optimized repository method
+                List<OrderEntity> todayOrders = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(startOfDay,
+                                endOfDay);
 
                 // Calculate today's revenue
                 Double todayRevenue = todayOrders.stream()
@@ -101,15 +97,51 @@ public class ReportService {
                 // Recent orders (last 10)
                 stats.setRecentOrders(getRecentOrders(10));
 
+                // 7-day sales breakdown for chart
+                stats.setDailySales(get7DaySalesBreakdown());
+
                 return stats;
         }
 
+        private List<DashboardStatsDTO.DailySales> get7DaySalesBreakdown() {
+                LocalDate today = LocalDate.now();
+                LocalDate sevenDaysAgo = today.minusDays(6);
+                LocalDateTime start = sevenDaysAgo.atStartOfDay();
+                LocalDateTime end = today.atTime(23, 59, 59);
+
+                List<OrderEntity> orders = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end).stream()
+                                .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
+                                .collect(Collectors.toList());
+
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                Map<String, DashboardStatsDTO.DailySales> dailyMap = new HashMap<>();
+
+                // Initialize last 7 days
+                for (int i = 0; i < 7; i++) {
+                        String dateStr = sevenDaysAgo.plusDays(i).format(dateFormatter);
+                        dailyMap.put(dateStr, new DashboardStatsDTO.DailySales(dateStr, 0.0, 0));
+                }
+
+                // Aggregate
+                for (OrderEntity order : orders) {
+                        String dateStr = order.getCreatedAt().format(dateFormatter);
+                        DashboardStatsDTO.DailySales ds = dailyMap.get(dateStr);
+                        if (ds != null) {
+                                ds.setRevenue(ds.getRevenue()
+                                                + (order.getTotalAmount() != null ? order.getTotalAmount() : 0.0));
+                                ds.setOrderCount(ds.getOrderCount() + 1);
+                        }
+                }
+
+                return dailyMap.values().stream()
+                                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
+                                .collect(Collectors.toList());
+        }
+
         private List<PaymentMethodBreakdown> getPaymentBreakdown(LocalDateTime start, LocalDateTime end) {
-                List<PaymentEntity> todayPayments = paymentRepository.findAll().stream()
-                                .filter(p -> p.getCreatedAt() != null &&
-                                                p.getCreatedAt().isAfter(start) &&
-                                                p.getCreatedAt().isBefore(end) &&
-                                                p.getDeletedAt() == null &&
+                List<PaymentEntity> todayPayments = paymentRepository
+                                .findByCreatedAtBetweenAndDeletedAtIsNull(start, end).stream()
+                                .filter(p -> p.getDeletedAt() == null &&
                                                 p.getPaymentStatus() == PaymentEntity.PaymentStatus.PAID)
                                 .collect(Collectors.toList());
 
@@ -129,14 +161,16 @@ public class ReportService {
         }
 
         private List<TopSellingItem> getTopSellingItems(int limit) {
-                List<OrderEntity> allOrders = orderRepository.findAll().stream()
-                                .filter(o -> o.getDeletedAt() == null &&
-                                                o.getStatus() == OrderEntity.OrderStatus.PAID)
+                // Get only paid orders from the last 30 days for "top selling" relevance
+                LocalDateTime monthAgo = LocalDateTime.now().minusDays(30);
+                List<OrderEntity> recentPaidOrders = orderRepository
+                                .findByCreatedAtBetweenWithItems(monthAgo, LocalDateTime.now()).stream()
+                                .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
                                 .collect(Collectors.toList());
 
                 Map<Long, TopSellingItem> itemSales = new HashMap<>();
 
-                for (OrderEntity order : allOrders) {
+                for (OrderEntity order : recentPaidOrders) {
                         if (order.getItems() != null) {
                                 for (OrderItemEntity item : order.getItems()) {
                                         if (item.getMenuItem() != null) {
@@ -166,16 +200,7 @@ public class ReportService {
         private List<RecentOrder> getRecentOrders(int limit) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-                return orderRepository.findAll().stream()
-                                .filter(o -> o.getDeletedAt() == null)
-                                .sorted((a, b) -> {
-                                        if (b.getCreatedAt() == null)
-                                                return -1;
-                                        if (a.getCreatedAt() == null)
-                                                return 1;
-                                        return b.getCreatedAt().compareTo(a.getCreatedAt());
-                                })
-                                .limit(limit)
+                return orderRepository.findRecentOrders(limit).stream()
                                 .map(o -> {
                                         RecentOrder ro = new RecentOrder();
                                         ro.setOrderId(o.getOrderId());
@@ -203,13 +228,9 @@ public class ReportService {
                 report.setStartDate(startDate.format(dateFormatter));
                 report.setEndDate(endDate.format(dateFormatter));
 
-                // Get orders in date range
-                List<OrderEntity> orders = orderRepository.findAll().stream()
-                                .filter(o -> o.getCreatedAt() != null &&
-                                                o.getCreatedAt().isAfter(start) &&
-                                                o.getCreatedAt().isBefore(end) &&
-                                                o.getDeletedAt() == null &&
-                                                o.getStatus() == OrderEntity.OrderStatus.PAID)
+                // Get orders in date range using optimized repository method
+                List<OrderEntity> orders = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end).stream()
+                                .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
                                 .collect(Collectors.toList());
 
                 // Summary stats
@@ -410,11 +431,8 @@ public class ReportService {
                 report.setLowStockItemsCount((int) lowStockCount);
 
                 // Wastage Analysis
-                List<com.example.backend.model.StockAdjustmentEntity> adjustments = stockAdjustmentRepository.findAll()
-                                .stream()
-                                .filter(a -> a.getCreatedAt() != null && a.getCreatedAt().isAfter(start)
-                                                && a.getCreatedAt().isBefore(end))
-                                .collect(Collectors.toList());
+                List<com.example.backend.model.StockAdjustmentEntity> adjustments = stockAdjustmentRepository
+                                .findByCreatedAtBetweenAndDeletedAtIsNull(start, end);
 
                 Map<String, com.example.backend.dto.report.InventoryReportDTO.WastageSummary> wastageMap = new HashMap<>();
                 Double totalWasteCost = 0.0;
@@ -461,10 +479,9 @@ public class ReportService {
 
                 List<com.example.backend.model.EmployeeEntity> employees = employeeRepository
                                 .findAllByDeletedAtIsNull();
-                List<OrderEntity> ordersInRange = orderRepository.findAll().stream()
-                                .filter(o -> o.getCreatedAt() != null && o.getCreatedAt().isAfter(start)
-                                                && o.getCreatedAt().isBefore(end) && o.getDeletedAt() == null
-                                                && o.getStatus() == OrderEntity.OrderStatus.PAID)
+                List<OrderEntity> ordersInRange = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end)
+                                .stream()
+                                .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
                                 .collect(Collectors.toList());
 
                 List<com.example.backend.dto.report.StaffPerformanceReportDTO.EmployeeStats> statsList = new ArrayList<>();

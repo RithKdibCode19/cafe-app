@@ -38,5 +38,9 @@ public interface OrderItemMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(source = "quantity", target = "qty")
+    @Mapping(source = "note", target = "addons")
+    @Mapping(target = "addOnItems", ignore = true)
+    @Mapping(target = "discountAmount", ignore = true)
     void updateEntityFromDTO(OrderItemRequestDTO requestDTO, @MappingTarget OrderItemEntity entity);
 }

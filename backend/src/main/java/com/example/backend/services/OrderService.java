@@ -112,6 +112,55 @@ public class OrderService {
     }
 
     /**
+     * Calculate total for an order request without saving (for verification)
+     */
+    public Double calculateTotal(OrderRequestDTO request) {
+        double subTotal = request.getItems().stream().mapToDouble(itemRequest -> {
+            MenuItemEntity menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+                    .orElseThrow(() -> new RuntimeException("Menu item not found"));
+
+            Double basePrice = menuItem.getBasePrice();
+            if (itemRequest.getVariantId() != null) {
+                VariantEntity variant = variantRepository.findById(itemRequest.getVariantId())
+                        .orElseThrow(() -> new RuntimeException("Variant not found"));
+                basePrice = variant.getPrice();
+            }
+
+            double addOnTotal = 0.0;
+            if (itemRequest.getAddOnIds() != null && !itemRequest.getAddOnIds().isEmpty()) {
+                addOnTotal = addOnRepository.findAllById(itemRequest.getAddOnIds())
+                        .stream().filter(java.util.Objects::nonNull)
+                        .mapToDouble(com.example.backend.model.AddOnEntity::getPrice).sum();
+            }
+
+            return (basePrice + addOnTotal) * itemRequest.getQuantity();
+        }).sum();
+
+        // SECURE DISCOUNT CALCULATION
+        double discount = 0.0;
+        if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
+            if (request.getCustomerId() == null) {
+                throw new RuntimeException("Customer ID required for point redemption");
+            }
+            CustomerEntity customer = customerRepository.findById(request.getCustomerId())
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+            if (availablePoints < request.getPointsRedeemed()) {
+                throw new RuntimeException("Insufficient points! Hack detected.");
+            }
+
+            // 10 Points = $1 (Match frontend logic)
+            discount = request.getPointsRedeemed() / 10.0;
+        }
+
+        double taxRate = 0.0; // Consistent with createOrder
+        double taxAmount = Math.max(0, (subTotal - discount) * taxRate);
+
+        return Math.max(0, subTotal - discount + taxAmount);
+    }
+
+    /**
      * Create a new order with all order items
      */
     @Transactional
@@ -159,42 +208,33 @@ public class OrderService {
 
         order.setSubTotal(subTotal);
 
-        // 5. Apply Financials
-        Double discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0;
+        // 5. Apply Financials (SECURE CALCULATION)
+        double discount = 0.0;
+        if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
+            if (customer == null) {
+                throw new RuntimeException("Cannot redeem points without a valid customer.");
+            }
+            int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+            if (availablePoints < request.getPointsRedeemed()) {
+                throw new RuntimeException("Insufficient loyalty points for redemption!");
+            }
+            // Derive discount from points (10 points = $1)
+            discount = request.getPointsRedeemed() / 10.0;
+        }
         order.setDiscountAmount(discount);
 
         // Simple Tax Logic (e.g. 0% for now, can be 0.10 for 10%)
         double taxRate = 0.0;
-        double taxAmount = (subTotal - discount) * taxRate;
-        // Ensure tax is not negative if discount > subtotal
-        if (taxAmount < 0)
-            taxAmount = 0.0;
-
+        double taxAmount = Math.max(0, (subTotal - discount) * taxRate);
         order.setTaxAmount(taxAmount);
 
-        double totalAmount = subTotal - discount + taxAmount;
-        if (totalAmount < 0)
-            totalAmount = 0.0; // Prevent negative total
-
+        double totalAmount = Math.max(0, subTotal - discount + taxAmount);
         order.setTotalAmount(totalAmount);
 
-        // 5.1 Process Loyalty Redemption
+        // 5.1 Process Loyalty Redemption (Point Deduction)
         if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
-            if (customer == null) {
-                throw new RuntimeException("Cannot redeem points without a valid customer linked to this order.");
-            }
-            // Use existing points (or 0 if null, though schema says default 0)
-            int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
-
-            if (currentPoints < request.getPointsRedeemed()) {
-                throw new RuntimeException("Insufficient loyalty points. Available: " + currentPoints + ", Requested: "
-                        + request.getPointsRedeemed());
-            }
-
-            // Deduct points
-            customer.setLoyaltyPoints(currentPoints - request.getPointsRedeemed());
-            // We save the customer immediately. Since this is @Transactional, it will
-            // rollback if order fails.
+            // Points already validated in Step 5
+            customer.setLoyaltyPoints(customer.getLoyaltyPoints() - request.getPointsRedeemed());
             customerRepository.save(customer);
         }
 
@@ -329,27 +369,58 @@ public class OrderService {
                 throw new RuntimeException("Only PENDING orders can be VOIDED. Current status: " + currentStatus);
             }
         } else if (newStatus == OrderEntity.OrderStatus.REFUND) {
-            if (currentStatus != OrderEntity.OrderStatus.PAID) { // Can only refund paid orders
-                throw new RuntimeException("Only PAID orders can be REFUNDED. Current status: " + currentStatus);
+            if (currentStatus != OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.COMPLETED) { // Refund
+                                                                                                                       // allowed
+                                                                                                                       // for
+                                                                                                                       // PAID/COMPLETED
+                throw new RuntimeException(
+                        "Only PAID/COMPLETED orders can be REFUNDED. Current status: " + currentStatus);
             }
+        }
+
+        // Award Points if becoming PAID
+        if (newStatus == OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.PAID) {
+            updateLoyaltyPoints(order);
         }
 
         // Update Status
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
 
+        // --- SECURITY & LOGIC FIXES ---
+
+        // 1. Revert Inventory if order is VOIDED or REFUNDED
+        if (newStatus == OrderEntity.OrderStatus.VOID || newStatus == OrderEntity.OrderStatus.REFUND) {
+            restoreInventoryForOrder(order);
+        }
+
+        // 2. Revert Loyalty Points if order is REFUNDED
+        if (newStatus == OrderEntity.OrderStatus.REFUND && order.getCustomer() != null) {
+            revertLoyaltyPoints(order);
+        }
+
         // Log to Audit Trail (If reason is provided)
         if (reason != null && !reason.isEmpty()) {
-            // In a real app, inject AuditLogService here.
-            // For now, we assume the controller validates permissions.
-            // We can append the reason to the internal note for simple tracking if no audit
-            // service yet.
             String existingNote = order.getNote() != null ? order.getNote() : "";
             order.setNote(existingNote + " | [" + newStatus + "] Reason: " + reason + " (By User: " + userId + ")");
         }
 
         OrderEntity updatedOrder = orderRepository.save(order);
         return orderMapper.toResponseDTO(updatedOrder);
+    }
+
+    private void revertLoyaltyPoints(OrderEntity order) {
+        CustomerEntity customer = order.getCustomer();
+        if (customer == null)
+            return;
+
+        // Revert $1 = 1 Point logic
+        int pointsToRemove = (int) Math.floor(order.getTotalAmount());
+        int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+
+        // Don't let points go below 0 (though in a strict world, they might)
+        customer.setLoyaltyPoints(Math.max(0, currentPoints - pointsToRemove));
+        customerRepository.save(customer);
     }
 
     /**
@@ -403,21 +474,30 @@ public class OrderService {
                 .sum();
         existingOrder.setSubTotal(subTotal);
 
-        // Discount
-        Double discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0;
+        // Discount (SECURE CALCULATION)
+        double discount = 0.0;
+        if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
+            CustomerEntity customer = existingOrder.getCustomer();
+            if (customer == null) {
+                throw new RuntimeException("No customer linked to this order for points redemption.");
+            }
+            int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+            // Note: Since this is an update, the points might have already been deducted.
+            // But business rule says we can't modify PAID orders anyway (line 421).
+            if (availablePoints < request.getPointsRedeemed()) {
+                throw new RuntimeException("Insufficient loyalty points!");
+            }
+            discount = request.getPointsRedeemed() / 10.0;
+        }
         existingOrder.setDiscountAmount(discount);
 
         // Tax (Align with createOrder logic)
         double taxRate = 0.0;
-        double taxAmount = (subTotal - discount) * taxRate;
-        if (taxAmount < 0)
-            taxAmount = 0.0;
+        double taxAmount = Math.max(0, (subTotal - discount) * taxRate);
         existingOrder.setTaxAmount(taxAmount);
 
         // Total
-        double totalAmount = subTotal - discount + taxAmount;
-        if (totalAmount < 0)
-            totalAmount = 0.0;
+        double totalAmount = Math.max(0, subTotal - discount + taxAmount);
         existingOrder.setTotalAmount(totalAmount);
 
         // --- 3. Update Relationships ---
@@ -461,6 +541,9 @@ public class OrderService {
         if (order.getStatus() == OrderEntity.OrderStatus.PAID) {
             throw new RuntimeException("Cannot delete paid orders");
         }
+
+        // Restore inventory before marking as deleted
+        restoreInventoryForOrder(order);
 
         order.setDeletedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());

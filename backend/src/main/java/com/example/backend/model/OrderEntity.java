@@ -88,7 +88,10 @@ public class OrderEntity extends BaseEntity {
 
     public enum OrderStatus {
         PENDING,
-        PAID,
+        PAID, // Paid but not yet processed/started (or standard paid state)
+        PREPARING, // Kitchen is working on it
+        READY, // Ready for pickup/serving
+        COMPLETED, // Transaction and fulfillment done
         VOID,
         REFUND
     }

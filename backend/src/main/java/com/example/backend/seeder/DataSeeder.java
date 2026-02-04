@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.model.*;
 import com.example.backend.repository.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 @Component
@@ -33,9 +34,9 @@ public class DataSeeder implements CommandLineRunner {
     private final ExpenseRepository expenseRepository;
     private final AttendanceRepository attendanceRepository;
     private final StockAdjustmentRepository stockAdjustmentRepository;
+    private final PasswordEncoder passwordEncoder;
     private final SystemSettingRepository systemSettingRepository;
-
-    private final Random random = new Random();
+    private final java.util.Random random = new java.util.Random();
 
     public DataSeeder(BranchRepository branchRepository,
             RoleRepository roleRepository,
@@ -51,7 +52,8 @@ public class DataSeeder implements CommandLineRunner {
             AttendanceRepository attendanceRepository,
             StockAdjustmentRepository stockAdjustmentRepository,
             PermissionRepository permissionRepository,
-            SystemSettingRepository systemSettingRepository) {
+            SystemSettingRepository systemSettingRepository,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.branchRepository = branchRepository;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
@@ -67,15 +69,17 @@ public class DataSeeder implements CommandLineRunner {
         this.expenseRepository = expenseRepository;
         this.attendanceRepository = attendanceRepository;
         this.stockAdjustmentRepository = stockAdjustmentRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Ensure Permissions and Settings Exist (Run this regardless of existing
-        // data)
+        // 1. Ensure Permissions, Settings and Admin User Exist
+        // (Run this regardless of existing data)
         List<PermissionEntity> allPermissions = seedPermissions();
         seedSettings();
+        ensureUserPasswords(allPermissions);
 
         if (branchRepository.count() > 0) {
             System.out.println("Data already exists. Skipping main seeding.");
@@ -103,7 +107,7 @@ public class DataSeeder implements CommandLineRunner {
         UserEntity adminUser = createEmployeeAndUser(branch, "Admin User", "admin", "password", "1234", adminRole,
                 "Manager",
                 2500.0, 15.0);
-        UserEntity managerUser = createEmployeeAndUser(branch, "John Manager", "manager", "password", "1234",
+        createEmployeeAndUser(branch, "John Manager", "manager", "password", "1234",
                 managerRole,
                 "Manager", 2000.0, 12.0);
         UserEntity cashier1 = createEmployeeAndUser(branch, "Alice Cashier", "alice", "password", "1234", cashierRole,
@@ -119,18 +123,14 @@ public class DataSeeder implements CommandLineRunner {
         List<UserEntity> cashiers = Arrays.asList(cashier1, cashier2);
 
         // 5. Create Ingredients (Inventory)
-        List<IngredientEntity> ingredients = new ArrayList<>();
-        ingredients.add(
-                createIngredient("Coffee Beans", "ING001", IngredientEntity.IngredientUnit.G, 500.0, 5000.0, 0.02));
-        ingredients.add(
-                createIngredient("Whole Milk", "ING002", IngredientEntity.IngredientUnit.ML, 1000.0, 10000.0, 0.0015));
-        ingredients.add(createIngredient("Sugar", "ING003", IngredientEntity.IngredientUnit.G, 500.0, 2000.0, 0.005));
-        ingredients
-                .add(createIngredient("Tea Leaves", "ING004", IngredientEntity.IngredientUnit.G, 200.0, 1000.0, 0.05));
-        ingredients.add(createIngredient("Flour", "ING005", IngredientEntity.IngredientUnit.G, 1000.0, 5000.0, 0.002));
-        ingredients.add(createIngredient("Eggs", "ING006", IngredientEntity.IngredientUnit.PCS, 20.0, 100.0, 0.2));
-        ingredients.add(createIngredient("Avocado", "ING007", IngredientEntity.IngredientUnit.PCS, 10.0, 50.0, 1.5));
-        ingredients.add(createIngredient("Bread", "ING008", IngredientEntity.IngredientUnit.PCS, 10.0, 40.0, 2.0));
+        createIngredient("Coffee Beans", "ING001", IngredientEntity.IngredientUnit.G, 500.0, 5000.0, 0.02);
+        createIngredient("Whole Milk", "ING002", IngredientEntity.IngredientUnit.ML, 1000.0, 10000.0, 0.0015);
+        createIngredient("Sugar", "ING003", IngredientEntity.IngredientUnit.G, 500.0, 2000.0, 0.005);
+        createIngredient("Tea Leaves", "ING004", IngredientEntity.IngredientUnit.G, 200.0, 1000.0, 0.05);
+        createIngredient("Flour", "ING005", IngredientEntity.IngredientUnit.G, 1000.0, 5000.0, 0.002);
+        createIngredient("Eggs", "ING006", IngredientEntity.IngredientUnit.PCS, 20.0, 100.0, 0.2);
+        createIngredient("Avocado", "ING007", IngredientEntity.IngredientUnit.PCS, 10.0, 50.0, 1.5);
+        createIngredient("Bread", "ING008", IngredientEntity.IngredientUnit.PCS, 10.0, 40.0, 2.0);
 
         // 6. Create Categories and Menu Items
         CategoryEntity coffeeCat = createCategory("Coffee", "Freshly brewed coffee");
@@ -219,6 +219,36 @@ public class DataSeeder implements CommandLineRunner {
         createSetting("THEME", "LIGHT", "Default Theme", "APPEARANCE");
     }
 
+    private void ensureUserPasswords(List<PermissionEntity> allPermissions) {
+        // 1. Ensure Admin exists and has password '1234'
+        Optional<UserEntity> adminOpt = userRepository.findByUserNameAndDeletedAtIsNull("admin");
+
+        if (adminOpt.isEmpty()) {
+            System.out.println("No admin user found. Creating default admin...");
+            BranchEntity branch = branchRepository.findAll().stream().findFirst().orElseGet(() -> {
+                BranchEntity b = new BranchEntity();
+                b.setCode("SYSTEM");
+                b.setName("System Branch");
+                return branchRepository.save(b);
+            });
+
+            RoleEntity adminRole = roleRepository.findByRoleNameAndDeletedAtIsNull("ADMIN")
+                    .orElseGet(() -> createRole("ADMIN", "Administrator", allPermissions));
+
+            createEmployeeAndUser(branch, "Admin User", "admin", "1234", "1234", adminRole, "Admin", 0.0, 0.0);
+            System.out.println("Default admin user created (admin / 1234)");
+        }
+
+        // 2. Ensure ALL users have '1234' as their password during development
+        List<UserEntity> allUsers = userRepository.findAll();
+        for (UserEntity user : allUsers) {
+            // We force reset everything to '1234' so the user doesn't get confused
+            user.setPassword(passwordEncoder.encode("1234"));
+            userRepository.save(user);
+            System.out.println("Forced password '1234' for user: " + user.getUserName());
+        }
+    }
+
     private void createSetting(String key, String value, String desc, String group) {
         if (systemSettingRepository.findByKey(key).isEmpty()) {
             SystemSettingEntity setting = new SystemSettingEntity();
@@ -255,7 +285,7 @@ public class DataSeeder implements CommandLineRunner {
         UserEntity user = new UserEntity();
         user.setEmployee(emp);
         user.setUserName(username);
-        user.setPassword(password); // In a real app, encrypt this
+        user.setPassword(passwordEncoder.encode(password));
         user.setPinCode(pin);
         user.setRole(role);
         return userRepository.save(user);
