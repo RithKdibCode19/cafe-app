@@ -7,5 +7,12 @@ import com.example.backend.model.ShiftEntity;
 
 @Repository
 public interface ShiftRepository extends JpaRepository<ShiftEntity, Long> {
+    java.util.List<ShiftEntity> findAllByDeletedAtIsNull();
 
+    java.util.List<ShiftEntity> findByEmployeeEmployeeIdAndDeletedAtIsNull(Long employeeId);
+
+    java.util.List<ShiftEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
+
+    java.util.List<ShiftEntity> findByShiftStartBetweenAndDeletedAtIsNull(java.time.LocalDateTime start,
+            java.time.LocalDateTime end);
 }

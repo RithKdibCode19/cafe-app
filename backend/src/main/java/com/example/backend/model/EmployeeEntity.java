@@ -44,8 +44,63 @@ public class EmployeeEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(name = "base_salary")
+    private Double baseSalary;
+
+    @Column(name = "hourly_rate")
+    private Double hourlyRate;
+
     public enum Status {
         ACTIVE,
         INACTIVE
+    }
+
+    // Manual Getters/Setters
+    public Long getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(Long employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public BranchEntity getBranch() {
+        return branch;
+    }
+
+    public void setBranch(BranchEntity branch) {
+        this.branch = branch;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

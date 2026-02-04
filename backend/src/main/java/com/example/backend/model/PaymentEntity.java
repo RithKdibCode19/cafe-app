@@ -43,6 +43,9 @@ public class PaymentEntity extends BaseEntity {
     @Column(name = "change_amount")
     private Double changeAmount;
 
+    @Column(name = "transaction_id")
+    private String transactionId; // For Bakong MD5 or ref number
+
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus;
@@ -62,5 +65,4 @@ public class PaymentEntity extends BaseEntity {
         FAILED,
         REFUNDED
     }
-
 }

@@ -13,42 +13,42 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.dto.user.UserRequest;
-import com.example.backend.dto.user.UserResponse;
+import com.example.backend.dto.UserRequestDTO;
+import com.example.backend.dto.UserResponseDTO;
 import com.example.backend.services.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping("/add")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest request) {
-        UserResponse response = userService.createUser(request);
+    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO request) {
+        UserResponseDTO response = userService.createUser(request);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getUsers() {
+    public ResponseEntity<List<UserResponseDTO>> getUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,
-            @Valid @RequestBody UserRequest request) {
-        UserResponse updatedUser = userService.updateUser(id, request);
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id,
+            @Valid @RequestBody UserRequestDTO request) {
+        UserResponseDTO updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        UserResponse user = userService.getUserById(id);
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        UserResponseDTO user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 

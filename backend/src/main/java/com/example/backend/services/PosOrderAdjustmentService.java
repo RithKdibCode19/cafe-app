@@ -24,6 +24,7 @@ public class PosOrderAdjustmentService {
     private final PosOrderAdjustmentRepository posOrderAdjustmentRepository;
     private final OrderRepository orderRepository;
     private final PosOrderAdjustmentMapper posOrderAdjustmentMapper;
+    private final OrderService orderService;
 
     /**
      * Create new order adjustment
@@ -169,5 +170,8 @@ public class PosOrderAdjustmentService {
         }
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
+
+        // Restore inventory when order is voided or refunded
+        orderService.restoreInventoryForOrder(order);
     }
 }

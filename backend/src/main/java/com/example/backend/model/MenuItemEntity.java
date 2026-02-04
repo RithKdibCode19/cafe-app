@@ -42,4 +42,26 @@ public class MenuItemEntity extends BaseEntity {
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "is_available", nullable = false)
+    private Boolean isAvailable = true;
+
+    // Manual Getters/Setters
+    public Long getMenuItemId() { return menuItemId; }
+    public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public CategoryEntity getCategory() { return category; }
+    public void setCategory(CategoryEntity category) { this.category = category; }
+
+    public Double getBasePrice() { return basePrice; }
+    public void setBasePrice(Double basePrice) { this.basePrice = basePrice; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public Boolean getIsAvailable() { return isAvailable; }
+    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
 }

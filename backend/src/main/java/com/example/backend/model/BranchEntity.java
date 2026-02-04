@@ -37,4 +37,19 @@ public class BranchEntity extends BaseEntity {
 
     private String location;
 
+    // Manual Getters/Setters
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
+
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 }

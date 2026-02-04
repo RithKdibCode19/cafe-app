@@ -20,4 +20,13 @@ public class VariantRequestDTO {
     @NotNull(message = "Price adjustment is required")
     private Double priceAdjustment;
 
+    // Manual Getters/Setters
+    public Long getMenuItemId() { return menuItemId; }
+    public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public Double getPriceAdjustment() { return priceAdjustment; }
+    public void setPriceAdjustment(Double priceAdjustment) { this.priceAdjustment = priceAdjustment; }
 }

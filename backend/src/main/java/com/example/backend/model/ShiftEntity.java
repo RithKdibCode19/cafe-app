@@ -46,4 +46,20 @@ public class ShiftEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     private BranchEntity branch;
+
+    // Manual Getters/Setters
+    public Long getShiftId() { return shiftId; }
+    public void setShiftId(Long shiftId) { this.shiftId = shiftId; }
+
+    public EmployeeEntity getEmployee() { return employee; }
+    public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
+
+    public LocalDateTime getShiftStart() { return shiftStart; }
+    public void setShiftStart(LocalDateTime shiftStart) { this.shiftStart = shiftStart; }
+
+    public LocalDateTime getShiftEnd() { return shiftEnd; }
+    public void setShiftEnd(LocalDateTime shiftEnd) { this.shiftEnd = shiftEnd; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
 }

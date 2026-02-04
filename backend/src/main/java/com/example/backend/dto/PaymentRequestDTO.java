@@ -30,4 +30,6 @@ public class PaymentRequestDTO {
     private String paymentStatus;
 
     private LocalDateTime paidAt;
+
+    private String transactionId;
 }

@@ -17,6 +17,11 @@ public interface PermissionRepository extends JpaRepository<PermissionEntity, Lo
     // Find by permission code
     Optional<PermissionEntity> findByCodeAndDeletedAtIsNull(String code);
 
+    // Alias for simple lookup
+    default Optional<PermissionEntity> findByCode(String code) {
+        return findByCodeAndDeletedAtIsNull(code);
+    }
+
     // Check if permission code exists
     boolean existsByCodeAndDeletedAtIsNull(String code);
 

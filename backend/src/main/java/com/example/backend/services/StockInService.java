@@ -54,10 +54,26 @@ public class StockInService {
             stockIn.setTotalCost(stockIn.getQtyIn() * stockIn.getUnitCost());
         }
 
-        // 5. Save stock in record
+        // 5. Update Ingredient Stock & Cost (Weighted Average)
+        double oldStock = ingredient.getCurrentStock();
+        double oldCost = ingredient.getCostPerUnit();
+        double newQty = stockIn.getQtyIn();
+        double newUnitCost = stockIn.getUnitCost();
+
+        double totalValue = (oldStock * oldCost) + (newQty * newUnitCost);
+        double totalQty = oldStock + newQty;
+
+        double weightedAvgCost = (totalQty > 0) ? (totalValue / totalQty) : newUnitCost;
+
+        ingredient.setCurrentStock(totalQty);
+        ingredient.setCostPerUnit(weightedAvgCost);
+        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredientRepository.save(ingredient);
+
+        // 6. Save stock in record
         StockInEntity savedStockIn = stockInRepository.save(stockIn);
 
-        // 6. Map Entity → Response DTO
+        // 7. Map Entity → Response DTO
         return stockInMapper.toResponseDTO(savedStockIn);
     }
 

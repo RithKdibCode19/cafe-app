@@ -61,4 +61,28 @@ public class StockAdjustmentEntity extends BaseEntity {
         COUNT_CORRECTION
     }
 
+    // Manual Getters/Setters
+    public Long getAdjustmentId() { return adjustmentId; }
+    public void setAdjustmentId(Long adjustmentId) { this.adjustmentId = adjustmentId; }
+
+    public IngredientEntity getIngredient() { return ingredient; }
+    public void setIngredient(IngredientEntity ingredient) { this.ingredient = ingredient; }
+
+    public Double getQtyChange() { return qtyChange; }
+    public void setQtyChange(Double qtyChange) { this.qtyChange = qtyChange; }
+
+    public StockAdjustmentReason getReasonType() { return reasonType; }
+    public void setReasonType(StockAdjustmentReason reasonType) { this.reasonType = reasonType; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public Long getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(Long approvedBy) { this.approvedBy = approvedBy; }
+
+    public Long getCreatedBy() { return createdBy; }
+    public void setCreatedBy(Long createdBy) { this.createdBy = createdBy; }
+
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
 }

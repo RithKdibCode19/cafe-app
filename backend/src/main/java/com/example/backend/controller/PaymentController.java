@@ -23,8 +23,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/payments")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -66,4 +66,5 @@ public class PaymentController {
         List<PaymentResponseDTO> payments = paymentService.getPaymentsByMethod(paymentMethod);
         return ResponseEntity.ok(payments);
     }
+
 }

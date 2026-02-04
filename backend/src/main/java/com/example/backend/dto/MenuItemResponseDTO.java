@@ -16,6 +16,7 @@ public class MenuItemResponseDTO {
     private CategoryResponseDTO category;
     private Double basePrice;
     private String imageUrl;
+    private Boolean isAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

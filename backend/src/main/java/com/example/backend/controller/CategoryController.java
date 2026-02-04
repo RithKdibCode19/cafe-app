@@ -20,8 +20,8 @@ import com.example.backend.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/categories")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;

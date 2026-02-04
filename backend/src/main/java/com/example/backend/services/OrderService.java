@@ -37,7 +37,79 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final MenuItemRepository menuItemRepository;
     private final VariantRepository variantRepository;
+    private final com.example.backend.repository.AddOnRepository addOnRepository;
+    private final com.example.backend.repository.RecipeRepository recipeRepository;
+    private final com.example.backend.repository.IngredientRepository ingredientRepository;
     private final OrderMapper orderMapper;
+    private final com.example.backend.repository.PaymentRepository paymentRepository;
+
+    private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
+        com.example.backend.model.PaymentEntity payment = new com.example.backend.model.PaymentEntity();
+        payment.setOrder(order);
+
+        // Map Method
+        if ("KHQR".equalsIgnoreCase(request.getPaymentMethod()) || "QB".equalsIgnoreCase(request.getPaymentMethod())) {
+            payment.setMethod(com.example.backend.model.PaymentEntity.PaymentMethod.QR);
+        } else {
+            payment.setMethod(com.example.backend.model.PaymentEntity.PaymentMethod.CASH);
+        }
+
+        payment.setPaidAmount(
+                request.getReceivedAmount() != null ? request.getReceivedAmount() : order.getTotalAmount());
+        payment.setChangeAmount(payment.getPaidAmount() - order.getTotalAmount());
+        payment.setPaymentStatus(com.example.backend.model.PaymentEntity.PaymentStatus.PAID);
+        payment.setTransactionId(request.getPaymentReference());
+        payment.setPaidAt(LocalDateTime.now());
+        payment.setCreatedAt(LocalDateTime.now());
+        payment.setUpdatedAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+    }
+
+    // ... (rest of class)
+
+    private void deductInventoryForOrder(OrderEntity order) {
+        for (OrderItemEntity item : order.getItems()) {
+            Long menuItemId = item.getMenuItem().getMenuItemId();
+            Integer qty = item.getQty();
+
+            // Find recipes for this menu item
+            List<com.example.backend.model.RecipeEntity> recipes = recipeRepository
+                    .findByMenuItemMenuItemId(menuItemId);
+
+            for (com.example.backend.model.RecipeEntity recipe : recipes) {
+                com.example.backend.model.IngredientEntity ingredient = recipe.getIngredient();
+                Double quantityNeeded = recipe.getQuantityNeeded() * qty;
+
+                // Deduct from current stock
+                // Note: We are not blocking negative stock here (standard POS behavior often
+                // allows negative
+                // to prevent blocking sales, but alerts admins).
+                // Logic: NewStock = Current - Needed.
+                ingredient.setCurrentStock(ingredient.getCurrentStock() - quantityNeeded);
+                ingredientRepository.save(ingredient);
+            }
+        }
+    }
+
+    public void restoreInventoryForOrder(OrderEntity order) {
+        for (OrderItemEntity item : order.getItems()) {
+            Long menuItemId = item.getMenuItem().getMenuItemId();
+            Integer qty = item.getQty();
+
+            List<com.example.backend.model.RecipeEntity> recipes = recipeRepository
+                    .findByMenuItemMenuItemId(menuItemId);
+
+            for (com.example.backend.model.RecipeEntity recipe : recipes) {
+                com.example.backend.model.IngredientEntity ingredient = recipe.getIngredient();
+                Double quantityNeeded = recipe.getQuantityNeeded() * qty;
+
+                // Restore to current stock
+                ingredient.setCurrentStock(ingredient.getCurrentStock() + quantityNeeded);
+                ingredientRepository.save(ingredient);
+            }
+        }
+    }
 
     /**
      * Create a new order with all order items
@@ -72,18 +144,101 @@ public class OrderService {
         order.setStatus(OrderEntity.OrderStatus.valueOf(request.getStatus()));
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
+        order.setPointsRedeemed(request.getPointsRedeemed() != null ? request.getPointsRedeemed() : 0);
 
-        // 4. Process order items
+        // 4. Process order items and calculate subtotal
         List<OrderItemEntity> orderItems = request.getItems().stream()
                 .map(itemRequest -> createOrderItem(order, itemRequest))
                 .collect(Collectors.toList());
         order.setItems(orderItems);
 
-        // 5. Save order (cascade will save items)
+        // Calculate Subtotal from items
+        double subTotal = orderItems.stream()
+                .mapToDouble(item -> item.getUnitPrice() * item.getQty())
+                .sum();
+
+        order.setSubTotal(subTotal);
+
+        // 5. Apply Financials
+        Double discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0;
+        order.setDiscountAmount(discount);
+
+        // Simple Tax Logic (e.g. 0% for now, can be 0.10 for 10%)
+        double taxRate = 0.0;
+        double taxAmount = (subTotal - discount) * taxRate;
+        // Ensure tax is not negative if discount > subtotal
+        if (taxAmount < 0)
+            taxAmount = 0.0;
+
+        order.setTaxAmount(taxAmount);
+
+        double totalAmount = subTotal - discount + taxAmount;
+        if (totalAmount < 0)
+            totalAmount = 0.0; // Prevent negative total
+
+        order.setTotalAmount(totalAmount);
+
+        // 5.1 Process Loyalty Redemption
+        if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
+            if (customer == null) {
+                throw new RuntimeException("Cannot redeem points without a valid customer linked to this order.");
+            }
+            // Use existing points (or 0 if null, though schema says default 0)
+            int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+
+            if (currentPoints < request.getPointsRedeemed()) {
+                throw new RuntimeException("Insufficient loyalty points. Available: " + currentPoints + ", Requested: "
+                        + request.getPointsRedeemed());
+            }
+
+            // Deduct points
+            customer.setLoyaltyPoints(currentPoints - request.getPointsRedeemed());
+            // We save the customer immediately. Since this is @Transactional, it will
+            // rollback if order fails.
+            customerRepository.save(customer);
+        }
+
+        // 6. Save order (cascade will save items)
+        // 6. Save order (cascade will save items)
         OrderEntity savedOrder = orderRepository.save(order);
 
-        // 6. Map Entity → Response DTO
+        // 6.1 Process Payment if included
+        if (request.getStatus().equals("PAID") && request.getPaymentMethod() != null) {
+            createPaymentForOrder(savedOrder, request);
+        }
+
+        // 7. Deduct Inventory (Simple Logic)
+        deductInventoryForOrder(savedOrder);
+
+        // 8. Update Loyalty Points
+        if (savedOrder.getCustomer() != null && savedOrder.getStatus() == OrderEntity.OrderStatus.PAID) {
+            updateLoyaltyPoints(savedOrder);
+        }
+
         return orderMapper.toResponseDTO(savedOrder);
+    }
+
+    private void updateLoyaltyPoints(OrderEntity order) {
+        CustomerEntity customer = order.getCustomer();
+        if (customer == null)
+            return;
+
+        // $1 = 1 Point
+        int pointsToGain = (int) Math.floor(order.getTotalAmount());
+        int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+        customer.setLoyaltyPoints(currentPoints + pointsToGain);
+
+        // Update Membership Level (Demonstration logic)
+        int totalPoints = customer.getLoyaltyPoints();
+        if (totalPoints > 1000) {
+            customer.setMembershipLevel("GOLD");
+        } else if (totalPoints > 300) {
+            customer.setMembershipLevel("SILVER");
+        } else {
+            customer.setMembershipLevel("BRONZE");
+        }
+
+        customerRepository.save(customer);
     }
 
     /**
@@ -91,6 +246,7 @@ public class OrderService {
      */
     public List<OrderResponseDTO> getAllOrders() {
         List<OrderEntity> orders = orderRepository.findAll();
+        // Recalculate or map logic
         return orders.stream()
                 .filter(order -> order.getDeletedAt() == null) // Only active orders
                 .map(orderMapper::toResponseDTO)
@@ -156,7 +312,7 @@ public class OrderService {
      * Update order status
      */
     @Transactional
-    public OrderResponseDTO updateOrderStatus(Long id, String status) {
+    public OrderResponseDTO updateOrderStatus(Long id, String status, Long userId, String reason) {
         OrderEntity order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
 
@@ -164,8 +320,33 @@ public class OrderService {
             throw new RuntimeException("Cannot update deleted order");
         }
 
-        order.setStatus(OrderEntity.OrderStatus.valueOf(status));
+        OrderEntity.OrderStatus newStatus = OrderEntity.OrderStatus.valueOf(status);
+        OrderEntity.OrderStatus currentStatus = order.getStatus();
+
+        // Business Rules for Transitions
+        if (newStatus == OrderEntity.OrderStatus.VOID) {
+            if (currentStatus != OrderEntity.OrderStatus.PENDING) { // Can only void pending orders
+                throw new RuntimeException("Only PENDING orders can be VOIDED. Current status: " + currentStatus);
+            }
+        } else if (newStatus == OrderEntity.OrderStatus.REFUND) {
+            if (currentStatus != OrderEntity.OrderStatus.PAID) { // Can only refund paid orders
+                throw new RuntimeException("Only PAID orders can be REFUNDED. Current status: " + currentStatus);
+            }
+        }
+
+        // Update Status
+        order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
+
+        // Log to Audit Trail (If reason is provided)
+        if (reason != null && !reason.isEmpty()) {
+            // In a real app, inject AuditLogService here.
+            // For now, we assume the controller validates permissions.
+            // We can append the reason to the internal note for simple tracking if no audit
+            // service yet.
+            String existingNote = order.getNote() != null ? order.getNote() : "";
+            order.setNote(existingNote + " | [" + newStatus + "] Reason: " + reason + " (By User: " + userId + ")");
+        }
 
         OrderEntity updatedOrder = orderRepository.save(order);
         return orderMapper.toResponseDTO(updatedOrder);
@@ -188,13 +369,59 @@ public class OrderService {
             throw new RuntimeException("Cannot modify paid orders");
         }
 
-        // Update basic fields
+        // Update basic fields via Mapper (ignores items and calculated financials)
         orderMapper.updateEntityFromDTO(request, existingOrder);
+
+        // Manual Status/Type Updates (if needed explicitly, though mapper might handle
+        // simple strings)
         existingOrder.setOrderType(OrderEntity.OrderType.valueOf(request.getOrderType()));
         existingOrder.setStatus(OrderEntity.OrderStatus.valueOf(request.getStatus()));
         existingOrder.setUpdatedAt(LocalDateTime.now());
 
-        // Update relationships if changed
+        // --- 1. Update Items & Secure Prices ---
+        // Since we are updating, we replace the existing items with the new list.
+        // We use createOrderItem to ensure we fetch secure prices from DB, not trusting
+        // the client.
+
+        List<OrderItemEntity> newOrderItems = request.getItems().stream()
+                .map(itemRequest -> createOrderItem(existingOrder, itemRequest))
+                .collect(Collectors.toList());
+
+        // Update the collection
+        if (existingOrder.getItems() == null) {
+            existingOrder.setItems(newOrderItems);
+        } else {
+            existingOrder.getItems().clear();
+            existingOrder.getItems().addAll(newOrderItems);
+        }
+
+        // --- 2. Recalculate Financials ---
+
+        // Calculate Subtotal from NEW items
+        double subTotal = newOrderItems.stream()
+                .mapToDouble(item -> item.getUnitPrice() * item.getQty())
+                .sum();
+        existingOrder.setSubTotal(subTotal);
+
+        // Discount
+        Double discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : 0.0;
+        existingOrder.setDiscountAmount(discount);
+
+        // Tax (Align with createOrder logic)
+        double taxRate = 0.0;
+        double taxAmount = (subTotal - discount) * taxRate;
+        if (taxAmount < 0)
+            taxAmount = 0.0;
+        existingOrder.setTaxAmount(taxAmount);
+
+        // Total
+        double totalAmount = subTotal - discount + taxAmount;
+        if (totalAmount < 0)
+            totalAmount = 0.0;
+        existingOrder.setTotalAmount(totalAmount);
+
+        // --- 3. Update Relationships ---
+
         if (!existingOrder.getBranch().getBranchId().equals(request.getBranchId())) {
             BranchEntity branch = branchRepository.findById(request.getBranchId())
                     .orElseThrow(() -> new RuntimeException("Branch not found"));
@@ -272,19 +499,35 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Menu item not found with ID: " + itemRequest.getMenuItemId()));
 
         VariantEntity variant = null;
+        Double basePrice = menuItem.getBasePrice(); // Default to base price
+
         if (itemRequest.getVariantId() != null) {
             variant = variantRepository.findById(itemRequest.getVariantId())
                     .orElseThrow(
                             () -> new RuntimeException("Variant not found with ID: " + itemRequest.getVariantId()));
+            basePrice = variant.getPrice(); // Use variant price if exists
         }
+
+        // Handle Add-ons
+        java.util.List<com.example.backend.model.AddOnEntity> addOns = new java.util.ArrayList<>();
+        double addOnTotal = 0.0;
+
+        if (itemRequest.getAddOnIds() != null && !itemRequest.getAddOnIds().isEmpty()) {
+            addOns = addOnRepository.findAllById(itemRequest.getAddOnIds());
+            addOnTotal = addOns.stream().mapToDouble(com.example.backend.model.AddOnEntity::getPrice).sum();
+        }
+
+        Double finalPrice = basePrice + addOnTotal;
 
         OrderItemEntity orderItem = new OrderItemEntity();
         orderItem.setOrder(order);
         orderItem.setMenuItem(menuItem);
         orderItem.setVariant(variant);
         orderItem.setQty(itemRequest.getQuantity());
-        orderItem.setUnitPrice(itemRequest.getUnitPrice());
-        // Map note from request to addons field in entity (for special instructions)
+        orderItem.setUnitPrice(finalPrice); // Set secured price from DB + Addons
+        orderItem.setAddOnItems(addOns);
+
+        // Map note from request to addons field in entity
         orderItem.setAddons(itemRequest.getNote());
         orderItem.setCreatedAt(LocalDateTime.now());
         orderItem.setUpdatedAt(LocalDateTime.now());

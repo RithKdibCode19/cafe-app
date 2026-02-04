@@ -48,5 +48,37 @@ public class OrderItemEntity extends BaseEntity {
     private Double discountAmount;
 
     @Column(columnDefinition = "TEXT")
-    private String addons; // JSON or text
+    private String addons; // JSON or text note
+
+    @jakarta.persistence.ManyToMany(fetch = FetchType.LAZY)
+    @jakarta.persistence.JoinTable(name = "tbl_order_item_addons", joinColumns = @jakarta.persistence.JoinColumn(name = "order_item_id"), inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "addon_id"))
+    private java.util.List<AddOnEntity> addOnItems;
+
+    // Manual Getters/Setters
+    public Long getOrderItemId() { return orderItemId; }
+    public void setOrderItemId(Long orderItemId) { this.orderItemId = orderItemId; }
+
+    public OrderEntity getOrder() { return order; }
+    public void setOrder(OrderEntity order) { this.order = order; }
+
+    public MenuItemEntity getMenuItem() { return menuItem; }
+    public void setMenuItem(MenuItemEntity menuItem) { this.menuItem = menuItem; }
+
+    public VariantEntity getVariant() { return variant; }
+    public void setVariant(VariantEntity variant) { this.variant = variant; }
+
+    public Integer getQty() { return qty; }
+    public void setQty(Integer qty) { this.qty = qty; }
+
+    public Double getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
+
+    public Double getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(Double discountAmount) { this.discountAmount = discountAmount; }
+
+    public String getAddons() { return addons; }
+    public void setAddons(String addons) { this.addons = addons; }
+
+    public java.util.List<AddOnEntity> getAddOnItems() { return addOnItems; }
+    public void setAddOnItems(java.util.List<AddOnEntity> addOnItems) { this.addOnItems = addOnItems; }
 }

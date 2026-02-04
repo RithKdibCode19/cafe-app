@@ -22,8 +22,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/variants")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class VariantController {
 

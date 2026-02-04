@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: cafe-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: vuespringdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cafe-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer - Database Management UI
+  adminer:
+    image: adminer:latest
+    container_name: cafe-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - cafe-network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.yml
+    container_name: cafe-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vuespringdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - cafe-network
+
+  # Nuxt Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cafe-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      NUXT_PUBLIC_API_BASE: http://backend:8081/api
+      NODE_ENV: production
+    networks:
+      - cafe-network
+
+networks:
+  cafe-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

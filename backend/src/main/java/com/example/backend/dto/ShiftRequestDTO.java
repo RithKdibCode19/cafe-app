@@ -23,4 +23,17 @@ public class ShiftRequestDTO {
 
     @NotNull(message = "Branch ID is required")
     private Long branchId;
+
+    // Manual Getters/Setters
+    public Long getEmployeeId() { return employeeId; }
+    public void setEmployeeId(Long employeeId) { this.employeeId = employeeId; }
+
+    public LocalDateTime getShiftStart() { return shiftStart; }
+    public void setShiftStart(LocalDateTime shiftStart) { this.shiftStart = shiftStart; }
+
+    public LocalDateTime getShiftEnd() { return shiftEnd; }
+    public void setShiftEnd(LocalDateTime shiftEnd) { this.shiftEnd = shiftEnd; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
 }

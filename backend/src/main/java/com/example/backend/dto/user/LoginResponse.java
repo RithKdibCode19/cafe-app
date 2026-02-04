@@ -16,4 +16,26 @@ public class LoginResponse {
     private String employeeName;
     private Long branchId;
     private String branchName;
+
+    // Manual Getters/Setters
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
+
+    public String getRoleName() { return roleName; }
+    public void setRoleName(String roleName) { this.roleName = roleName; }
+
+    public String getEmployeeName() { return employeeName; }
+    public void setEmployeeName(String employeeName) { this.employeeName = employeeName; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
+
+    public String getBranchName() { return branchName; }
+    public void setBranchName(String branchName) { this.branchName = branchName; }
 }

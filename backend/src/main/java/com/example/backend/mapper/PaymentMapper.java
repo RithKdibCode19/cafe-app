@@ -14,10 +14,12 @@ public interface PaymentMapper {
 
     PaymentMapper INSTANCE = Mappers.getMapper(PaymentMapper.class);
 
+    @Mapping(target = "orderId", source = "order.orderId")
     PaymentResponseDTO toResponseDTO(PaymentEntity entity);
 
     @Mapping(target = "order", ignore = true)
     @Mapping(target = "paymentId", ignore = true)
+    @Mapping(target = "transactionId", source = "transactionId")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
@@ -26,6 +28,7 @@ public interface PaymentMapper {
 
     @Mapping(target = "order", ignore = true)
     @Mapping(target = "paymentId", ignore = true)
+    @Mapping(target = "transactionId", source = "transactionId")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)

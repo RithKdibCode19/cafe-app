@@ -62,6 +62,21 @@ public class OrderEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "sub_total", nullable = false)
+    private Double subTotal = 0.0;
+
+    @Column(name = "discount_amount")
+    private Double discountAmount = 0.0;
+
+    @Column(name = "tax_amount", nullable = false)
+    private Double taxAmount = 0.0;
+
+    @Column(name = "total_amount", nullable = false)
+    private Double totalAmount = 0.0;
+
+    @Column(name = "points_redeemed")
+    private Integer pointsRedeemed = 0;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
 
@@ -78,4 +93,116 @@ public class OrderEntity extends BaseEntity {
         REFUND
     }
 
+    // Manual Getters/Setters for critical fields causing compilation errors
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public BranchEntity getBranch() {
+        return branch;
+    }
+
+    public void setBranch(BranchEntity branch) {
+        this.branch = branch;
+    }
+
+    public UserEntity getCashierUser() {
+        return cashierUser;
+    }
+
+    public void setCashierUser(UserEntity cashierUser) {
+        this.cashierUser = cashierUser;
+    }
+
+    public CustomerEntity getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(CustomerEntity customer) {
+        this.customer = customer;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public Double getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(Double subTotal) {
+        this.subTotal = subTotal;
+    }
+
+    public Double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(Double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public Double getTaxAmount() {
+        return taxAmount;
+    }
+
+    public void setTaxAmount(Double taxAmount) {
+        this.taxAmount = taxAmount;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public List<OrderItemEntity> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemEntity> items) {
+        this.items = items;
+    }
+
+    public Integer getPointsRedeemed() {
+        return pointsRedeemed;
+    }
+
+    public void setPointsRedeemed(Integer pointsRedeemed) {
+        this.pointsRedeemed = pointsRedeemed;
+    }
 }

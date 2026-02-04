@@ -55,4 +55,29 @@ public class SupplierEntity extends BaseEntity {
         FEMALE,
         OTHER
     }
+
+    // Manual Getters/Setters
+    public Long getSupplierId() { return supplierId; }
+    public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public Gender getGender() { return gender; }
+    public void setGender(Gender gender) { this.gender = gender; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
 }

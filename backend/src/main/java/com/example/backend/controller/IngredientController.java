@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/ingredients")
-@CrossOrigin(origins = "http://localhost:8082")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class IngredientController {
 

@@ -69,4 +69,13 @@ public class CustomerService {
         customerEntity.setDeletedAt(LocalDateTime.now());
         customerRepository.save(customerEntity);
     }
+    /**
+     * Search customers
+     */
+    public List<CustomerResponseDTO> searchCustomers(String query) {
+        List<CustomerEntity> customers = customerRepository.searchCustomers(query);
+         return customers.stream()
+                .map(customerMapper::toResponseDTO)
+                .toList();
+    }
 }

@@ -20,8 +20,8 @@ import com.example.backend.services.MenuItemService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/menu-items")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class MenuItemController {
     private final MenuItemService menuItemService;

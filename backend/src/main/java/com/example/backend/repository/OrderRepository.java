@@ -13,87 +13,91 @@ import com.example.backend.model.OrderEntity;
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
-    // Find by branch
-    List<OrderEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
+        // Find by branch
+        List<OrderEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
 
-    // Find by status
-    List<OrderEntity> findByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status);
+        // Find by status
+        List<OrderEntity> findByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status);
 
-    // Find by cashier user
-    List<OrderEntity> findByCashierUserUserIdAndDeletedAtIsNull(Long cashierUserId);
+        // Find by cashier user
+        List<OrderEntity> findByCashierUserUserIdAndDeletedAtIsNull(Long cashierUserId);
 
-    // Find by customer
-    List<OrderEntity> findByCustomerCustomerIdAndDeletedAtIsNull(Long customerId);
+        // Find by customer
+        List<OrderEntity> findByCustomerCustomerIdAndDeletedAtIsNull(Long customerId);
 
-    // Find by order type
-    List<OrderEntity> findByOrderTypeAndDeletedAtIsNull(OrderEntity.OrderType orderType);
+        // Find by order type
+        List<OrderEntity> findByOrderTypeAndDeletedAtIsNull(OrderEntity.OrderType orderType);
 
-    // Find by date range
-    List<OrderEntity> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
+        // Find by date range
+        List<OrderEntity> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 
-    // Find by branch and date range
-    List<OrderEntity> findByBranchBranchIdAndCreatedAtBetweenAndDeletedAtIsNull(
-            Long branchId, LocalDateTime startDate, LocalDateTime endDate);
+        // Find by branch and date range
+        List<OrderEntity> findByBranchBranchIdAndCreatedAtBetweenAndDeletedAtIsNull(
+                        Long branchId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // Find by branch and status
-    List<OrderEntity> findByBranchBranchIdAndStatusAndDeletedAtIsNull(Long branchId, OrderEntity.OrderStatus status);
+        List<OrderEntity> findByCashierUserUserIdAndCreatedAtBetweenAndDeletedAtIsNull(
+                        Long userId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // Search by order number
-    List<OrderEntity> findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(String orderNo);
+        // Find by branch and status
+        List<OrderEntity> findByBranchBranchIdAndStatusAndDeletedAtIsNull(Long branchId,
+                        OrderEntity.OrderStatus status);
 
-    // Find by exact order number
-    OrderEntity findByOrderNoAndDeletedAtIsNull(String orderNo);
+        // Search by order number
+        List<OrderEntity> findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(String orderNo);
 
-    // Count orders by status
-    long countByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status);
+        // Find by exact order number
+        OrderEntity findByOrderNoAndDeletedAtIsNull(String orderNo);
 
-    // Count today's orders for branch
-    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.branch.branchId = :branchId " +
-            "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
-            "AND o.deletedAt IS NULL")
-    long countTodayOrdersForBranch(@Param("branchId") Long branchId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+        // Count orders by status
+        long countByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status);
 
-    // Get recent orders (last N orders)
-    @Query("SELECT o FROM OrderEntity o WHERE o.deletedAt IS NULL " +
-            "ORDER BY o.createdAt DESC LIMIT :limit")
-    List<OrderEntity> findRecentOrders(@Param("limit") int limit);
+        // Count today's orders for branch
+        @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.branch.branchId = :branchId " +
+                        "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL")
+        long countTodayOrdersForBranch(@Param("branchId") Long branchId,
+                        @Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 
-    // Get pending orders for a branch
-    @Query("SELECT o FROM OrderEntity o WHERE o.branch.branchId = :branchId " +
-            "AND o.status = 'PENDING' AND o.deletedAt IS NULL " +
-            "ORDER BY o.createdAt ASC")
-    List<OrderEntity> findPendingOrdersForBranch(@Param("branchId") Long branchId);
+        // Get recent orders (last N orders)
+        @Query("SELECT o FROM OrderEntity o WHERE o.deletedAt IS NULL " +
+                        "ORDER BY o.createdAt DESC LIMIT :limit")
+        List<OrderEntity> findRecentOrders(@Param("limit") int limit);
 
-    // Calculate total sales for date range
-    @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
-            "JOIN o.items oi WHERE o.status = 'PAID' " +
-            "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
-            "AND o.deletedAt IS NULL")
-    Double calculateTotalSalesForPeriod(@Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+        // Get pending orders for a branch
+        @Query("SELECT o FROM OrderEntity o WHERE o.branch.branchId = :branchId " +
+                        "AND o.status = 'PENDING' AND o.deletedAt IS NULL " +
+                        "ORDER BY o.createdAt ASC")
+        List<OrderEntity> findPendingOrdersForBranch(@Param("branchId") Long branchId);
 
-    // Calculate total sales for branch and date range
-    @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
-            "JOIN o.items oi WHERE o.branch.branchId = :branchId " +
-            "AND o.status = 'PAID' " +
-            "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
-            "AND o.deletedAt IS NULL")
-    Double calculateTotalSalesForBranchAndPeriod(@Param("branchId") Long branchId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+        // Calculate total sales for date range
+        @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
+                        "JOIN o.items oi WHERE o.status = 'PAID' " +
+                        "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL")
+        Double calculateTotalSalesForPeriod(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 
-    // Get orders with items (fetch join for performance)
-    @Query("SELECT DISTINCT o FROM OrderEntity o " +
-            "LEFT JOIN FETCH o.items " +
-            "LEFT JOIN FETCH o.branch " +
-            "LEFT JOIN FETCH o.cashierUser " +
-            "LEFT JOIN FETCH o.customer " +
-            "WHERE o.deletedAt IS NULL " +
-            "ORDER BY o.createdAt DESC")
-    List<OrderEntity> findAllWithDetails();
+        // Calculate total sales for branch and date range
+        @Query("SELECT COALESCE(SUM(oi.qty * oi.unitPrice), 0.0) FROM OrderEntity o " +
+                        "JOIN o.items oi WHERE o.branch.branchId = :branchId " +
+                        "AND o.status = 'PAID' " +
+                        "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL")
+        Double calculateTotalSalesForBranchAndPeriod(@Param("branchId") Long branchId,
+                        @Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 
-    // Check if order number exists
-    boolean existsByOrderNoAndDeletedAtIsNull(String orderNo);
+        // Get orders with items (fetch join for performance)
+        @Query("SELECT DISTINCT o FROM OrderEntity o " +
+                        "LEFT JOIN FETCH o.items " +
+                        "LEFT JOIN FETCH o.branch " +
+                        "LEFT JOIN FETCH o.cashierUser " +
+                        "LEFT JOIN FETCH o.customer " +
+                        "WHERE o.deletedAt IS NULL " +
+                        "ORDER BY o.createdAt DESC")
+        List<OrderEntity> findAllWithDetails();
+
+        // Check if order number exists
+        boolean existsByOrderNoAndDeletedAtIsNull(String orderNo);
 }

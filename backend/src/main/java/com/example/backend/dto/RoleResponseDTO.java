@@ -14,6 +14,7 @@ public class RoleResponseDTO {
     private Long roleId;
     private String roleName;
     private String description;
+    private java.util.List<PermissionResponseDTO> permissions;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

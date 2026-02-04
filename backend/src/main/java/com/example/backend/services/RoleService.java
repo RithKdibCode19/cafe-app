@@ -12,6 +12,10 @@ import com.example.backend.dto.RoleResponseDTO;
 import com.example.backend.mapper.RoleMapper;
 import com.example.backend.model.RoleEntity;
 import com.example.backend.repository.RoleRepository;
+import com.example.backend.repository.PermissionRepository;
+import com.example.backend.model.PermissionEntity;
+import java.util.HashSet;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class RoleService {
 
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
 
     /**
@@ -32,8 +37,16 @@ public class RoleService {
             throw new RuntimeException("Role with name '" + request.getRoleName() + "' already exists");
         }
 
-        // Map Request DTO → Entity
+        // Map Request DTO -> Entity
         RoleEntity role = roleMapper.toEntity(request);
+
+        // Handle Permissions
+        if (request.getPermissionIds() != null && !request.getPermissionIds().isEmpty()) {
+            Set<PermissionEntity> permissions = new HashSet<>(
+                    permissionRepository.findAllById(request.getPermissionIds()));
+            role.setPermissions(permissions);
+        }
+
         role.setCreatedAt(LocalDateTime.now());
         role.setUpdatedAt(LocalDateTime.now());
 
@@ -98,6 +111,13 @@ public class RoleService {
 
         // Update fields
         roleMapper.updateEntityFromDTO(request, existingRole);
+
+        // Update Permissions
+        if (request.getPermissionIds() != null) {
+            Set<PermissionEntity> permissions = new HashSet<>(
+                    permissionRepository.findAllById(request.getPermissionIds()));
+            existingRole.setPermissions(permissions);
+        }
         existingRole.setUpdatedAt(LocalDateTime.now());
 
         RoleEntity updatedRole = roleRepository.save(existingRole);

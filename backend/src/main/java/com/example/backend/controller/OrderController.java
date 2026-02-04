@@ -25,8 +25,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/orders")
-@CrossOrigin(origins = "http://localhost:8082")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -91,9 +91,12 @@ public class OrderController {
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(response);
+            @RequestParam String status,
+            @RequestParam(required = false) Long userId, // e.g. from current session
+            @RequestParam(required = false) String reason) {
+
+        Long effectiveUserId = (userId != null) ? userId : 1L; // Default to system/admin if null
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status, effectiveUserId, reason));
     }
 
     /**
@@ -211,7 +214,8 @@ public class OrderController {
      */
     @PutMapping("/{id}/pay")
     public ResponseEntity<OrderResponseDTO> markOrderAsPaid(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID");
+        // Assume User ID 1 for now
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID", 1L, "Payment Received");
         return ResponseEntity.ok(response);
     }
 
@@ -220,8 +224,11 @@ public class OrderController {
      * PUT /api/orders/{id}/void
      */
     @PutMapping("/{id}/void")
-    public ResponseEntity<OrderResponseDTO> voidOrder(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID");
+    public ResponseEntity<OrderResponseDTO> voidOrder(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID", 1L, reason);
         return ResponseEntity.ok(response);
     }
 
@@ -230,8 +237,11 @@ public class OrderController {
      * PUT /api/orders/{id}/refund
      */
     @PutMapping("/{id}/refund")
-    public ResponseEntity<OrderResponseDTO> refundOrder(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND");
+    public ResponseEntity<OrderResponseDTO> refundOrder(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND", 1L, reason);
         return ResponseEntity.ok(response);
     }
 }

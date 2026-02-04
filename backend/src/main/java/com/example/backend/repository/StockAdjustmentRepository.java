@@ -7,5 +7,5 @@ import com.example.backend.model.StockAdjustmentEntity;
 
 @Repository
 public interface StockAdjustmentRepository extends JpaRepository<StockAdjustmentEntity, Long> {
-
+    java.util.List<StockAdjustmentEntity> findAllByDeletedAtIsNull();
 }

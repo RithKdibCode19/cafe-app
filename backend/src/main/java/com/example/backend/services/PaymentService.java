@@ -39,26 +39,55 @@ public class PaymentService {
             throw new RuntimeException("Cannot process payment for order with status: " + order.getStatus());
         }
 
-        // 3. Map Request DTO → Entity
+        // 3. Validation: Amount Sufficiency
+        Double orderTotal = order.getTotalAmount();
+        Double paidAmount = request.getPaidAmount();
+
+        if (paidAmount < orderTotal) {
+            throw new RuntimeException(
+                    "Insufficient payment amount. Required: " + orderTotal + ", Provided: " + paidAmount);
+        }
+
+        // 4. Calculate Change
+        Double changeAmount = paidAmount - orderTotal;
+        // Make sure we deal with floating point precision if needed, but for now simple
+        // subtraction is okay for Double.
+        // Ideally use BigDecimal for money, but Double is what we have.
+        if (changeAmount < 0)
+            changeAmount = 0.0;
+
+        // 5. Map Request DTO → Entity
         PaymentEntity payment = paymentMapper.toEntity(request);
         payment.setOrder(order);
         payment.setMethod(PaymentEntity.PaymentMethod.valueOf(request.getMethod()));
-        payment.setPaymentStatus(PaymentEntity.PaymentStatus.valueOf(request.getPaymentStatus()));
+
+        // Force status to PAID if sufficient (ignoring DTO status if logic dictates)
+        // Or strictly follow DTO but validate. Let's trust logic over DTO for status if
+        // successful.
+        // Actually, if we are processing a payment, it's usually meaningful.
+        // Let's use the DTO status but ensure it makes sense.
+        // For simplicity, if we are here and amount is sufficient, we treat it as PAID.
+        payment.setPaymentStatus(PaymentEntity.PaymentStatus.PAID);
+
+        payment.setPaidAmount(paidAmount);
+        payment.setChangeAmount(changeAmount);
         payment.setPaidAt(request.getPaidAt() != null ? request.getPaidAt() : LocalDateTime.now());
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
 
-        // 4. Save payment
+        // 6. Save payment
         PaymentEntity savedPayment = paymentRepository.save(payment);
 
-        // 5. Update order status if payment is successful
-        if (PaymentEntity.PaymentStatus.valueOf(request.getPaymentStatus()) == PaymentEntity.PaymentStatus.PAID) {
-            order.setStatus(OrderEntity.OrderStatus.PAID);
-            order.setUpdatedAt(LocalDateTime.now());
-            orderRepository.save(order);
-        }
+        // 7. Update order status
+        order.setStatus(OrderEntity.OrderStatus.PAID);
+        // We could also link the payment to the order if the relationship was
+        // bidirectional and we wanted to cache it,
+        // but OrderEntity doesn't seem to hold a direct reference to a specific payment
+        // (OneToMany usually).
+        // Check OrderEntity... it doesn't have a Payment field, so just status update.
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
 
-        // 6. Map Entity → Response DTO
         return paymentMapper.toResponseDTO(savedPayment);
     }
 
@@ -147,8 +176,16 @@ public class PaymentService {
         PaymentEntity refundedPayment = paymentRepository.save(payment);
 
         // Update associated order status
+        // Update associated order status
         OrderEntity order = payment.getOrder();
         order.setStatus(OrderEntity.OrderStatus.REFUND);
+
+        // Log reason to order note
+        if (refundReason != null && !refundReason.isEmpty()) {
+            String existingNote = order.getNote() != null ? order.getNote() : "";
+            order.setNote(existingNote + " | [REFUND] Reason: " + refundReason);
+        }
+
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
 
