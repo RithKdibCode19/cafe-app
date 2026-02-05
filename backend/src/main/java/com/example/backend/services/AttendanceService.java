@@ -12,6 +12,7 @@ import com.example.backend.dto.AttendanceRequestDTO;
 import com.example.backend.dto.AttendanceResponseDTO;
 import com.example.backend.mapper.AttendanceMapper;
 import com.example.backend.model.AttendanceEntity;
+import com.example.backend.model.BranchEntity;
 import com.example.backend.model.EmployeeEntity;
 import com.example.backend.model.ShiftEntity;
 import com.example.backend.repository.AttendanceRepository;
@@ -28,6 +29,46 @@ public class AttendanceService {
     private final EmployeeRepository employeeRepository;
     private final ShiftRepository shiftRepository; // To check against scheduled shifts
     private final AttendanceMapper attendanceMapper;
+    private final QrCodeService qrCodeService;
+
+    // Haversine formula to calculate distance in meters
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371000; // Radius of the earth in meters
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    @Transactional
+    public AttendanceResponseDTO mobileClockIn(Long employeeId, String token, Double lat, Double lon) {
+        // 1. Validate Token
+        Long branchId = qrCodeService.validateToken(token);
+        if (branchId == null) {
+            throw new RuntimeException("Invalid or expired QR Code");
+        }
+
+        // 2. Validate Employee
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        // 3. Validate Location
+        BranchEntity branch = employee.getBranch(); // Assuming employee clocks in at their assigned branch
+        
+        // If branch has no location set, skip check (or fail, depending on policy)
+        if (branch.getLatitude() != null && branch.getLongitude() != null) {
+            double distance = calculateDistance(lat, lon, branch.getLatitude(), branch.getLongitude());
+            if (distance > branch.getRadiusMeters()) {
+                 throw new RuntimeException("You are too far from the branch (" + (int)distance + "m). Max allowed: " + branch.getRadiusMeters() + "m");
+            }
+        }
+        
+        // 4. Perform Clock In (Reuse logic)
+        return clockIn(employeeId);
+    }
 
     @Transactional
     public AttendanceResponseDTO clockIn(Long employeeId) {

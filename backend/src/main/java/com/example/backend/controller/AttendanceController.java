@@ -24,6 +24,19 @@ import lombok.RequiredArgsConstructor;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+    private final com.example.backend.services.QrCodeService qrCodeService;
+
+    @PostMapping("/mobile-check-in/{employeeId}")
+    public ResponseEntity<AttendanceResponseDTO> mobileClockIn(
+            @PathVariable Long employeeId,
+            @RequestBody com.example.backend.dto.MobileCheckInRequestDTO request) {
+        return ResponseEntity.ok(attendanceService.mobileClockIn(employeeId, request.getToken(), request.getLatitude(), request.getLongitude()));
+    }
+
+    @GetMapping("/qr-token/{branchId}")
+    public ResponseEntity<String> getQrToken(@PathVariable Long branchId) {
+        return ResponseEntity.ok(qrCodeService.generateQrToken(branchId));
+    }
 
     @PostMapping("/clock-in/{employeeId}")
     public ResponseEntity<AttendanceResponseDTO> clockIn(@PathVariable Long employeeId) {
