@@ -36,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
     private final StockAdjustmentRepository stockAdjustmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final SystemSettingRepository systemSettingRepository;
+    private final AddOnRepository addOnRepository;
     private final java.util.Random random = new java.util.Random();
 
     public DataSeeder(BranchRepository branchRepository,
@@ -53,6 +54,7 @@ public class DataSeeder implements CommandLineRunner {
             StockAdjustmentRepository stockAdjustmentRepository,
             PermissionRepository permissionRepository,
             SystemSettingRepository systemSettingRepository,
+            AddOnRepository addOnRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.branchRepository = branchRepository;
         this.roleRepository = roleRepository;
@@ -69,6 +71,7 @@ public class DataSeeder implements CommandLineRunner {
         this.expenseRepository = expenseRepository;
         this.attendanceRepository = attendanceRepository;
         this.stockAdjustmentRepository = stockAdjustmentRepository;
+        this.addOnRepository = addOnRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -79,10 +82,12 @@ public class DataSeeder implements CommandLineRunner {
         // (Run this regardless of existing data)
         List<PermissionEntity> allPermissions = seedPermissions();
         seedSettings();
+        seedAddOns();
         ensureUserPasswords(allPermissions);
 
         if (branchRepository.count() > 0) {
-            System.out.println("Data already exists. Skipping main seeding.");
+            System.out.println("Data already exists. Checking for hierarchy updates...");
+            migrateHierarchy();
             return;
         }
 
@@ -133,21 +138,25 @@ public class DataSeeder implements CommandLineRunner {
         createIngredient("Bread", "ING008", IngredientEntity.IngredientUnit.PCS, 10.0, 40.0, 2.0);
 
         // 6. Create Categories and Menu Items
-        CategoryEntity coffeeCat = createCategory("Coffee", "Freshly brewed coffee");
-        CategoryEntity teaCat = createCategory("Tea", "Premium teas");
-        CategoryEntity foodCat = createCategory("Food", "Delicious meals and snacks");
-        CategoryEntity bakeryCat = createCategory("Bakery", "Fresh baked goods");
+        CategoryEntity beverages = createCategory("Beverages", "All drinks", null);
+        CategoryEntity coffeeCat = createCategory("Coffee", "Freshly brewed coffee", beverages);
+        CategoryEntity teaCat = createCategory("Tea", "Premium teas", beverages);
+        
+        CategoryEntity food = createCategory("Food", "All food items", null);
+        CategoryEntity mainDishes = createCategory("Main Dishes", "Main meals", food);
+        CategoryEntity bakeryCat = createCategory("Bakery", "Fresh baked goods", food);
 
         List<MenuItemEntity> menuItems = new ArrayList<>();
-        menuItems.add(createMenuItem(coffeeCat, "Espresso", "Strong black coffee", 2.5));
-        menuItems.add(createMenuItem(coffeeCat, "Cappuccino", "Espresso with milk foam", 3.5));
-        menuItems.add(createMenuItem(coffeeCat, "Latte", "Espresso with steamed milk", 4.0));
-        menuItems.add(createMenuItem(teaCat, "Green Tea", "Japanese Sencha", 3.0));
-        menuItems.add(createMenuItem(teaCat, "Earl Grey", "Black tea with bergamot", 3.0));
-        menuItems.add(createMenuItem(foodCat, "Avocado Toast", "Sourdough with fresh avo", 8.5));
-        menuItems.add(createMenuItem(foodCat, "Caesar Salad", "Classic salad", 7.0));
-        menuItems.add(createMenuItem(bakeryCat, "Croissant", "Buttery pastry", 2.5));
-        menuItems.add(createMenuItem(bakeryCat, "Muffin", "Blueberry muffin", 3.0));
+        menuItems.add(createMenuItemWithImage(coffeeCat, "Espresso", "Strong black coffee", 2.5, "https://images.unsplash.com/photo-1579992357154-faf4bde95b3d?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(coffeeCat, "Cappuccino", "Espresso with milk foam", 3.5, "https://images.unsplash.com/photo-1534778101976-62847782c213?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(coffeeCat, "Latte", "Espresso with steamed milk", 4.0, "https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(teaCat, "Green Tea", "Japanese Sencha", 3.0, "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(teaCat, "Earl Grey", "Black tea with bergamot", 3.0, "https://images.unsplash.com/photo-1597318130878-d6180fea8e6c?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(mainDishes, "Avocado Toast", "Sourdough with fresh avo", 8.5, "https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(mainDishes, "Caesar Salad", "Classic salad", 7.0, "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(bakeryCat, "Croissant", "Buttery pastry", 2.5, "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(bakeryCat, "Muffin", "Blueberry muffin", 3.0, "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=400&q=80"));
+
 
         // 7. Create Customers
         List<CustomerEntity> customers = new ArrayList<>();
@@ -217,6 +226,46 @@ public class DataSeeder implements CommandLineRunner {
         createSetting("CURRENCY_SYMBOL", "$", "Currency Symbol", "FINANCE");
         createSetting("RECEIPT_FOOTER", "Thank you for dining with us!", "Receipt Footer Message", "GENERAL");
         createSetting("THEME", "LIGHT", "Default Theme", "APPEARANCE");
+    }
+
+    private void seedAddOns() {
+        if (addOnRepository.count() > 0) return;
+        
+        System.out.println("Seeding add-ons...");
+        
+        // Coffee Add-ons
+        createAddOn("Extra Shot", 0.50);
+        createAddOn("Double Shot", 1.00);
+        createAddOn("Vanilla Syrup", 0.50);
+        createAddOn("Caramel Syrup", 0.50);
+        createAddOn("Hazelnut Syrup", 0.50);
+        createAddOn("Chocolate Syrup", 0.50);
+        
+        // Milk Options
+        createAddOn("Soy Milk", 0.60);
+        createAddOn("Oat Milk", 0.70);
+        createAddOn("Almond Milk", 0.70);
+        createAddOn("Coconut Milk", 0.60);
+        createAddOn("Extra Milk", 0.30);
+        
+        // Toppings
+        createAddOn("Whipped Cream", 0.50);
+        createAddOn("Chocolate Drizzle", 0.40);
+        createAddOn("Caramel Drizzle", 0.40);
+        createAddOn("Cinnamon Powder", 0.20);
+        createAddOn("Pearl (Boba)", 0.80);
+        createAddOn("Jelly", 0.60);
+        
+        // Size modifiers (as add-ons)
+        createAddOn("Upsize to Medium", 0.50);
+        createAddOn("Upsize to Large", 1.00);
+    }
+
+    private void createAddOn(String name, Double price) {
+        AddOnEntity addOn = new AddOnEntity();
+        addOn.setName(name);
+        addOn.setPrice(price);
+        addOnRepository.save(addOn);
     }
 
     private void ensureUserPasswords(List<PermissionEntity> allPermissions) {
@@ -303,10 +352,11 @@ public class DataSeeder implements CommandLineRunner {
         return ingredientRepository.save(ing);
     }
 
-    private CategoryEntity createCategory(String name, String desc) {
+    private CategoryEntity createCategory(String name, String desc, CategoryEntity parent) {
         CategoryEntity cat = new CategoryEntity();
         cat.setName(name);
         cat.setDescription(desc);
+        cat.setParent(parent);
         return categoryRepository.save(cat);
     }
 
@@ -319,6 +369,17 @@ public class DataSeeder implements CommandLineRunner {
         item.setImageUrl("https://placehold.co/200?text=" + name.replace(" ", "+"));
         return menuItemRepository.save(item);
     }
+
+    private MenuItemEntity createMenuItemWithImage(CategoryEntity cat, String name, String desc, Double price, String imageUrl) {
+        MenuItemEntity item = new MenuItemEntity();
+        item.setCategory(cat);
+        item.setName(name);
+        item.setBasePrice(price);
+        item.setIsAvailable(true);
+        item.setImageUrl(imageUrl);
+        return menuItemRepository.save(item);
+    }
+
 
     private CustomerEntity createCustomer(String name, String phone, String email, CustomerEntity.Gender gender,
             Integer points) {
@@ -407,5 +468,104 @@ public class DataSeeder implements CommandLineRunner {
         att.setCheckOut(LocalDateTime.of(date, LocalTime.of(17, random.nextInt(30))));
         att.setStatus(AttendanceEntity.AttendanceStatus.PRESENT);
         attendanceRepository.save(att);
+        att.setStatus(AttendanceEntity.AttendanceStatus.PRESENT);
+        attendanceRepository.save(att);
+    }
+
+    private void migrateHierarchy() {
+        // 1. Beverages Structure
+        CategoryEntity beverages = getOrCreateCategory("Beverages", "All drinks", null);
+        
+        // Coffee branch
+        CategoryEntity coffee = getOrCreateCategory("Coffee", "Freshly brewed coffee", beverages);
+        CategoryEntity hotCoffee = getOrCreateCategory("Hot Coffee", "Steaming hot coffee", coffee);
+        CategoryEntity icedCoffee = getOrCreateCategory("Iced Coffee", "Cold and refreshing", coffee);
+        CategoryEntity frappeCoffee = getOrCreateCategory("Frappe", "Blended ice coffee", coffee);
+
+        // Tea branch
+        CategoryEntity tea = getOrCreateCategory("Tea & Milk", "Tea and milk based drinks", beverages);
+        CategoryEntity icedTea = getOrCreateCategory("Iced Tea", "Cold tea drinks", tea);
+        CategoryEntity frappeTea = getOrCreateCategory("Tea Frappe", "Blended tea", tea);
+        CategoryEntity hotTea = getOrCreateCategory("Hot Tea", "Hot tea", tea);
+
+        // Food branch
+        CategoryEntity food = getOrCreateCategory("Food", "All food items", null);
+        CategoryEntity bakery = getOrCreateCategory("Bakery", "Fresh baked goods", food);
+        CategoryEntity cakes = getOrCreateCategory("Cakes", "Delicious cakes", food);
+
+        // 2. Migrate existing simple categories if they exist to this structure
+        moveCategory("Coffee", beverages); // Older migration might have put it here, but we want it specific? 
+        // Actually, let's just seed new items into these specific new categories.
+        
+        // Seed Items (Idempotent - check by name)
+        seedAmazonItems(hotCoffee, icedCoffee, frappeCoffee, icedTea, frappeTea, bakery, cakes);
+    }
+
+    private CategoryEntity getOrCreateCategory(String name, String desc, CategoryEntity parent) {
+        return categoryRepository.findByName(name).orElseGet(() -> {
+            System.out.println("Creating category: " + name);
+            return createCategory(name, desc, parent);
+        });
+    }
+
+    private void moveCategory(String name, CategoryEntity newParent) {
+        categoryRepository.findByName(name).ifPresent(c -> {
+            if (c.getParent() == null) { // Only move if it's a root
+                c.setParent(newParent);
+                categoryRepository.save(c);
+            }
+        });
+    }
+    
+    private void seedAmazonItems(CategoryEntity hot, CategoryEntity iced, CategoryEntity frappe, 
+                               CategoryEntity icedTea, CategoryEntity frappeTea, 
+                               CategoryEntity bakery, CategoryEntity cakes) {
+        
+        // Hot Coffee
+        createItemIfNotExists(hot, "Hot Espresso", 35.0, "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&q=80");
+        createItemIfNotExists(hot, "Hot Americano", 45.0, "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80");
+        createItemIfNotExists(hot, "Hot Latte", 55.0, "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400&q=80");
+        createItemIfNotExists(hot, "Hot Cappuccino", 55.0, "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&q=80");
+        createItemIfNotExists(hot, "Hot Mocha", 60.0, "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?w=400&q=80");
+        createItemIfNotExists(hot, "Hot Caramel Macchiato", 70.0, "https://images.unsplash.com/photo-1485808191679-5f8c7c8606af?w=400&q=80");
+
+        // Iced Coffee
+        createItemIfNotExists(iced, "Iced Espresso", 50.0, "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=400&q=80");
+        createItemIfNotExists(iced, "Amazon Extra", 75.0, "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&q=80");
+        createItemIfNotExists(iced, "Iced Americano", 60.0, "https://images.unsplash.com/photo-1517701604599-bb29b5c7dd00?w=400&q=80");
+        createItemIfNotExists(iced, "Iced Latte", 65.0, "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80");
+        createItemIfNotExists(iced, "Iced Mocha", 70.0, "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400&q=80");
+        createItemIfNotExists(iced, "Black Coffee Honey Lemon", 70.0, "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80");
+
+        // Frappe
+        createItemIfNotExists(frappe, "Mocha Frappe", 80.0, "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&q=80");
+        createItemIfNotExists(frappe, "Coffee Frappe", 70.0, "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80");
+        createItemIfNotExists(frappe, "Double Choco Frappe", 85.0, "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400&q=80");
+
+        // Tea
+        createItemIfNotExists(icedTea, "Iced Green Tea Latte", 65.0, "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80");
+        createItemIfNotExists(icedTea, "Iced Thai Tea", 60.0, "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=400&q=80");
+        createItemIfNotExists(icedTea, "Iced Lemon Tea", 55.0, "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80");
+        createItemIfNotExists(frappeTea, "Green Tea Frappe", 75.0, "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&q=80");
+        createItemIfNotExists(frappeTea, "Thai Tea Frappe", 70.0, "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=400&q=80");
+
+        // Bakery
+        createItemIfNotExists(bakery, "Chocolate Cake", 80.0, "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80");
+        createItemIfNotExists(bakery, "Crepes", 60.0, "https://images.unsplash.com/photo-1519676867240-f03562e64548?w=400&q=80");
+        createItemIfNotExists(cakes, "Blueberry Cheesecake", 90.0, "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&q=80");
+    }
+
+    private void createItemIfNotExists(CategoryEntity cat, String name, Double price, String img) {
+         if (menuItemRepository.count() < 100) { // Simple guard to not overfill if running multiple times
+            // Check existence by name might suffice for seed
+             // For now just add if not super many items
+             MenuItemEntity item = new MenuItemEntity();
+             item.setCategory(cat);
+             item.setName(name);
+             item.setBasePrice(price);
+             item.setIsAvailable(true);
+             item.setImageUrl(img);
+             menuItemRepository.save(item);
+         }
     }
 }

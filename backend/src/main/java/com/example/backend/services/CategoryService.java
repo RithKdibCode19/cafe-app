@@ -23,11 +23,17 @@ public class CategoryService {
     }
     public CategoryResponseDTO createCategory(CategoryRequestDTO request) {
         CategoryEntity categoryEntity = categoryMapper.toEntity(request);
+        if (request.getParentId() != null) {
+            CategoryEntity parent = categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new RuntimeException("Parent category not found"));
+            categoryEntity.setParent(parent);
+        }
         CategoryEntity savedCategory = categoryRepository.save(categoryEntity);
         return categoryMapper.toResponseDTO(savedCategory);
     }   
     public List<CategoryResponseDTO> getAllCategories() {
-        List<CategoryEntity> categoryEntities = categoryRepository.findAllActive();
+        // Fetch only root categories (categories with no parent)
+        List<CategoryEntity> categoryEntities = categoryRepository.findRoots();
         return categoryEntities.stream()
                 .map(categoryMapper::toResponseDTO)
                 .toList();
@@ -39,6 +45,15 @@ public class CategoryService {
     public CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO request) {
         CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
         categoryMapper.updateEntityFromDTO(request, categoryEntity);
+        
+        if (request.getParentId() != null) {
+            CategoryEntity parent = categoryRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new RuntimeException("Parent category not found"));
+            categoryEntity.setParent(parent);
+        } else {
+             categoryEntity.setParent(null);
+        }
+
         CategoryEntity updatedCategory = categoryRepository.save(categoryEntity);
         return categoryMapper.toResponseDTO(updatedCategory);
     }

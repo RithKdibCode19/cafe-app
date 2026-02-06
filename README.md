@@ -37,7 +37,7 @@ npm run dev
 
 ---
 
-## 🐳 Full Docker Mode
+## 🐳 Full efore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-inDocker Mode
 
 If you just want to run the entire system without installing Java or Node:
 

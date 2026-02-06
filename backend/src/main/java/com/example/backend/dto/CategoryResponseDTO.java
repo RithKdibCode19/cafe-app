@@ -12,4 +12,6 @@ public class CategoryResponseDTO {
     private Long categoryId;
     private String name;
     private String description;
+    private Long parentId;
+    private java.util.List<CategoryResponseDTO> children;
 }

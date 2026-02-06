@@ -10,6 +10,7 @@ import com.example.backend.model.MenuItemEntity;
 
 @Repository
 public interface MenuItemRepository extends JpaRepository<MenuItemEntity, Long> {
+    @org.springframework.cache.annotation.Cacheable("menu-items")
     @Query("SELECT m FROM MenuItemEntity m WHERE m.deletedAt IS NULL")
     List<MenuItemEntity> findAllActive();
 }
