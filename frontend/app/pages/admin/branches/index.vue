@@ -206,7 +206,17 @@
                 {{ gettingLocation ? 'Getting...' : 'Use Current Location' }}
               </button>
             </div>
-            <p class="text-xs text-neutral-500 mb-3">Required for mobile check-in geofencing</p>
+            <p class="text-xs text-neutral-500 mb-3">Click on map or drag marker to set location</p>
+            
+            <!-- Interactive Map Picker -->
+            <ClientOnly>
+              <UiMapPicker 
+                v-model="mapLocation"
+                :radius="form.radiusMeters"
+                class="mb-4"
+              />
+            </ClientOnly>
+            
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <label class="text-xs text-neutral-500 mb-1 block">Latitude</label>
@@ -331,6 +341,18 @@ const form = ref({
 })
 
 const isEditing = computed(() => !!editId.value)
+
+// Two-way binding for map picker
+const mapLocation = computed({
+  get: () => ({
+    lat: form.value.latitude,
+    lng: form.value.longitude
+  }),
+  set: (val: { lat: number | null; lng: number | null }) => {
+    form.value.latitude = val.lat
+    form.value.longitude = val.lng
+  }
+})
 
 const fetchBranches = async () => {
   loading.value = true
