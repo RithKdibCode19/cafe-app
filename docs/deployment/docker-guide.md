@@ -55,6 +55,9 @@ docker-compose down -v
 
 We use a root-level `.env` file to manage configuration across all services. This file is automatically loaded by Docker Compose.
 
+> [!IMPORTANT]
+> The `.env` file is gitignored. Copy from `.env.example` and fill in your values.
+
 ### Root Configuration (`/.env`)
 
 | Variable                | Description                                |
@@ -65,6 +68,8 @@ We use a root-level `.env` file to manage configuration across all services. Thi
 | `BACKEND_PORT`          | Port exposed to the host for the Backend.  |
 | `FRONTEND_PORT`         | Port exposed to the host for the Frontend. |
 | `SPRING_DATASOURCE_URL` | JDBC connection string for the backend.    |
+| `BAKONG_API_KEY`        | Bakong payment API key.                    |
+| `JWT_SECRET`            | Secret for JWT token signing.              |
 
 ### Service-Specific Config
 
@@ -96,16 +101,8 @@ You can access the `psql` shell directly inside the container.
 **For Root Docker Compose (Container: `cafe-postgres`):**
 
 ```bash
-docker exec -it cafe-postgres psql -U postgres -d vuespringdb
+docker exec -it cafe-postgres psql -U $POSTGRES_USER -d $POSTGRES_DB
 ```
-
-**For Backend-only Docker Compose (Container: `postgres-db`):**
-
-```bash
-docker exec -it postgres-db psql -U postgres -d vuespringdb
-```
-
-_Note: The password is `123456`. If asked, enter it._
 
 ### 2. Via Adminer (Web GUI)
 
@@ -114,9 +111,9 @@ The stack includes **Adminer**, a lightweight database management tool.
 - **URL**: [http://localhost:8080](http://localhost:8080)
 - **System**: PostgreSQL
 - **Server**: `postgres` (internal docker hostname)
-- **Username**: `postgres`
-- **Password**: `123456`
-- **Database**: `vuespringdb`
+- **Username**: _(from your .env file)_
+- **Password**: _(from your .env file)_
+- **Database**: _(from your .env file)_
 
 ### 3. Via External Clients (DBeaver, TablePlus)
 
@@ -124,6 +121,6 @@ Connect using the host port `5432`.
 
 - **Host**: `localhost`
 - **Port**: `5432`
-- **Database**: `vuespringdb`
-- **User**: `postgres`
-- **Password**: `123456`
+- **Database**: _(from your .env file)_
+- **User**: _(from your .env file)_
+- **Password**: _(from your .env file)_

@@ -5,8 +5,8 @@ This guide will help you deploy the Cafe App to a VPS with only 2GB of RAM. Step
 ## Prerequisites
 
 - A VPS with Ubuntu/Debian (Recommended).
-- Domain registered on Namecheap.
-- Cloudflare checking account active.
+- Domain registered on Namecheap (or any registrar).
+- Cloudflare account active.
 - SSH access to your VPS.
 
 ## Step 1: VPS Preparation (CRITICAL: SWAP Setup)
@@ -64,12 +64,23 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin 
     ```
 
 2.  **Environment Configuration**:
+
     ```bash
     cd deployment
     cp .env.prod.example .env
     nano .env
     ```
-    _Edit `.env` and set strict passwords!_
+
+    **Required environment variables:**
+
+    | Variable            | Description                                 |
+    | ------------------- | ------------------------------------------- |
+    | `POSTGRES_PASSWORD` | Strong database password                    |
+    | `BAKONG_API_KEY`    | Your Bakong payment API key                 |
+    | `JWT_SECRET`        | Random 32+ character string for JWT signing |
+
+> [!CAUTION]
+> Never commit the `.env` file to Git! It contains sensitive secrets.
 
 ## Step 4: Cloudflare & SSL (Strict Mode)
 
@@ -95,7 +106,13 @@ We are using **Cloudflare Origin Certificates** for end-to-end encryption.
     # Create the key file
     nano certs/key.pem
     # PASTE the "Private Key" content here. Save & Exit.
+
+    # Secure the private key
+    chmod 600 certs/key.pem
     ```
+
+> [!CAUTION]
+> Never push SSL certificates to GitHub! The `certs/` folder is gitignored.
 
 3.  **Configure Cloudflare SSL Mode**:
     - Go to **SSL/TLS** -> **Overview**.
@@ -112,7 +129,21 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 - Check logs: `docker compose -f docker-compose.prod.yml logs -f`
 - Check stats: `docker stats` (Ensure memory usage is within limits)
-- Visit your domain `http://your-domain.com`
+- Visit your domain `https://your-domain.com`
+
+---
+
+## Environment Variables Reference
+
+| Variable            | Required | Description                              |
+| ------------------- | -------- | ---------------------------------------- |
+| `POSTGRES_DB`       | Yes      | Database name                            |
+| `POSTGRES_USER`     | Yes      | Database user                            |
+| `POSTGRES_PASSWORD` | Yes      | Database password (use strong password!) |
+| `BAKONG_API_URL`    | No       | Bakong API endpoint                      |
+| `BAKONG_API_KEY`    | Yes      | Bakong payment API key                   |
+| `JWT_SECRET`        | Yes      | Secret for signing JWT tokens            |
+| `JWT_EXPIRATION`    | No       | Token expiry in ms (default: 86400000)   |
 
 ---
 

@@ -7,45 +7,79 @@ A modern Point of Sale system built with **Spring Boot 3** (Backend) and **Nuxt 
 For the best development experience, we recommend running the **Infrastructure** (Database) in Docker and the **Applications** (Backend & Frontend) natively on your host machine. This allows for instant hot-reload and debugger support.
 
 ### 1. Prerequisites
+
 - **Docker & Docker Compose**
 - **Java 21 JDK** (for Backend)
 - **Node.js 22+** (for Frontend)
 
 ### 2. Setup Infrastructure
+
 Start the database and management tools:
+
 ```bash
 docker-compose up -d postgres adminer
 ```
 
-### 3. Run Backend (Spring Boot)
-Open a new terminal:
+### 3. Configure Backend Secrets
+
+Create local configuration:
+
 ```bash
 cd backend
-./mvnw spring-boot:run
+nano src/main/resources/application-local.properties
 ```
-- API will be at: `http://localhost:8081`
-- Swagger/OpenAPI docs (if configured): `http://localhost:8081/swagger-ui.html`
 
-### 4. Run Frontend (Nuxt)
+Add your local secrets:
+
+```properties
+spring.datasource.password=your_db_password
+bakong.api.key=your_bakong_key
+jwt.secret=your_jwt_secret
+```
+
+### 4. Run Backend (Spring Boot)
+
+Open a new terminal:
+
+```bash
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+- API will be at: `http://localhost:8081`
+
+### 5. Run Frontend (Nuxt)
+
 Open another terminal:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
 - Web app will be at: `http://localhost:3000`
 
 ---
 
-## 🐳 Full efore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-inDocker Mode
+## 🐳 Full Docker Mode
 
 If you just want to run the entire system without installing Java or Node:
 
-```bash
-docker-compose up -d --build
-```
+1. Copy and configure environment:
+
+   ```bash
+   cp .env.example .env
+   nano .env  # Fill in your passwords
+   ```
+
+2. Start all services:
+   ```bash
+   docker-compose up -d --build
+   ```
 
 Access points:
+
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
 - **Backend API**: [http://localhost:8081](http://localhost:8081)
 - **Adminer (DB UI)**: [http://localhost:8080](http://localhost:8080)
@@ -54,13 +88,17 @@ Access points:
 
 ## ⚙️ Configuration
 
-System configuration is managed via the **root `.env` file**. You can change ports, database names, and credentials there.
+System configuration is managed via environment variables. See the table below:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POSTGRES_DB` | `vuespringdb` | Database name |
-| `BACKEND_PORT` | `8081` | External port for API |
-| `FRONTEND_PORT` | `3000` | External port for Web UI |
+| Variable            | Description          |
+| ------------------- | -------------------- |
+| `POSTGRES_DB`       | Database name        |
+| `POSTGRES_PASSWORD` | Database password    |
+| `BAKONG_API_KEY`    | Payment API key      |
+| `JWT_SECRET`        | Token signing secret |
+
+> [!IMPORTANT]
+> Never commit `.env` files or `application-local.properties` to Git!
 
 ---
 
@@ -76,8 +114,19 @@ Detailed documentation is available in the [`/docs`](./docs) directory:
 
 ---
 
+## 🚀 Production Deployment
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for VPS deployment instructions including:
+
+- Docker Compose production config
+- Nginx reverse proxy
+- SSL/TLS with Cloudflare
+
+---
+
 ## 🛠 Troubleshooting
 
-- **Maven Build Errors**: If you see missing dependency versions, it is likely an incorrect artifact name. Check `backend/pom.xml`.
+- **Maven Build Errors**: If you see missing dependency versions, check `backend/pom.xml`.
 - **Database Connection**: Ensure the `postgres` container is healthy before starting the backend natively.
 - **Port Conflicts**: If port 5432 or 8081 is taken, update the `.env` file in the root.
+- **Missing Secrets**: If backend fails to start, ensure `application-local.properties` exists with required secrets.
