@@ -8,7 +8,8 @@
     <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-float"></div>
     <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
     
-    <div class="card-glass rounded-3xl w-full max-w-md p-8 shadow-2xl relative z-10 animate-scale-in">
+    <!-- Login Card -->
+    <div v-if="!showBranchSelector" class="card-glass rounded-3xl w-full max-w-md p-8 shadow-2xl relative z-10 animate-scale-in">
       <!-- Logo -->
       <div class="flex flex-col items-center mb-8">
         <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50 animate-float">
@@ -70,24 +71,77 @@
         &copy; 2024 Cafe POS System. All rights reserved.
       </div>
     </div>
+
+    <!-- Branch Selector Card -->
+    <div v-else class="card-glass rounded-3xl w-full max-w-md p-8 shadow-2xl relative z-10 animate-scale-in">
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18" />
+            <path d="M5 21V7l8-4v18" />
+            <path d="M19 21V11l-6-4" />
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold text-white">Select Branch</h1>
+        <p class="text-neutral-400 text-sm">Choose the branch you're working at</p>
+      </div>
+
+      <div class="space-y-3 mb-6 max-h-64 overflow-y-auto scrollbar-thin">
+        <button
+          v-for="branch in availableBranches"
+          :key="branch.branchId"
+          @click="selectBranch(branch)"
+          class="w-full p-4 bg-neutral-800/50 hover:bg-neutral-700/50 border border-neutral-700 hover:border-primary-500 rounded-xl text-left transition-all group"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-primary-400">{{ branch.code }}</span>
+              <h3 class="text-white font-medium">{{ branch.name }}</h3>
+              <p v-if="branch.location" class="text-xs text-neutral-400 mt-1">{{ branch.location }}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-600 group-hover:text-primary-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </div>
+        </button>
+      </div>
+
+      <button 
+        @click="logout"
+        class="w-full text-neutral-400 hover:text-white text-sm py-2 transition-colors"
+      >
+        ← Sign in with a different account
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 definePageMeta({
     layout: false
 })
 
+interface Branch {
+  branchId: number
+  code: string
+  name: string
+  location?: string
+}
+
 const username = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
-const { post } = useApi()
-const router = useRouter()
+const showBranchSelector = ref(false)
+const availableBranches = ref<Branch[]>([])
+const pendingAuthResponse = ref<any>(null)
 
-const { setAuth } = useAuth()
+const { get, post } = useApi()
+const router = useRouter()
+const { setAuth, clearAuth } = useAuth()
+const { setBranch } = useBranch()
 
 const handleLogin = async () => {
     loading.value = true
@@ -99,19 +153,51 @@ const handleLogin = async () => {
             password: password.value
         })
         
+        // Store auth temporarily
         setAuth(response)
+        pendingAuthResponse.value = response
         
-        // Redirect based on role (simple logic)
-        if (response.roleName === 'ADMIN' || response.roleName === 'MANAGER') {
-            router.push('/admin')
+        // Check if we need branch selection
+        const branches = await get<Branch[]>('/branches')
+        
+        if (branches && branches.length > 1) {
+            // Show branch selector
+            availableBranches.value = branches
+            showBranchSelector.value = true
+        } else if (branches && branches.length === 1) {
+            // Auto-select only branch
+            setBranch(branches[0])
+            redirectUser(response)
         } else {
-            router.push('/pos')
+            // No branches, proceed normally
+            redirectUser(response)
         }
     } catch (err: any) {
         error.value = err.message || 'Invalid username or password'
     } finally {
         loading.value = false
     }
+}
+
+const selectBranch = (branch: Branch) => {
+    setBranch(branch)
+    redirectUser(pendingAuthResponse.value)
+}
+
+const redirectUser = (response: any) => {
+    if (response.roleName === 'ADMIN' || response.roleName === 'MANAGER') {
+        router.push('/admin')
+    } else {
+        router.push('/pos')
+    }
+}
+
+const logout = () => {
+    clearAuth()
+    showBranchSelector.value = false
+    pendingAuthResponse.value = null
+    username.value = ''
+    password.value = ''
 }
 </script>
 
