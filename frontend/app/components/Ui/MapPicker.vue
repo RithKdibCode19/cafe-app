@@ -1,16 +1,51 @@
 <template>
-  <div class="relative">
-    <div ref="mapContainer" class="w-full h-64 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700"></div>
+  <div class="relative" :class="{ 'fixed inset-0 z-[100] bg-white dark:bg-neutral-900 p-4 flex flex-col': isMaximized }">
+    <div 
+      ref="mapContainer" 
+      class="w-full rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700 transition-all duration-300"
+      :class="isMaximized ? 'flex-1 h-full' : 'h-64'"
+    ></div>
     
+    <!-- Controls -->
+    <div class="absolute top-2 right-2 z-[1000] flex gap-2">
+      <button 
+        @click.prevent="toggleMaximize"
+        class="bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 p-2 rounded-lg shadow-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+        :title="isMaximized ? 'Minimize' : 'Maximize'"
+      >
+        <svg v-if="isMaximized" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3" />
+          <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
+          <path d="M3 16h3a2 2 0 0 1 2 2v3" />
+          <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h6v6" />
+          <path d="M9 21H3v-6" />
+          <path d="M21 3l-7 7" />
+          <path d="M3 21l7-7" />
+        </svg>
+      </button>
+    </div>
+
     <!-- Coordinates display -->
-    <div v-if="modelValue.lat && modelValue.lng" class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg pointer-events-none">
+    <div v-if="modelValue.lat && modelValue.lng" class="absolute bottom-2 left-2 z-[1000] bg-black/70 text-white text-xs px-2 py-1 rounded-lg pointer-events-none">
       {{ modelValue.lat.toFixed(6) }}, {{ modelValue.lng.toFixed(6) }}
     </div>
     
     <!-- Instructions - pointer-events-none so clicks pass through to map -->
-    <div v-else class="absolute inset-0 flex items-center justify-center bg-neutral-900/30 rounded-xl pointer-events-none">
+    <div v-else class="absolute inset-0 flex items-center justify-center bg-neutral-900/30 rounded-xl pointer-events-none z-[999]">
       <p class="text-white text-sm font-medium drop-shadow-lg">Click on map to set location</p>
     </div>
+
+    <!-- Close button (only in maximized mode) -->
+    <button 
+      v-if="isMaximized"
+      @click="toggleMaximize"
+      class="absolute bottom-4 right-4 z-[1000] btn-primary shadow-xl"
+    >
+      Done
+    </button>
   </div>
 </template>
 
@@ -32,11 +67,23 @@ const emit = defineEmits<{
 }>()
 
 const mapContainer = ref<HTMLElement | null>(null)
+const isMaximized = ref(false)
 let L: any = null
 let map: any = null
 let marker: any = null
 let radiusCircle: any = null
 let defaultIcon: any = null
+
+const toggleMaximize = () => {
+  isMaximized.value = !isMaximized.value
+  
+  // Wait for transition animation to finish before resizing map
+  setTimeout(() => {
+    if (map) {
+      map.invalidateSize()
+    }
+  }, 300)
+}
 
 const initMap = async () => {
   if (!mapContainer.value || typeof window === 'undefined') return
