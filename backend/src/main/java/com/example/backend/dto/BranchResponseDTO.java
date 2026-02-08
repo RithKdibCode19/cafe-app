@@ -16,6 +16,9 @@ public class BranchResponseDTO {
     private String name;
     private String location;
     private String phone;
+    private Double latitude;
+    private Double longitude;
+    private Integer radiusMeters;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
