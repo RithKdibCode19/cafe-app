@@ -2,6 +2,7 @@ package com.example.backend.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class OrderService {
     private final com.example.backend.repository.IngredientRepository ingredientRepository;
     private final OrderMapper orderMapper;
     private final com.example.backend.repository.PaymentRepository paymentRepository;
+    private final TelegramService telegramService;
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
         com.example.backend.model.PaymentEntity payment = new com.example.backend.model.PaymentEntity();
@@ -69,6 +71,8 @@ public class OrderService {
     // ... (rest of class)
 
     private void deductInventoryForOrder(OrderEntity order) {
+        List<Map<String, Object>> lowStockItems = new java.util.ArrayList<>();
+        
         for (OrderItemEntity item : order.getItems()) {
             Long menuItemId = item.getMenuItem().getMenuItemId();
             Integer qty = item.getQty();
@@ -82,12 +86,28 @@ public class OrderService {
                 Double quantityNeeded = recipe.getQuantityNeeded() * qty;
 
                 // Deduct from current stock
-                // Note: We are not blocking negative stock here (standard POS behavior often
-                // allows negative
-                // to prevent blocking sales, but alerts admins).
-                // Logic: NewStock = Current - Needed.
                 ingredient.setCurrentStock(ingredient.getCurrentStock() - quantityNeeded);
                 ingredientRepository.save(ingredient);
+
+                // Check if now below reorder level
+                if (ingredient.getReorderLevel() != null && 
+                    ingredient.getCurrentStock() <= ingredient.getReorderLevel()) {
+                    Map<String, Object> item2 = new java.util.HashMap<>();
+                    item2.put("name", ingredient.getName());
+                    item2.put("currentStock", ingredient.getCurrentStock());
+                    item2.put("reorderLevel", ingredient.getReorderLevel());
+                    item2.put("unit", ingredient.getUnit().name());
+                    lowStockItems.add(item2);
+                }
+            }
+        }
+
+        // Send low stock alert if any items are below reorder level
+        if (!lowStockItems.isEmpty()) {
+            try {
+                telegramService.sendLowStockAlert(lowStockItems);
+            } catch (Exception e) {
+                // Don't fail order if notification fails
             }
         }
     }
@@ -253,6 +273,17 @@ public class OrderService {
         // 8. Update Loyalty Points
         if (savedOrder.getCustomer() != null && savedOrder.getStatus() == OrderEntity.OrderStatus.PAID) {
             updateLoyaltyPoints(savedOrder);
+        }
+
+        // 9. Telegram Notification (Large Order Alert)
+        try {
+            telegramService.sendLargeOrderAlert(
+                savedOrder.getOrderNo(),
+                savedOrder.getTotalAmount(),
+                savedOrder.getItems().size()
+            );
+        } catch (Exception e) {
+            // Don't fail the order if notification fails
         }
 
         return orderMapper.toResponseDTO(savedOrder);

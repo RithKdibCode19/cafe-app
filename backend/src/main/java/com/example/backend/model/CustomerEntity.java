@@ -35,6 +35,8 @@ public class CustomerEntity extends BaseEntity {
 
     private String email;
 
+    private String address;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
@@ -94,6 +96,14 @@ public class CustomerEntity extends BaseEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Gender getGender() {

@@ -13,6 +13,8 @@ public interface ShiftRepository extends JpaRepository<ShiftEntity, Long> {
 
     java.util.List<ShiftEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
 
-    java.util.List<ShiftEntity> findByShiftStartBetweenAndDeletedAtIsNull(java.time.LocalDateTime start,
+    java.util.List<ShiftEntity> findByStartTimeBetweenAndDeletedAtIsNull(java.time.LocalDateTime start,
             java.time.LocalDateTime end);
+
+    java.util.Optional<ShiftEntity> findFirstByEmployee_EmployeeIdAndEndTimeIsNullAndDeletedAtIsNull(Long employeeId);
 }

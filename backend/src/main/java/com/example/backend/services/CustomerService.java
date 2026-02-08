@@ -25,6 +25,13 @@ public class CustomerService {
      */
     public CustomerResponseDTO createCustomer(CustomerRequestDTO request) {
         CustomerEntity customerEntity = customerMapper.toEntity(request);
+        // Manual fallback in case Mapper fails
+        if (customerEntity.getName() == null) {
+            customerEntity.setName(request.getFullName());
+        }
+        // Secure against Mass Assignment
+        customerEntity.setMembershipLevel("BRONZE");
+        
         CustomerEntity savedCustomer = customerRepository.save(customerEntity);
         return customerMapper.toResponseDTO(savedCustomer);
     }

@@ -20,6 +20,12 @@ public class SystemSettingService {
         return repository.findAll();
     }
 
+    public String getValue(String key) {
+        return repository.findByKey(key)
+                .map(SystemSettingEntity::getValue)
+                .orElse(null);
+    }
+
     public SystemSettingEntity updateSetting(String key, String value) {
         SystemSettingEntity setting = repository.findByKey(key)
                 .orElseThrow(() -> new RuntimeException("Setting not found: " + key));
@@ -35,6 +41,14 @@ public class SystemSettingService {
             if (setting != null) {
                 setting.setValue(entry.getValue());
                 repository.save(setting);
+            } else {
+                // Create new setting if it doesn't exist
+                SystemSettingEntity newSetting = new SystemSettingEntity();
+                newSetting.setKey(entry.getKey());
+                newSetting.setValue(entry.getValue());
+                newSetting.setDescription(entry.getKey().replace("_", " "));
+                newSetting.setGroup("NOTIFICATIONS");
+                repository.save(newSetting);
             }
         }
     }

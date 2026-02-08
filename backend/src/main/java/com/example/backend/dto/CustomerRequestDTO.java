@@ -18,6 +18,4 @@ public class CustomerRequestDTO {
     private String email;
 
     private String address;
-
-    private Integer loyaltyPoints = 0;
 }

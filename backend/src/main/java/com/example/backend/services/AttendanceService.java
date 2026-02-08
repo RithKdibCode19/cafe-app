@@ -89,14 +89,14 @@ public class AttendanceService {
         List<ShiftEntity> shifts = shiftRepository.findByEmployeeEmployeeIdAndDeletedAtIsNull(employeeId);
         // Filter for today's shift (naive approach)
         ShiftEntity todayShift = shifts.stream()
-                .filter(s -> s.getShiftStart().toLocalDate().isEqual(now.toLocalDate()))
+                .filter(s -> s.getStartTime().toLocalDate().isEqual(now.toLocalDate()))
                 .findFirst()
                 .orElse(null);
 
         if (todayShift != null) {
-            if (now.isAfter(todayShift.getShiftStart().plusMinutes(15))) { // 15 min grace period
+            if (now.isAfter(todayShift.getStartTime().plusMinutes(15))) { // 15 min grace period
                 attendance.setStatus(AttendanceEntity.AttendanceStatus.LATE);
-                long lateMinutes = ChronoUnit.MINUTES.between(todayShift.getShiftStart(), now);
+                long lateMinutes = ChronoUnit.MINUTES.between(todayShift.getStartTime(), now);
                 attendance.setLateMinute((int) lateMinutes);
             } else {
                 attendance.setStatus(AttendanceEntity.AttendanceStatus.PRESENT);

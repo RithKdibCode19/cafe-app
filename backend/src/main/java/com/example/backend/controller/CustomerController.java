@@ -31,7 +31,7 @@ public class CustomerController {
     private final CustomerHistoryService customerHistoryService;
 
     @PostMapping("/add")
-    public ResponseEntity<CustomerResponseDTO> createCustomer(@RequestBody CustomerRequestDTO request) {
+    public ResponseEntity<CustomerResponseDTO> createCustomer(@jakarta.validation.Valid @RequestBody CustomerRequestDTO request) {
         CustomerResponseDTO response = customerService.createCustomer(request);
         return ResponseEntity.ok(response);
     }

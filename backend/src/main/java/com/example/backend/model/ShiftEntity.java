@@ -38,10 +38,16 @@ public class ShiftEntity extends BaseEntity {
     private EmployeeEntity employee;
 
     @Column(name = "shift_start", nullable = false)
-    private LocalDateTime shiftStart;
+    private LocalDateTime startTime;
 
-    @Column(name = "shift_end", nullable = false)
-    private LocalDateTime shiftEnd;
+    @Column(name = "shift_end")
+    private LocalDateTime endTime;
+
+    @Column(name = "start_cash", nullable = false)
+    private Double startCash;
+
+    @Column(name = "end_cash")
+    private Double endCash;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
@@ -54,11 +60,17 @@ public class ShiftEntity extends BaseEntity {
     public EmployeeEntity getEmployee() { return employee; }
     public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
 
-    public LocalDateTime getShiftStart() { return shiftStart; }
-    public void setShiftStart(LocalDateTime shiftStart) { this.shiftStart = shiftStart; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
 
-    public LocalDateTime getShiftEnd() { return shiftEnd; }
-    public void setShiftEnd(LocalDateTime shiftEnd) { this.shiftEnd = shiftEnd; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+
+    public Double getStartCash() { return startCash; }
+    public void setStartCash(Double startCash) { this.startCash = startCash; }
+
+    public Double getEndCash() { return endCash; }
+    public void setEndCash(Double endCash) { this.endCash = endCash; }
 
     public BranchEntity getBranch() { return branch; }
     public void setBranch(BranchEntity branch) { this.branch = branch; }

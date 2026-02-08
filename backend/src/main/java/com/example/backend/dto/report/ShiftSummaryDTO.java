@@ -10,6 +10,7 @@ public class ShiftSummaryDTO {
     private String employeeName;
     private String checkInTime;
     private String checkOutTime;
+    private Double startingCash;
 
     // Financials
     private Double totalSales;

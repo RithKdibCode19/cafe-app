@@ -54,4 +54,30 @@ public class ShiftController {
         shiftService.deleteShift(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/current")
+    public ResponseEntity<ShiftResponseDTO> getCurrentShift(@org.springframework.web.bind.annotation.RequestParam Long userId) {
+        ShiftResponseDTO shift = shiftService.getCurrentShift(userId);
+        return ResponseEntity.ok(shift); 
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<com.example.backend.dto.report.ShiftSummaryDTO> getShiftSummary(
+            @org.springframework.web.bind.annotation.RequestParam Long userId) {
+        return ResponseEntity.ok(shiftService.getShiftSummary(userId));
+    }
+
+    @PostMapping("/open")
+    public ResponseEntity<ShiftResponseDTO> openShift(
+            @org.springframework.web.bind.annotation.RequestParam Long userId,
+            @org.springframework.web.bind.annotation.RequestParam Double startingCash) {
+        return ResponseEntity.ok(shiftService.openShift(userId, startingCash));
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<ShiftResponseDTO> closeShift(
+            @org.springframework.web.bind.annotation.RequestParam Long userId,
+            @org.springframework.web.bind.annotation.RequestParam Double endingCash) {
+        return ResponseEntity.ok(shiftService.closeShift(userId, endingCash));
+    }
 }
