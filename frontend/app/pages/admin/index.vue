@@ -3,13 +3,29 @@
       <UiBreadcrumb :items="[{ label: 'Dashboard' }]" class="mb-6" />
       
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Loading State -->
+      <!-- Loading State with Shimmer Skeletons -->
       <template v-if="loading">
-        <div v-for="i in 4" :key="i" class="card p-6 animate-pulse h-32 bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
+        <div v-for="i in 4" :key="i" class="card p-6 h-32">
+          <div class="flex items-start justify-between">
+            <div class="space-y-3 flex-1">
+              <div class="h-4 w-24 skeleton-shimmer rounded-full"></div>
+              <div class="h-8 w-20 skeleton-shimmer rounded-xl"></div>
+              <div class="h-3 w-32 skeleton-shimmer rounded-full"></div>
+            </div>
+            <div class="w-12 h-12 skeleton-shimmer rounded-xl"></div>
+          </div>
+        </div>
       </template>
-      <!-- Data State -->
+      <!-- Data State with Stagger Animation -->
       <template v-else>
-        <div v-for="stat in stats" :key="stat.label" class="card p-6 hover:shadow-md transition-shadow">
+        <div 
+          v-for="(stat, index) in stats" 
+          :key="stat.label" 
+          :class="[
+            'card card-hover p-6 animate-hidden animate-slide-up',
+            `stagger-${index + 1}`
+          ]"
+        >
           <div class="flex items-start justify-between">
             <div>
               <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{{ stat.label }}</p>
@@ -27,13 +43,14 @@
                 {{ Math.abs(stat.trend) }}% from yesterday
               </p>
             </div>
-            <div :class="['p-3 rounded-xl', stat.iconBg]">
+            <div :class="['p-3 rounded-xl transition-transform group-hover:scale-110', stat.iconBg]">
               <component :is="stat.icon" :class="['w-6 h-6', stat.iconColor]" />
             </div>
           </div>
         </div>
       </template>
     </div>
+
 
     <!-- Charts Row -->
     <div class="grid lg:grid-cols-3 gap-6 mb-8">
@@ -48,7 +65,7 @@
         </div>
         
         <!-- Interactive Chart -->
-        <div v-if="loading" class="h-64 skeleton bg-neutral-100 dark:bg-neutral-800 rounded-3xl animate-pulse"></div>
+        <div v-if="loading" class="h-64 skeleton-shimmer rounded-2xl"></div>
         <div v-else class="h-64">
            <AdminDashboardChart :data="dailySales" />
         </div>
@@ -61,13 +78,13 @@
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Top Products</h3>
           <div class="space-y-4">
             <template v-if="loading">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-3 animate-pulse">
-                <div class="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-neutral-800"></div>
+              <div v-for="i in 3" :key="i" class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl skeleton-shimmer"></div>
                 <div class="flex-1 space-y-2">
-                  <div class="h-3 w-24 bg-neutral-100 dark:bg-neutral-800 rounded-full"></div>
-                  <div class="h-2 w-12 bg-neutral-100 dark:bg-neutral-800 rounded-full"></div>
+                  <div class="h-3 w-24 skeleton-shimmer rounded-full"></div>
+                  <div class="h-2 w-12 skeleton-shimmer rounded-full"></div>
                 </div>
-                <div class="h-4 w-12 bg-neutral-100 dark:bg-neutral-800 rounded-full"></div>
+                <div class="h-4 w-12 skeleton-shimmer rounded-full"></div>
               </div>
             </template>
             <template v-else>
@@ -140,9 +157,9 @@
           </thead>
           <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
             <template v-if="loading">
-              <tr v-for="i in 5" :key="i" class="animate-pulse">
+              <tr v-for="i in 5" :key="i">
                 <td v-for="j in 6" :key="j" class="px-6 py-4">
-                  <div class="h-4 bg-neutral-100 dark:bg-neutral-800 rounded-full w-full"></div>
+                  <div class="h-4 skeleton-shimmer rounded-full w-full"></div>
                 </td>
               </tr>
             </template>

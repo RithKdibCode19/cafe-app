@@ -1,10 +1,18 @@
 <template>
-  <div class="min-h-screen bg-neutral-900 flex items-center justify-center p-4">
-    <div class="bg-neutral-800 rounded-2xl border border-neutral-700 w-full max-w-md p-8 shadow-2xl">
+  <div class="min-h-screen bg-neutral-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Gradient Background -->
+    <div class="absolute inset-0 gradient-mesh opacity-50"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-transparent to-accent-900/20"></div>
+    
+    <!-- Floating particles (decorative) -->
+    <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-float"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
+    
+    <div class="card-glass rounded-3xl w-full max-w-md p-8 shadow-2xl relative z-10 animate-scale-in">
       <!-- Logo -->
       <div class="flex flex-col items-center mb-8">
-        <div class="w-16 h-16 rounded-2xl bg-primary-600 flex items-center justify-center mb-4 shadow-lg shadow-primary-900/50">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50 animate-float">
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/></svg>
         </div>
         <h1 class="text-2xl font-bold text-white">Cafe POS</h1>
         <p class="text-neutral-400">Sign in to your account</p>
@@ -12,45 +20,47 @@
 
       <!-- Form -->
       <form @submit.prevent="handleLogin" class="space-y-6">
-        <div>
+        <div class="animate-fade-in stagger-1 animate-hidden">
            <label class="block text-sm font-medium text-neutral-300 mb-1.5">Username</label>
-           <div class="relative">
+           <div class="relative group">
              <input 
                 v-model="username"
                 type="text" 
-                class="w-full bg-neutral-700 border border-neutral-600 text-white placeholder-neutral-500 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pl-10"
+                class="w-full bg-neutral-800/50 border border-neutral-700 text-white placeholder-neutral-500 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-lg focus:shadow-primary-500/20 transition-all duration-300 pl-11"
                 placeholder="Enter username"
                 required
              />
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-500 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
            </div>
         </div>
 
-        <div>
+        <div class="animate-fade-in stagger-2 animate-hidden">
            <label class="block text-sm font-medium text-neutral-300 mb-1.5">Password</label>
-           <div class="relative">
+           <div class="relative group">
              <input 
                 v-model="password"
                 type="password" 
-                class="w-full bg-neutral-700 border border-neutral-600 text-white placeholder-neutral-500 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pl-10"
+                class="w-full bg-neutral-800/50 border border-neutral-700 text-white placeholder-neutral-500 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-lg focus:shadow-primary-500/20 transition-all duration-300 pl-11"
                 placeholder="Enter password"
                 required
              />
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-500 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
            </div>
         </div>
         
-        <div v-if="error" class="bg-error-900/30 border border-error-800 text-error-400 text-sm p-3 rounded-lg flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-            {{ error }}
-        </div>
+        <Transition name="shake">
+          <div v-if="error" class="bg-error-900/30 border border-error-800 text-error-400 text-sm p-3 rounded-xl flex items-center gap-2 animate-scale-in">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+              {{ error }}
+          </div>
+        </Transition>
 
         <button 
             type="submit" 
             :disabled="loading"
-            class="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+            class="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-primary-900/30 hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0 animate-fade-in stagger-3 animate-hidden"
         >
-            <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            <span v-if="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ loading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
@@ -104,3 +114,17 @@ const handleLogin = async () => {
     }
 }
 </script>
+
+<style scoped>
+.shake-enter-active {
+  animation: shake 0.5s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+</style>
