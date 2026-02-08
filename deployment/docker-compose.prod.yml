@@ -69,6 +69,14 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update # or validate in strict prod
       SPRING_PROFILES_ACTIVE: prod
 
+      # Bakong Payment API
+      BAKONG_API_URL: ${BAKONG_API_URL}
+      BAKONG_API_KEY: ${BAKONG_API_KEY}
+
+      # JWT Security
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
       # JVM Options for 2GB VPS:
       # Max Heap 512m should fit comfortably alongside Postgres(300m) + Nuxt(300m) + OS overhead
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:+UseSerialGC"
