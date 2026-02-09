@@ -80,13 +80,14 @@ services:
       # JVM Options for 2GB VPS:
       # Max Heap 512m should fit comfortably alongside Postgres(300m) + Nuxt(300m) + OS overhead
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:+UseSerialGC"
+      SERVER_PORT: "8082" # Explicitly set backend port
     networks:
       - cafe-network
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1",
+          "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1",
         ]
       interval: 30s
       timeout: 10s
@@ -108,7 +109,7 @@ services:
       - backend
     environment:
       # Internal Docker Network URL for SSR
-      NUXT_API_BASE_INTERNAL: http://backend:8081
+      NUXT_API_BASE_INTERNAL: http://backend:8082
       # Public URL (Client-side) - mapped via Nginx
       NUXT_PUBLIC_API_BASE: /api
       NODE_ENV: production
