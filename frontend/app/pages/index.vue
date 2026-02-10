@@ -9,18 +9,12 @@ End of Shift (Clock Out & Cash Up):<template>
 
       <div class="relative max-w-7xl mx-auto px-4 py-20 text-center">
         <!-- Logo -->
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary mb-8 animate-fade-in">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-            <line x1="6" x2="6" y1="2" y2="4" />
-            <line x1="10" x2="10" y1="2" y2="4" />
-            <line x1="14" x2="14" y1="2" y2="4" />
-          </svg>
+        <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl overflow-hidden mb-8 animate-fade-in shadow-2xl shadow-primary-900/50">
+           <img src="~/assets/images/cofeoshop.jpg" alt="Cofeoshop Logo" class="w-full h-full object-cover" />
         </div>
 
         <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 animate-slide-up">
-          Welcome to <span class="text-gradient">Cafe POS</span>
+          Welcome to <span class="text-gradient">Cofeoshop</span>
         </h1>
         <p class="text-xl text-neutral-400 max-w-2xl mx-auto mb-10 animate-slide-up" style="animation-delay: 0.1s;">
           Modern point of sale system designed for cafes and restaurants. Fast, intuitive, and beautiful.

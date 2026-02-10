@@ -4,14 +4,13 @@
 export const useApi = () => {
     const config = useRuntimeConfig()
 
-    const { token } = useAuth()
-
     /**
      * Fetch data from the API
      * @param endpoint - API endpoint (without /api prefix)
      * @param options - Fetch options
      */
     const fetchApi = <T>(endpoint: string, options?: Parameters<typeof $fetch>[1]) => {
+        const { token } = useAuth()
         
         // Fix: Use any or correct HeadersInit type to avoid TS errors with Headers object
         const headers: any = {

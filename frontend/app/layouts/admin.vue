@@ -20,7 +20,7 @@
               sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'
             ]"
           >
-            Cafe POS
+            Cofeoshop
           </span>
         </div>
       </div>

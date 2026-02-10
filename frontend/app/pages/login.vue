@@ -33,7 +33,7 @@
             class="w-full h-full object-cover"
           />
         </div>
-        <h1 class="text-2xl font-bold text-white">Cafe POS</h1>
+        <h1 class="text-2xl font-bold text-white">Cofeoshop</h1>
         <p class="text-neutral-400">Sign in to your account</p>
       </div>
 

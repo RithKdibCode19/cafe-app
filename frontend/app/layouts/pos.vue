@@ -16,7 +16,7 @@
             >
               <img src="~/assets/images/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
             </div>
-            <span class="font-bold text-lg">Cafe POS</span>
+            <span class="font-bold text-lg">Cofeoshop</span>
           </NuxtLink>
         </div>
 

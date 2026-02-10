@@ -58,7 +58,7 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      title: 'Cafe POS',
+      title: 'Cofeoshop',
       htmlAttrs: {
         lang: 'en'
       },
