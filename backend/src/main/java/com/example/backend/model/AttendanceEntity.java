@@ -25,7 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "tblattendance", indexes = {
-        @Index(name = "idx_employee_id", columnList = "employee_id"),
+        @Index(name = "idx_attendance_employee_id", columnList = "employee_id"),
         @Index(name = "idx_check_in", columnList = "check_in")
 })
 public class AttendanceEntity extends BaseEntity {

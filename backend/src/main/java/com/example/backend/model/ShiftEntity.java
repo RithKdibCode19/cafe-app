@@ -23,7 +23,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "tblshifts", indexes = {
-        @Index(name = "idx_employee_id", columnList = "employee_id"),
+        @Index(name = "idx_shift_employee_id", columnList = "employee_id"),
         @Index(name = "idx_shift_start", columnList = "shift_start")
 })
 public class ShiftEntity extends BaseEntity {
