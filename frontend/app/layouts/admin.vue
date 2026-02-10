@@ -12,7 +12,7 @@
       <div class="flex items-center h-16 px-4 border-b border-neutral-200 dark:border-neutral-800">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
-            <img src="/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
+            <img src="~/assets/images/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
           </div>
           <span
             :class="[

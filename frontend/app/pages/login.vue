@@ -28,7 +28,7 @@
           class="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50 animate-float"
         >
           <img
-            src="/cofeoshop.jpg"
+            src="~/assets/images/cofeoshop.jpg"
             alt="Cafe POS Logo"
             class="w-full h-full object-cover"
           />

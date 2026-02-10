@@ -14,7 +14,7 @@
             <div
               class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
             >
-              <img src="/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
+              <img src="~/assets/images/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
             </div>
             <span class="font-bold text-lg">Cafe POS</span>
           </NuxtLink>
