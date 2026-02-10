@@ -25,21 +25,13 @@
       <!-- Logo -->
       <div class="flex flex-col items-center mb-8">
         <div
-          class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50 animate-float"
+          class="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center mb-4 shadow-xl shadow-primary-900/50 animate-float"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-10 h-10 text-white"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-          </svg>
+          <img
+            src="/cofeoshop.jpg"
+            alt="Cafe POS Logo"
+            class="w-full h-full object-cover"
+          />
         </div>
         <h1 class="text-2xl font-bold text-white">Cafe POS</h1>
         <p class="text-neutral-400">Sign in to your account</p>

@@ -11,14 +11,8 @@
       <!-- Logo -->
       <div class="flex items-center h-16 px-4 border-b border-neutral-200 dark:border-neutral-800">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-              <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-              <line x1="6" x2="6" y1="2" y2="4" />
-              <line x1="10" x2="10" y1="2" y2="4" />
-              <line x1="14" x2="14" y1="2" y2="4" />
-            </svg>
+          <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+            <img src="/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
           </div>
           <span
             :class="[

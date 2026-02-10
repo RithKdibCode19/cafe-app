@@ -12,21 +12,9 @@
             class="flex items-center gap-2 text-white hover:text-primary-400 transition-colors"
           >
             <div
-              class="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center"
+              class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-              </svg>
+              <img src="/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
             </div>
             <span class="font-bold text-lg">Cafe POS</span>
           </NuxtLink>
