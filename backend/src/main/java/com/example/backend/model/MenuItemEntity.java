@@ -40,7 +40,7 @@ public class MenuItemEntity extends BaseEntity {
     @Column(name = "base_price", nullable = false)
     private Double basePrice;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "is_available", nullable = false)

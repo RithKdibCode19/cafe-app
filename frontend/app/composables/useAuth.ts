@@ -21,10 +21,14 @@ export const useAuth = () => {
         }
     }
 
-    const logout = () => {
+    const clearAuth = () => {
         token.value = null
         userCookie.value = null
         user.value = null
+    }
+
+    const logout = () => {
+        clearAuth()
         navigateTo('/login')
     }
 
@@ -49,6 +53,7 @@ export const useAuth = () => {
         user,
         setAuth,
         logout,
+        clearAuth,
         isLoggedIn
     }
 }
