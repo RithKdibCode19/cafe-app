@@ -125,21 +125,21 @@ public class DataSeeder implements CommandLineRunner {
         RoleEntity chefRole = createRole("CHEF", "Kitchen staff", null);
 
         // 4. Create Employees and Users
-        UserEntity adminUser = createEmployeeAndUser(branch, "Admin User", "admin", "password", "1234", adminRole,
+        UserEntity adminUser = findOrCreateUser(branch, "Admin User", "admin", "password", "1234", adminRole,
                 "Manager",
                 2500.0, 15.0);
-        createEmployeeAndUser(branch, "John Manager", "manager", "password", "1234",
+        findOrCreateUser(branch, "John Manager", "manager", "password", "1234",
                 managerRole,
                 "Manager", 2000.0, 12.0);
-        UserEntity cashier1 = createEmployeeAndUser(branch, "Alice Cashier", "alice", "password", "1234", cashierRole,
+        UserEntity cashier1 = findOrCreateUser(branch, "Alice Cashier", "alice", "password", "1234", cashierRole,
                 "Cashier", 1500.0, 10.0);
-        UserEntity cashier2 = createEmployeeAndUser(branch, "Bob Cashier", "bob", "password", "1234", cashierRole,
+        UserEntity cashier2 = findOrCreateUser(branch, "Bob Cashier", "bob", "password", "1234", cashierRole,
                 "Cashier",
                 1500.0, 10.0);
-        UserEntity barista1 = createEmployeeAndUser(branch, "Charlie Barista", "charlie", "password", "1234",
+        UserEntity barista1 = findOrCreateUser(branch, "Charlie Barista", "charlie", "password", "1234",
                 baristaRole,
                 "Barista", 1600.0, 11.0);
-        createEmployeeAndUser(branch, "David Chef", "david", "password", "1234", chefRole, "Chef", 1800.0, 12.0);
+        findOrCreateUser(branch, "David Chef", "david", "password", "1234", chefRole, "Chef", 1800.0, 12.0);
 
         List<UserEntity> cashiers = Arrays.asList(cashier1, cashier2);
 
