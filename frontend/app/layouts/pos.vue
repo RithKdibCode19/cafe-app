@@ -485,62 +485,61 @@
           <!-- Cash Interface -->
           <div
             v-if="selectedMethod === 'CASH'"
-            class="w-full max-w-sm space-y-6 text-center"
+            class="w-full max-w-md bg-neutral-900/80 p-5 rounded-3xl border border-neutral-700 flex flex-col h-full overflow-hidden"
           >
-            <div
-              class="w-20 h-20 rounded-full bg-primary-900/30 flex items-center justify-center mx-auto mb-4"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-10 h-10 text-primary-500"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="20" height="12" x="2" y="6" rx="2" />
-                <circle cx="12" cy="12" r="2" />
-                <path d="M6 12h.01M18 12h.01" />
-              </svg>
+            <div class="text-center mb-2 flex-shrink-0">
+               <p class="text-neutral-400 text-xs mb-1">Total Due</p>
+               <h3 class="text-3xl font-black text-white tracking-tight">${{ total.toFixed(2) }}</h3>
             </div>
-            <h4 class="text-xl font-medium text-white">Cash Payment</h4>
-            <p class="text-neutral-400">
-              Please collect
-              <strong class="text-white">${{ total.toFixed(2) }}</strong> from
-              the customer.
-            </p>
 
-            <div class="grid grid-cols-2 gap-4 mt-8">
-              <button
-                class="p-4 bg-neutral-700 rounded-xl text-white hover:bg-neutral-600"
-              >
-                Exact Amount
-              </button>
-              <button
-                class="p-4 bg-neutral-700 rounded-xl text-white hover:bg-neutral-600"
-              >
-                $10.00
-              </button>
-              <button
-                class="p-4 bg-neutral-700 rounded-xl text-white hover:bg-neutral-600"
-              >
-                $20.00
-              </button>
-              <button
-                class="p-4 bg-neutral-700 rounded-xl text-white hover:bg-neutral-600"
-              >
-                $50.00
-              </button>
+            <!-- Cash Input Display -->
+            <div class="bg-neutral-800 rounded-xl p-3 mb-3 border border-neutral-700 relative overflow-hidden flex-shrink-0">
+                <div class="flex justify-between items-end mb-1">
+                    <span class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Cash Received</span>
+                </div>
+                <!-- Input field (readonly) -->
+                <div class="flex items-center justify-between">
+                     <span class="text-xl font-bold text-neutral-500">$</span>
+                     <span :class="['text-3xl font-mono font-bold tracking-tight', cashReceived ? 'text-white' : 'text-neutral-600']">
+                        {{ cashReceived ? cashReceived : '0.00' }}
+                     </span>
+                </div>
+                <!-- Quick add buttons -->
+                <div class="flex gap-2 mt-2 pt-2 border-t border-neutral-700 overflow-x-auto scrollbar-hide">
+                    <button @click="setCash(total)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">Exact</button>
+                    <button @click="setCash(Math.ceil(total))" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">${{ Math.ceil(total) }}</button>
+                    <button @click="setCash(10)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$10</button>
+                    <button @click="setCash(20)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$20</button>
+                    <button @click="setCash(50)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$50</button>
+                </div>
+            </div>
+
+            <!-- Change Display -->
+            <div class="flex justify-between items-center px-4 py-3 bg-neutral-800 rounded-xl border border-neutral-700 mb-3 flex-shrink-0">
+                 <span class="text-neutral-400 font-bold uppercase text-[10px]">Change Due</span>
+                 <span :class="['text-xl font-black font-mono', changeDue >= 0 ? 'text-success-400' : 'text-error-500']">
+                    {{ changeDue >= 0 ? '$' + changeDue.toFixed(2) : '-$' + Math.abs(changeDue).toFixed(2) }}
+                 </span>
+            </div>
+
+            <!-- Keypad -->
+            <div class="grid grid-cols-3 gap-2 flex-1 min-h-0">
+                <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" @click="addCashDigit(n.toString())" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors shadow-sm flex items-center justify-center">
+                    {{ n }}
+                </button>
+                <button @click="addCashDigit('.')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">.</button>
+                <button @click="addCashDigit('0')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">0</button>
+                <button @click="clearCash" class="h-full max-h-14 rounded-lg bg-error-500/10 hover:bg-error-500/20 text-error-500 hover:text-error-400 text-lg font-bold transition-colors flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+                </button>
             </div>
 
             <button
               @click="completeOrder"
-              :disabled="isProcessing"
-              class="w-full btn-primary btn-lg mt-8"
+              :disabled="isProcessing || changeDue < 0"
+              class="w-full btn-primary py-3 rounded-xl mt-3 text-sm font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
-              {{ isProcessing ? "Processing" : "Confirm Payment" }}
+              {{ isProcessing ? "Processing..." : (changeDue < 0 ? "Insufficient Cash" : "Confirm Payment") }}
             </button>
           </div>
 
@@ -905,16 +904,30 @@
           </button>
         </div>
 
-<div class="p-6 space-y-6">
+        <div class="p-6 space-y-6">
           <!-- Create Customer Form -->
           <div v-if="isCreatingCustomer" class="space-y-4 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-200">
             <div>
-                <label class="block text-xs font-medium text-neutral-400 mb-1">Customer Name</label>
+                <label class="block text-xs font-medium text-neutral-400 mb-1">Customer Name *</label>
                 <input v-model="newCustomer.name" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="John Doe" />
             </div>
             <div>
                 <label class="block text-xs font-medium text-neutral-400 mb-1">Phone (Optional)</label>
                 <input v-model="newCustomer.phone" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="012 345 678" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-neutral-400 mb-1">Gender (Optional)</label>
+                    <select v-model="newCustomer.gender" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm">
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-neutral-400 mb-1">Date of Birth (Optional)</label>
+                    <input v-model="newCustomer.dob" type="date" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" />
+                </div>
             </div>
             <button @click="createCustomer" class="w-full py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg shadow-primary-900/20">
                 Create & Select Customer
@@ -943,16 +956,52 @@
           </div>
 
           <div class="max-h-64 overflow-y-auto space-y-2 pr-2 scrollbar-thin">
+            <!-- Walk-in button only if not searching or empty search -->
             <button
+              v-if="!customerSearch"
               @click="selectCustomerFromModal(null)"
-              class="w-full p-3 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 text-left transition-colors flex items-center justify-between"
+              class="w-full p-3 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 text-left transition-colors flex items-center justify-between mb-2"
             >
               <span class="text-white font-medium">Walk-in Customer</span>
               <span class="text-[10px] text-neutral-500 uppercase font-black"
                 >Default</span
               >
             </button>
+            
+            <!-- Recent Customers Header -->
+            <div v-if="!customerSearch && recentCustomers.length > 0">
+                <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Recent Customers</p>
+                <button
+                v-for="res in recentCustomers"
+                :key="'recent-' + res.customerId"
+                @click="selectCustomerFromModal(res)"
+                class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group mb-2 border border-transparent hover:border-neutral-600"
+                >
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">
+                        {{ res.fullName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                        <div class="text-white font-bold group-hover:text-primary-400">
+                        {{ res.fullName }}
+                        </div>
+                        <div class="text-xs text-neutral-400">
+                        {{ res.phone || "No phone" }}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-black text-warning-500">
+                    {{ res.loyaltyPoints || 0 }} pts
+                    </div>
+                    <div class="text-[10px] text-neutral-500">
+                    {{ res.membershipLevel }}
+                    </div>
+                </div>
+                </button>
+            </div>
 
+            <!-- Search Results -->
             <div v-if="selecting" class="py-12 text-center text-neutral-500">
               Searching...
             </div>
@@ -967,18 +1016,23 @@
 
             <button
               v-for="res in searchResults"
-              :key="res.customerId"
+              :key="'search-' + res.customerId"
               @click="selectCustomerFromModal(res)"
               class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group"
             >
-              <div>
-                <div class="text-white font-bold group-hover:text-primary-400">
-                  {{ res.fullName }}
-                </div>
-                <div class="text-xs text-neutral-400">
-                  {{ res.phone || "No phone" }}
-                </div>
-              </div>
+              <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">
+                        {{ res.fullName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                        <div class="text-white font-bold group-hover:text-primary-400">
+                        {{ res.fullName }}
+                        </div>
+                        <div class="text-xs text-neutral-400">
+                        {{ res.phone || "No phone" }}
+                        </div>
+                    </div>
+               </div>
               <div class="text-right">
                 <div class="text-xs font-black text-warning-500">
                   {{ res.loyaltyPoints || 0 }} pts
@@ -1126,11 +1180,12 @@ const showReceiptModal = ref(false);
 const showCustomerModal = ref(false);
 const customerSearch = ref("");
 const searchResults = ref<any[]>([]);
+const recentCustomers = ref<any[]>([]);
 const selecting = ref(false);
 
 // --- Customer Creation State ---
 const isCreatingCustomer = ref(false);
-const newCustomer = reactive({ name: '', phone: '' });
+const newCustomer = reactive({ name: '', phone: '', gender: 'MALE', dob: '' });
 
 // --- Hold Order State ---
 const showHoldOrderModal = ref(false);
@@ -1140,6 +1195,16 @@ const openCustomerModal = () => {
   showCustomerModal.value = true;
   customerSearch.value = "";
   searchResults.value = [];
+  fetchRecentCustomers();
+};
+
+const fetchRecentCustomers = async () => {
+    try {
+        const data = await get<any[]>("/customers/recent");
+        recentCustomers.value = data || [];
+    } catch (e) {
+        console.error("Failed to fetch recent customers", e);
+    }
 };
 
 const searchCustomers = async () => {
@@ -1170,6 +1235,8 @@ const toggleCreateCustomer = () => {
     isCreatingCustomer.value = !isCreatingCustomer.value;
     newCustomer.name = '';
     newCustomer.phone = '';
+    newCustomer.gender = 'MALE';
+    newCustomer.dob = '';
 };
 
 const createCustomer = async () => {
@@ -1181,6 +1248,8 @@ const createCustomer = async () => {
         const payload = {
             fullName: newCustomer.name,
             phone: newCustomer.phone,
+            gender: newCustomer.gender,
+            dob: newCustomer.dob || null,
             loyaltyPoints: 0,
             membershipLevel: "BRONZE",
         };
@@ -1193,6 +1262,8 @@ const createCustomer = async () => {
         console.error(e);
         toast.error("Failed to create customer");
     }
+    // Refresh recent list
+    fetchRecentCustomers();
 };
 
 // --- Hold Order Logic ---
@@ -1329,12 +1400,42 @@ const paymentStatus = ref("");
 const lastOrderId = ref<number | null>(null);
 const receiptData = ref<any>(null);
 
+// -- Cash Payment Logic --
+const cashReceived = ref<string>('0');
+const changeDue = computed(() => {
+    const received = parseFloat(cashReceived.value);
+    return received - total.value;
+});
+
+const addCashDigit = (d: string) => {
+    if (cashReceived.value === '0' && d !== '.') {
+        cashReceived.value = d;
+    } else {
+        if (d === '.' && cashReceived.value.includes('.')) return;
+        cashReceived.value += d;
+    }
+}
+
+const clearCash = () => {
+    if (cashReceived.value.length === 1) {
+        cashReceived.value = '0';
+    } else {
+        cashReceived.value = cashReceived.value.slice(0, -1);
+    }
+}
+
+const setCash = (amount: number) => {
+    cashReceived.value = amount.toString();
+}
+
 const openPaymentModal = () => {
   if (cartItems.value.length === 0) return;
   showPaymentModal.value = true;
   selectedMethod.value = "CASH";
   khqrData.value = null;
   paymentStatus.value = "PENDING";
+  // Reset cash control
+  cashReceived.value = '0'; 
 };
 
 const closePaymentModal = () => {
@@ -1410,6 +1511,14 @@ const completeOrder = async () => {
   isProcessing.value = true;
 
   try {
+    // Determine actual paid amount
+    let paidAmount = total.value;
+    if (selectedMethod.value === 'CASH') {
+        paidAmount = parseFloat(cashReceived.value);
+    } else if (selectedMethod.value === 'KHQR') {
+        paidAmount = khqrData.value?.payment?.amount || total.value;
+    }
+
     const payload = {
       orderNo: "ORD-" + Date.now(),
       branchId: authUser.value?.branchId || 1,
@@ -1425,13 +1534,9 @@ const completeOrder = async () => {
         note: item.notes || "",
         addOnIds: item.addOns?.map(a => a.addonId) || [],
       })),
-      pointsRedeemed: 0, // Explicitly set if not redeeming
-      // Payment Details
+      pointsRedeemed: 0, 
       paymentMethod: selectedMethod.value,
-      receivedAmount:
-        selectedMethod.value === "CASH"
-          ? total.value
-          : khqrData.value?.payment?.amount || total.value,
+      receivedAmount: paidAmount, // Send actual cash received
       paymentReference:
         selectedMethod.value === "KHQR"
           ? khqrData.value?.payment?.hash ||

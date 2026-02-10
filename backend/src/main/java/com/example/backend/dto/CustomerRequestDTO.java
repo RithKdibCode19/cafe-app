@@ -18,4 +18,8 @@ public class CustomerRequestDTO {
     private String email;
 
     private String address;
+
+    private String gender; // MALE, FEMALE, OTHER
+
+    private java.time.LocalDate dob;
 }

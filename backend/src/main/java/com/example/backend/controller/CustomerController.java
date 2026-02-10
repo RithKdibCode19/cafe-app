@@ -67,6 +67,12 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/recent")
+    public ResponseEntity<List<CustomerResponseDTO>> getRecentCustomers() {
+        List<CustomerResponseDTO> response = customerService.getRecentCustomers();
+        return ResponseEntity.ok(response);
+    }
+
     // ========== Customer History Endpoints ==========
 
     @GetMapping("/{id}/history")

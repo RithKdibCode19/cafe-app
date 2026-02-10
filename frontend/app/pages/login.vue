@@ -48,7 +48,9 @@
               v-model="username"
               type="text"
               class="w-full bg-neutral-800/50 border border-neutral-700 text-white placeholder-neutral-500 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-lg focus:shadow-primary-500/20 transition-all duration-300 pl-11"
+              :class="{ 'border-error-500 animate-shake': error }"
               placeholder="Enter username"
+              @input="error = ''"
               required
             />
             <svg
@@ -76,7 +78,9 @@
               v-model="password"
               type="password"
               class="w-full bg-neutral-800/50 border border-neutral-700 text-white placeholder-neutral-500 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-lg focus:shadow-primary-500/20 transition-all duration-300 pl-11"
+              :class="{ 'border-error-500 animate-shake': error }"
               placeholder="Enter password"
+              @input="error = ''"
               required
             />
             <svg
@@ -249,7 +253,7 @@ const handleLogin = async () => {
 
     // Wait for state to propagate
     await nextTick();
-        
+
     // Check if we need branch selection
     const branches = await get<Branch[]>("/branches");
 
@@ -266,7 +270,23 @@ const handleLogin = async () => {
       redirectUser(response);
     }
   } catch (err: any) {
-    error.value = err.message || "Invalid username or password";
+    // Check for standard Spring Boot / Nuxt error structure
+    // Nuxt usually wraps fetch errors in err.response or err.data
+    // Spring Boot GlobalExceptionHandler returns { message: "..." }
+    const backendMessage =
+      err.response?._data?.message || // Nuxt $fetch with error response
+      err.data?.message || // Axios style
+      err.message; // Fallback
+
+    // Specific check for 401/403 if message is generic
+    if (err.statusCode === 401 || err.response?.status === 401) {
+      error.value =
+        backendMessage && backendMessage !== "FetchError"
+          ? backendMessage
+          : "Incorrect username or password";
+    } else {
+      error.value = backendMessage || "An unexpected error occurred";
+    }
   } finally {
     loading.value = false;
   }

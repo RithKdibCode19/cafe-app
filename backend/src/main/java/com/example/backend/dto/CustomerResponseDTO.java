@@ -16,6 +16,8 @@ public class CustomerResponseDTO {
     private String phone;
     private String email;
     private String address;
+    private String gender;
+    private java.time.LocalDate dob;
     private Integer loyaltyPoints;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

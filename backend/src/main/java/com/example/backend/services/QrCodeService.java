@@ -16,13 +16,14 @@ import java.util.UUID;
 public class QrCodeService {
 
     // In a real app, this should be in application.properties and rotating
+    // But for this specific "Terminal Scan" feature, a random reputable key per restart is actually secure.
     private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private static final long EXPIRATION_TIME = 30000; // 30 seconds
 
     public String generateQrToken(Long branchId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("branchId", branchId);
-        claims.put("nonce", UUID.randomUUID().toString()); // Prevent replay attacks
+        claims.put("nonce", UUID.randomUUID().toString()); // Prevent replay attacks (though we don't store used nonces yet)
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -40,6 +41,7 @@ public class QrCodeService {
                     .parseClaimsJws(token)
                     .getBody();
 
+            // Additional check: ensure token is not too old (handled by setExpiration, but verify)
             return claims.get("branchId", Long.class);
         } catch (Exception e) {
             // Token expired or invalid

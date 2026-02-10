@@ -38,6 +38,16 @@ public class AttendanceController {
         return ResponseEntity.ok(qrCodeService.generateQrToken(branchId));
     }
 
+    @PostMapping("/clock-in/qr")
+    public ResponseEntity<com.example.backend.dto.AttendanceResponseDTO> clockInWithQr(@RequestBody com.example.backend.dto.QrClockInRequestDTO request) {
+        Long branchId = qrCodeService.validateToken(request.getQrToken());
+        if (branchId == null) {
+            throw new RuntimeException("Invalid or expired QR Token");
+        }
+        // Success: Token valid = Employee physically present at terminal
+        return ResponseEntity.ok(attendanceService.clockIn(request.getEmployeeId()));
+    }
+
     @PostMapping("/clock-in/{employeeId}")
     public ResponseEntity<AttendanceResponseDTO> clockIn(@PathVariable Long employeeId) {
         return ResponseEntity.ok(attendanceService.clockIn(employeeId));

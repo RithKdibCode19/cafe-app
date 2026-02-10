@@ -85,4 +85,13 @@ public class CustomerService {
                 .map(customerMapper::toResponseDTO)
                 .toList();
     }
+    /**
+     * Get recent customers
+     */
+    public List<CustomerResponseDTO> getRecentCustomers() {
+        List<CustomerEntity> customers = customerRepository.findTop10ByOrderByUpdatedAtDesc();
+        return customers.stream()
+                .map(customerMapper::toResponseDTO)
+                .toList();
+    }
 }
