@@ -78,20 +78,24 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Ensure Permissions, Settings and Admin User Exist
-        // (Run this regardless of existing data)
+        // 1. Ensure Permissions and Settings exist (always)
         List<PermissionEntity> allPermissions = seedPermissions();
         seedSettings();
         seedAddOns();
+
+        // 2. Check data state BEFORE ensureUserPasswords (which may create a SYSTEM branch)
+        long branchCount = branchRepository.count();
+
+        // 3. Ensure admin user and passwords
         ensureUserPasswords(allPermissions);
 
-        if (branchRepository.count() > 4) {
+        if (branchCount > 4) {
              System.out.println("Data already exists. Checking for hierarchy updates...");
              migrateHierarchy();
              return;
          }
 
-         if (branchRepository.count() > 0) {
+         if (branchCount > 0) {
              System.out.println("Basic data exists. SEEDING HEAVY DATA (PRO MODE)...");
              try {
                  seedHeavyData();
