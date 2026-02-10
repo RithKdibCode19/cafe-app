@@ -12,4 +12,6 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> 
     CustomerEntity findActive();
     @Query("SELECT c FROM CustomerEntity c WHERE (LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) OR c.phone LIKE CONCAT('%', :query, '%')) AND c.deletedAt IS NULL")
     java.util.List<CustomerEntity> searchCustomers(@org.springframework.data.repository.query.Param("query") String query);
+
+    java.util.Optional<CustomerEntity> findByEmail(String email);
 }

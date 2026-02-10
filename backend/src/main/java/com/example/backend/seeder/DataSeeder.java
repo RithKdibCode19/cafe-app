@@ -85,11 +85,17 @@ public class DataSeeder implements CommandLineRunner {
         seedAddOns();
         ensureUserPasswords(allPermissions);
 
-        if (branchRepository.count() > 0) {
-            System.out.println("Data already exists. Checking for hierarchy updates...");
-            migrateHierarchy();
-            return;
-        }
+        if (branchRepository.count() > 4) {
+             System.out.println("Data already exists. Checking for hierarchy updates...");
+             migrateHierarchy();
+             return;
+         }
+
+         if (branchRepository.count() > 0) {
+             System.out.println("Basic data exists. SEEDING HEAVY DATA (PRO MODE)...");
+             seedHeavyData();
+             return;
+         }
 
         System.out.println("Seeding data...");
 
@@ -188,7 +194,143 @@ public class DataSeeder implements CommandLineRunner {
             createAttendance(barista1.getEmployee(), date);
         }
 
+        seedHeavyData();
+
         System.out.println("Data seeding completed successfully!");
+    }
+
+    private void seedHeavyData() {
+        System.out.println("Seeding HEAVY data...");
+        
+        // Ensure initial branch exists for reference
+        BranchEntity mainBranch = branchRepository.findByCode("BR001").orElse(null);
+        if (mainBranch == null) return; // Should not happen if basic seed ran
+        
+        // 1. Create New Branches
+        BranchEntity downtown = createBranch("BR002", "Downtown Cafe", "456 Urban Ave", "555-0202");
+        BranchEntity mall = createBranch("BR003", "City Mall Kiosk", "789 Mall Rd (2nd Floor)", "555-0303");
+        BranchEntity airport = createBranch("BR004", "Airport Terminal 3", "Terminal 3, Gate 12", "555-0404");
+        BranchEntity uni = createBranch("BR005", "University Campus", "Student Center, Room 101", "555-0505");
+        
+        List<BranchEntity> newBranches = Arrays.asList(downtown, mall, airport, uni);
+        List<BranchEntity> allBranches = new ArrayList<>();
+        allBranches.add(mainBranch);
+        allBranches.addAll(newBranches);
+        
+        // 2. Create Employees for new branches
+        RoleEntity managerRole = roleRepository.findByRoleNameAndDeletedAtIsNull("MANAGER").orElseThrow();
+        RoleEntity cashierRole = roleRepository.findByRoleNameAndDeletedAtIsNull("CASHIER").orElseThrow();
+        RoleEntity baristaRole = roleRepository.findByRoleNameAndDeletedAtIsNull("BARISTA").orElseThrow();
+        RoleEntity chefRole = roleRepository.findByRoleNameAndDeletedAtIsNull("CHEF").orElseThrow();
+        
+        List<UserEntity> allCashiers = new ArrayList<>();
+        // Add existing cashiers
+        userRepository.findAll().forEach(u -> {
+            if (u.getRole().getRoleName().equals("CASHIER")) allCashiers.add(u);
+        });
+
+        for (BranchEntity b : newBranches) {
+            // Manager
+            createEmployeeAndUser(b, "Manager " + b.getCode(), "mgr_" + b.getCode().toLowerCase(), "1234", "1234", managerRole, "Manager", 2200.0, 14.0);
+            
+            // Cashiers (2 per branch)
+            allCashiers.add(createEmployeeAndUser(b, "Cashier 1 " + b.getCode(), "c1_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
+            allCashiers.add(createEmployeeAndUser(b, "Cashier 2 " + b.getCode(), "c2_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
+            
+            // Baristas (2 per branch)
+            createEmployeeAndUser(b, "Barista 1 " + b.getCode(), "b1_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
+            createEmployeeAndUser(b, "Barista 2 " + b.getCode(), "b2_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
+            
+            // Kitchen
+             createEmployeeAndUser(b, "Chef " + b.getCode(), "chef_" + b.getCode().toLowerCase(), "1234", "1234", chefRole, "Chef", 1800.0, 12.0);
+        }
+        
+        // 3. Create Bulk Customers
+        List<CustomerEntity> customers = new ArrayList<>();
+        // Fetch existing first
+        customers.addAll(customerRepository.findAll());
+        
+        String[] firstNames = {"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"};
+        String[] lastNames = {"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"};
+        
+        for (int i = 0; i < 50; i++) {
+             String fn = firstNames[random.nextInt(firstNames.length)];
+             String ln = lastNames[random.nextInt(lastNames.length)];
+             String name = fn + " " + ln;
+             String email = fn.toLowerCase() + "." + ln.toLowerCase() + random.nextInt(100) + "@example.com";
+             String phone = "555-" + (1000 + random.nextInt(9000));
+             CustomerEntity.Gender gender = random.nextBoolean() ? CustomerEntity.Gender.MALE : CustomerEntity.Gender.FEMALE;
+             int points = random.nextInt(500);
+             
+             if (customerRepository.findByEmail(email).isEmpty()) {
+                 customers.add(createCustomer(name, phone, email, gender, points));
+             }
+        }
+        
+        // 4. Generate Historical Orders (Last 60 days)
+        // Adjust volume per branch
+        List<MenuItemEntity> menuItems = menuItemRepository.findAll();
+        UserEntity adminUser = userRepository.findByUserNameAndDeletedAtIsNull("admin").orElse(null);
+
+        LocalDate today = LocalDate.now();
+        System.out.println("Generating historical orders (this may take a moment)...");
+        
+        for (int i = 0; i < 60; i++) {
+            LocalDate date = today.minusDays(i);
+            
+            for (BranchEntity b : allBranches) {
+                 // Determine daily volume based on branch type and day of week
+                 int baseVolume = 10;
+                 if (b.getCode().equals("BR001")) baseVolume = 20; // Main St
+                 else if (b.getCode().equals("BR002")) baseVolume = 40; // Downtown (Busy)
+                 else if (b.getCode().equals("BR003")) { // Mall
+                     boolean isWeekend = date.getDayOfWeek().getValue() >= 6;
+                     baseVolume = isWeekend ? 60 : 15;
+                 }
+                 else if (b.getCode().equals("BR004")) baseVolume = 30; // Airport (Steady)
+                 else if (b.getCode().equals("BR005")) baseVolume = 25; // Uni
+                 
+                 // Random fluctuation
+                 int dailyOrders = baseVolume + random.nextInt(20) - 5;
+                 if (dailyOrders < 0) dailyOrders = 5;
+                 
+                 // Get cashiers for THIS branch
+                 List<UserEntity> branchCashiers = getCashiersForBranch(b, allCashiers);
+                 if (branchCashiers.isEmpty()) continue;
+                 
+                 for (int j = 0; j < dailyOrders; j++) {
+                     UserEntity cashier = branchCashiers.get(random.nextInt(branchCashiers.size()));
+                     CustomerEntity customer = (random.nextDouble() > 0.6) ? customers.get(random.nextInt(customers.size())) : null;
+                     createRandomOrder(b, cashier, customer, date, menuItems);
+                 }
+                 
+                 // Generate Expenses
+                  if (random.nextDouble() > 0.7 && adminUser != null) {
+                    createRandomExpense(b, adminUser, date);
+                }
+            }
+        }
+    }
+    
+    private BranchEntity createBranch(String code, String name, String loc, String phone) {
+        return branchRepository.findByCode(code).orElseGet(() -> {
+            BranchEntity b = new BranchEntity();
+            b.setCode(code);
+            b.setName(name);
+            b.setLocation(loc);
+            b.setPhone(phone);
+            return branchRepository.save(b);
+        });
+    }
+    
+    private List<UserEntity> getCashiersForBranch(BranchEntity branch, List<UserEntity> allCashiers) {
+        List<UserEntity> res = new ArrayList<>();
+        for (UserEntity u : allCashiers) {
+            if (u.getEmployee().getBranch().getBranchId().equals(branch.getBranchId())) {
+                res.add(u);
+            }
+        }
+        return res;
     }
 
     private List<PermissionEntity> seedPermissions() {
@@ -400,7 +542,7 @@ public class DataSeeder implements CommandLineRunner {
         order.setBranch(branch);
         order.setCashierUser(cashier);
         order.setCustomer(customer);
-        order.setOrderNo("ORD-" + date.toString().replace("-", "") + "-" + random.nextInt(10000));
+        order.setOrderNo("ORD-" + date.toString().replace("-", "") + "-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         order.setOrderType(OrderEntity.OrderType.DINE_IN);
         order.setStatus(OrderEntity.OrderStatus.PAID);
 

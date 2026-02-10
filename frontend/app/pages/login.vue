@@ -259,7 +259,7 @@ const handleLogin = async () => {
       showBranchSelector.value = true;
     } else if (branches && branches.length === 1) {
       // Auto-select only branch
-      setBranch(branches[0]);
+      setBranch(branches[0]!);
       redirectUser(response);
     } else {
       // No branches, proceed normally
