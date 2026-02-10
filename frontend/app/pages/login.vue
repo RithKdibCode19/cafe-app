@@ -247,6 +247,9 @@ const handleLogin = async () => {
     setAuth(response);
     pendingAuthResponse.value = response;
 
+    // Wait for state to propagate
+    await nextTick();
+        
     // Check if we need branch selection
     const branches = await get<Branch[]>("/branches");
 
