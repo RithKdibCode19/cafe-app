@@ -483,13 +483,15 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private RoleEntity createRole(String name, String description, List<PermissionEntity> permissions) {
-        RoleEntity role = new RoleEntity();
-        role.setRoleName(name);
-        role.setDescription(description);
-        if (permissions != null) {
-            role.setPermissions(new java.util.HashSet<>(permissions));
-        }
-        return roleRepository.save(role);
+        return roleRepository.findByRoleNameAndDeletedAtIsNull(name).orElseGet(() -> {
+            RoleEntity role = new RoleEntity();
+            role.setRoleName(name);
+            role.setDescription(description);
+            if (permissions != null) {
+                role.setPermissions(new java.util.HashSet<>(permissions));
+            }
+            return roleRepository.save(role);
+        });
     }
 
     private UserEntity createEmployeeAndUser(BranchEntity branch, String name, String username, String password,
