@@ -93,7 +93,13 @@ public class DataSeeder implements CommandLineRunner {
 
          if (branchRepository.count() > 0) {
              System.out.println("Basic data exists. SEEDING HEAVY DATA (PRO MODE)...");
-             seedHeavyData();
+             try {
+                 seedHeavyData();
+                 System.out.println("Heavy data seeding completed successfully!");
+             } catch (Exception e) {
+                 System.err.println("ERROR during heavy data seeding: " + e.getMessage());
+                 e.printStackTrace();
+             }
              return;
          }
 
@@ -194,7 +200,12 @@ public class DataSeeder implements CommandLineRunner {
             createAttendance(barista1.getEmployee(), date);
         }
 
-        seedHeavyData();
+        try {
+            seedHeavyData();
+        } catch (Exception e) {
+            System.err.println("ERROR during heavy data seeding: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         System.out.println("Data seeding completed successfully!");
     }
@@ -229,21 +240,23 @@ public class DataSeeder implements CommandLineRunner {
             if (u.getRole().getRoleName().equals("CASHIER")) allCashiers.add(u);
         });
 
+        System.out.println("Creating employees for new branches...");
         for (BranchEntity b : newBranches) {
             // Manager
-            createEmployeeAndUser(b, "Manager " + b.getCode(), "mgr_" + b.getCode().toLowerCase(), "1234", "1234", managerRole, "Manager", 2200.0, 14.0);
+            findOrCreateUser(b, "Manager " + b.getCode(), "mgr_" + b.getCode().toLowerCase(), "1234", "1234", managerRole, "Manager", 2200.0, 14.0);
             
             // Cashiers (2 per branch)
-            allCashiers.add(createEmployeeAndUser(b, "Cashier 1 " + b.getCode(), "c1_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
-            allCashiers.add(createEmployeeAndUser(b, "Cashier 2 " + b.getCode(), "c2_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
+            allCashiers.add(findOrCreateUser(b, "Cashier 1 " + b.getCode(), "c1_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
+            allCashiers.add(findOrCreateUser(b, "Cashier 2 " + b.getCode(), "c2_" + b.getCode().toLowerCase(), "1234", "1234", cashierRole, "Cashier", 1500.0, 10.0));
             
             // Baristas (2 per branch)
-            createEmployeeAndUser(b, "Barista 1 " + b.getCode(), "b1_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
-            createEmployeeAndUser(b, "Barista 2 " + b.getCode(), "b2_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
+            findOrCreateUser(b, "Barista 1 " + b.getCode(), "b1_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
+            findOrCreateUser(b, "Barista 2 " + b.getCode(), "b2_" + b.getCode().toLowerCase(), "1234", "1234", baristaRole, "Barista", 1600.0, 11.0);
             
             // Kitchen
-             createEmployeeAndUser(b, "Chef " + b.getCode(), "chef_" + b.getCode().toLowerCase(), "1234", "1234", chefRole, "Chef", 1800.0, 12.0);
+            findOrCreateUser(b, "Chef " + b.getCode(), "chef_" + b.getCode().toLowerCase(), "1234", "1234", chefRole, "Chef", 1800.0, 12.0);
         }
+        System.out.println("Employees created/verified for all branches.");
         
         // 3. Create Bulk Customers
         List<CustomerEntity> customers = new ArrayList<>();
@@ -273,7 +286,15 @@ public class DataSeeder implements CommandLineRunner {
         UserEntity adminUser = userRepository.findByUserNameAndDeletedAtIsNull("admin").orElse(null);
 
         LocalDate today = LocalDate.now();
+        // Skip order generation if orders already exist (idempotent)
+        long existingOrders = orderRepository.count();
+        if (existingOrders > 500) {
+            System.out.println("Historical orders already exist (" + existingOrders + " orders). Skipping generation.");
+            return;
+        }
+
         System.out.println("Generating historical orders (this may take a moment)...");
+        int totalOrdersCreated = 0;
         
         for (int i = 0; i < 60; i++) {
             LocalDate date = today.minusDays(i);
@@ -302,6 +323,7 @@ public class DataSeeder implements CommandLineRunner {
                      UserEntity cashier = branchCashiers.get(random.nextInt(branchCashiers.size()));
                      CustomerEntity customer = (random.nextDouble() > 0.6) ? customers.get(random.nextInt(customers.size())) : null;
                      createRandomOrder(b, cashier, customer, date, menuItems);
+                     totalOrdersCreated++;
                  }
                  
                  // Generate Expenses
@@ -309,7 +331,12 @@ public class DataSeeder implements CommandLineRunner {
                     createRandomExpense(b, adminUser, date);
                 }
             }
+            
+            if (i % 10 == 0) {
+                System.out.println("  Progress: " + (i + 1) + "/60 days seeded (" + totalOrdersCreated + " orders so far)...");
+            }
         }
+        System.out.println("Historical order generation complete: " + totalOrdersCreated + " orders created.");
     }
     
     private BranchEntity createBranch(String code, String name, String loc, String phone) {
@@ -480,6 +507,15 @@ public class DataSeeder implements CommandLineRunner {
         user.setPinCode(pin);
         user.setRole(role);
         return userRepository.save(user);
+    }
+
+    private UserEntity findOrCreateUser(BranchEntity branch, String name, String username, String password,
+            String pin, RoleEntity role, String position, Double salary, Double hourly) {
+        Optional<UserEntity> existing = userRepository.findByUserNameAndDeletedAtIsNull(username);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        return createEmployeeAndUser(branch, name, username, password, pin, role, position, salary, hourly);
     }
 
     private IngredientEntity createIngredient(String name, String sku, IngredientEntity.IngredientUnit unit,
