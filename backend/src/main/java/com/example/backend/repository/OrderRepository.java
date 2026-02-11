@@ -3,6 +3,8 @@ package com.example.backend.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -107,4 +109,16 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
                         "AND o.deletedAt IS NULL")
         List<OrderEntity> findByCreatedAtBetweenWithItems(@Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
+        // ... existing methods ...
+
+        // --- Pagination Support ---
+
+        // Find all active orders (paginated)
+        Page<OrderEntity> findByDeletedAtIsNull(Pageable pageable);
+
+        // Find by status (paginated)
+        Page<OrderEntity> findByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status, Pageable pageable);
+
+        // Search by order number (paginated)
+        Page<OrderEntity> findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(String orderNo, Pageable pageable);
 }

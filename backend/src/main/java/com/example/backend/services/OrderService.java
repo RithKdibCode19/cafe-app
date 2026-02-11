@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -335,6 +337,29 @@ public class OrderService {
                 .filter(order -> order.getDeletedAt() == null) // Only active orders
                 .map(orderMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all orders (paginated)
+     */
+    public Page<OrderResponseDTO> getAllOrdersPaginated(Pageable pageable, String status, String search) {
+        Page<OrderEntity> orderPage;
+
+        if (search != null && !search.trim().isEmpty()) {
+            orderPage = orderRepository.findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(search.trim(), pageable);
+        } else if (status != null && !status.equalsIgnoreCase("ALL")) {
+            try {
+                OrderEntity.OrderStatus orderStatus = OrderEntity.OrderStatus.valueOf(status.toUpperCase());
+                orderPage = orderRepository.findByStatusAndDeletedAtIsNull(orderStatus, pageable);
+            } catch (IllegalArgumentException e) {
+                // Invalid status, fall back to all or empty
+                orderPage = Page.empty(pageable);
+            }
+        } else {
+            orderPage = orderRepository.findByDeletedAtIsNull(pageable);
+        }
+
+        return orderPage.map(orderMapper::toResponseDTO);
     }
 
     /**

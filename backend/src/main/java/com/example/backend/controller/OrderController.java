@@ -20,6 +20,14 @@ import com.example.backend.dto.OrderRequestDTO;
 import com.example.backend.dto.OrderResponseDTO;
 import com.example.backend.services.OrderService;
 
+import com.example.backend.dto.VariantResponseDTO;
+import com.example.backend.services.VariantService;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -53,12 +61,16 @@ public class OrderController {
     }
 
     /**
-     * Get all orders
-     * GET /api/orders
+     * Get all orders (paginated)
+     * GET /api/orders?page=0&size=20&status=PENDING&search=ORD-123
      */
     @GetMapping
-    public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
-        List<OrderResponseDTO> orders = orderService.getAllOrders();
+    public ResponseEntity<Page<OrderResponseDTO>> getAllOrders(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search) {
+        
+        Page<OrderResponseDTO> orders = orderService.getAllOrdersPaginated(pageable, status, search);
         return ResponseEntity.ok(orders);
     }
 

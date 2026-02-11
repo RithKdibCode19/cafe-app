@@ -51,6 +51,7 @@ public class RecipeService {
         return recipeMapper.toResponseDTO(savedRecipe);
     }
 
+    @Transactional(readOnly = true)
     public List<RecipeResponseDTO> getRecipesByMenuItemId(Long menuItemId) {
         return recipeRepository.findByMenuItemMenuItemId(menuItemId).stream()
                 .map(recipeMapper::toResponseDTO)

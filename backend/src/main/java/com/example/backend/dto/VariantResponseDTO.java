@@ -11,5 +11,7 @@ import com.example.backend.model.VariantEntity.Size;
 public class VariantResponseDTO {
     private Long variantId;
     private Size size;
+    private String name; // Mapped from size
     private Double price;
+    private Double priceAdjustment; // Calculated
 }

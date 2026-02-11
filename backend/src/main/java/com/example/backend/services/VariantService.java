@@ -33,6 +33,7 @@ public class VariantService {
      * Create a new variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public VariantResponseDTO createVariant(VariantRequestDTO request) {
         // 1. Validate menu item exists
         MenuItemEntity menuItem = menuItemRepository.findById(request.getMenuItemId())
@@ -93,6 +94,7 @@ public class VariantService {
      * Update variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public VariantResponseDTO updateVariant(Long id, VariantRequestDTO request) {
         VariantEntity existingVariant = variantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Variant not found with ID: " + id));
@@ -122,6 +124,7 @@ public class VariantService {
      * Soft delete variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public void deleteVariant(Long id) {
         VariantEntity variant = variantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Variant not found with ID: " + id));
