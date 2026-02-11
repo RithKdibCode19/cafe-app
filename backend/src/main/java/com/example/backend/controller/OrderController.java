@@ -21,14 +21,16 @@ import com.example.backend.dto.OrderResponseDTO;
 import com.example.backend.services.OrderService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     /**
      * Create a new order

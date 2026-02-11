@@ -17,15 +17,19 @@ import com.example.backend.model.PermissionEntity;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class RoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
+
+    public RoleService(RoleRepository roleRepository, PermissionRepository permissionRepository, RoleMapper roleMapper) {
+        this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+        this.roleMapper = roleMapper;
+    }
 
     /**
      * Create a new role

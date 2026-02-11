@@ -15,15 +15,19 @@ import com.example.backend.model.StockAdjustmentEntity;
 import com.example.backend.repository.IngredientRepository;
 import com.example.backend.repository.StockAdjustmentRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class StockAdjustmentService {
 
     private final StockAdjustmentRepository stockAdjustmentRepository;
     private final IngredientRepository ingredientRepository;
     private final StockAdjustmentMapper stockAdjustmentMapper;
+
+    public StockAdjustmentService(StockAdjustmentRepository stockAdjustmentRepository, IngredientRepository ingredientRepository, StockAdjustmentMapper stockAdjustmentMapper) {
+        this.stockAdjustmentRepository = stockAdjustmentRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.stockAdjustmentMapper = stockAdjustmentMapper;
+    }
 
     /**
      * Create a new stock adjustment

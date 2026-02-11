@@ -46,6 +46,9 @@ public class MenuItemEntity extends BaseEntity {
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable = true;
 
+    @jakarta.persistence.OneToMany(mappedBy = "menuItem", fetch = jakarta.persistence.FetchType.EAGER)
+    private java.util.List<VariantEntity> variants;
+
     // Manual Getters/Setters
     public Long getMenuItemId() { return menuItemId; }
     public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; }

@@ -19,14 +19,16 @@ import com.example.backend.dto.PosOrderAdjustmentResponseDTO;
 import com.example.backend.services.PosOrderAdjustmentService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/pos-order-adjustments")
-@RequiredArgsConstructor
 public class PosOrderAdjustmentController {
 
     private final PosOrderAdjustmentService posOrderAdjustmentService;
+
+    public PosOrderAdjustmentController(PosOrderAdjustmentService posOrderAdjustmentService) {
+        this.posOrderAdjustmentService = posOrderAdjustmentService;
+    }
 
     @PostMapping
     public ResponseEntity<PosOrderAdjustmentResponseDTO> createAdjustment(

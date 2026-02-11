@@ -18,14 +18,16 @@ import com.example.backend.dto.EmployeeResponseDTO;
 import com.example.backend.services.EmployeeService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/employees")
-@RequiredArgsConstructor
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
 
     // @GetMapping("/ping") public String ping() { return "OK"; }
 

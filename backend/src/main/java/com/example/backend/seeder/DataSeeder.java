@@ -37,6 +37,7 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final SystemSettingRepository systemSettingRepository;
     private final AddOnRepository addOnRepository;
+    private final VariantRepository variantRepository;
     private final java.util.Random random = new java.util.Random();
 
     public DataSeeder(BranchRepository branchRepository,
@@ -55,6 +56,7 @@ public class DataSeeder implements CommandLineRunner {
             PermissionRepository permissionRepository,
             SystemSettingRepository systemSettingRepository,
             AddOnRepository addOnRepository,
+            VariantRepository variantRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.branchRepository = branchRepository;
         this.roleRepository = roleRepository;
@@ -72,6 +74,7 @@ public class DataSeeder implements CommandLineRunner {
         this.attendanceRepository = attendanceRepository;
         this.stockAdjustmentRepository = stockAdjustmentRepository;
         this.addOnRepository = addOnRepository;
+        this.variantRepository = variantRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -82,6 +85,7 @@ public class DataSeeder implements CommandLineRunner {
         List<PermissionEntity> allPermissions = seedPermissions();
         seedSettings();
         seedAddOns();
+        seedVariants();
 
         // 2. Check data state BEFORE ensureUserPasswords (which may create a SYSTEM branch)
         long branchCount = branchRepository.count();
@@ -432,6 +436,31 @@ public class DataSeeder implements CommandLineRunner {
         // Size modifiers (as add-ons)
         createAddOn("Upsize to Medium", 0.50);
         createAddOn("Upsize to Large", 1.00);
+    }
+
+    private void seedVariants() {
+        if (variantRepository.count() > 0) return;
+        
+        System.out.println("Seeding variants...");
+        
+        // Find some items to add variants to
+        menuItemRepository.findAll().forEach(item -> {
+            String name = item.getName();
+            // Add variants to coffee/tea items
+            if (name.contains("Latte") || name.contains("Cappuccino") || name.contains("Americano") || name.contains("Tea")) {
+                createVariant(item, VariantEntity.Size.S, item.getBasePrice());
+                createVariant(item, VariantEntity.Size.M, item.getBasePrice() + 0.5);
+                createVariant(item, VariantEntity.Size.L, item.getBasePrice() + 1.0);
+            }
+        });
+    }
+
+    private void createVariant(MenuItemEntity item, VariantEntity.Size size, Double price) {
+        VariantEntity v = new VariantEntity();
+        v.setMenuItem(item);
+        v.setSize(size);
+        v.setPrice(price);
+        variantRepository.save(v);
     }
 
     private void createAddOn(String name, Double price) {

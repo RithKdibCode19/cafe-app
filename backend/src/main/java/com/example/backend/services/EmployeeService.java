@@ -15,15 +15,19 @@ import com.example.backend.model.EmployeeEntity.Status;
 import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.EmployeeRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final BranchRepository branchRepository;
     private final EmployeeMapper employeeMapper;
+
+    public EmployeeService(EmployeeRepository employeeRepository, BranchRepository branchRepository, EmployeeMapper employeeMapper) {
+        this.employeeRepository = employeeRepository;
+        this.branchRepository = branchRepository;
+        this.employeeMapper = employeeMapper;
+    }
 
     @Transactional
     public EmployeeResponseDTO createEmployee(EmployeeRequestDTO request) {

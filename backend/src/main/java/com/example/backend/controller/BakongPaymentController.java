@@ -4,18 +4,21 @@ import com.example.backend.dto.OrderRequestDTO;
 import com.example.backend.dto.payment.*;
 import com.example.backend.services.BakongPaymentService;
 import com.example.backend.services.OrderService;
-import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/payments/bakong")
-@RequiredArgsConstructor
 public class BakongPaymentController {
 
     private final BakongPaymentService bakongPaymentService;
     private final OrderService orderService;
+
+    public BakongPaymentController(BakongPaymentService bakongPaymentService, OrderService orderService) {
+        this.bakongPaymentService = bakongPaymentService;
+        this.orderService = orderService;
+    }
 
     @PostMapping("/generate")
     public ResponseEntity<BakongKhqrResponseDTO> generateKhqr(@Valid @RequestBody OrderRequestDTO orderRequest) {

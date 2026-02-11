@@ -15,15 +15,19 @@ import com.example.backend.model.PaymentEntity;
 import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final PaymentMapper paymentMapper;
+
+    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository, PaymentMapper paymentMapper) {
+        this.paymentRepository = paymentRepository;
+        this.orderRepository = orderRepository;
+        this.paymentMapper = paymentMapper;
+    }
 
     /**
      * Process a new payment

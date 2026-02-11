@@ -12,6 +12,10 @@ import lombok.NoArgsConstructor;
 public class AttendanceResponseDTO {
 
     private Long attendanceId;
+
+    public void setAttendanceId(Long attendanceId) {
+        this.attendanceId = attendanceId;
+    }
     private EmployeeResponseDTO employee;
     private LocalDateTime checkIn;
     private LocalDateTime checkOut;

@@ -19,10 +19,8 @@ import com.example.backend.repository.AttendanceRepository;
 import com.example.backend.repository.EmployeeRepository;
 import com.example.backend.repository.ShiftRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
@@ -30,6 +28,14 @@ public class AttendanceService {
     private final ShiftRepository shiftRepository; // To check against scheduled shifts
     private final AttendanceMapper attendanceMapper;
     private final QrCodeService qrCodeService;
+
+    public AttendanceService(AttendanceRepository attendanceRepository, EmployeeRepository employeeRepository, ShiftRepository shiftRepository, AttendanceMapper attendanceMapper, QrCodeService qrCodeService) {
+        this.attendanceRepository = attendanceRepository;
+        this.employeeRepository = employeeRepository;
+        this.shiftRepository = shiftRepository;
+        this.attendanceMapper = attendanceMapper;
+        this.qrCodeService = qrCodeService;
+    }
 
     // Haversine formula to calculate distance in meters
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

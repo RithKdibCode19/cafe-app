@@ -187,6 +187,39 @@
       </div>
     </div>
 
+    <!-- Variant Selection Modal -->
+    <div
+      v-if="showVariantModal && selectedItem"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+    >
+      <div class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-neutral-700 flex flex-col">
+        <div class="p-4 border-b border-neutral-700 text-center">
+             <h3 class="text-lg font-bold text-white">Select Size</h3>
+             <p class="text-neutral-400 text-sm">for {{ selectedItem.name }}</p>
+        </div>
+        <div class="p-4 space-y-3">
+            <button
+                v-for="variant in selectedItem.variants"
+                :key="variant.variantId"
+                @click="selectedVariant = variant"
+                :class="[
+                    'w-full p-4 rounded-xl flex items-center justify-between border transition-all',
+                    selectedVariant?.variantId === variant.variantId
+                        ? 'bg-primary-600/20 border-primary-500 text-white'
+                        : 'bg-neutral-700/50 border-neutral-600 text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                ]"
+            >
+                <span class="font-bold text-lg">{{ variant.size }}</span>
+                <span :class="selectedVariant?.variantId === variant.variantId ? 'text-primary-400' : 'text-neutral-400'">${{ variant.price.toFixed(2) }}</span>
+            </button>
+        </div>
+        <div class="p-4 border-t border-neutral-700 flex gap-3">
+             <button @click="showVariantModal = false" class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white">Cancel</button>
+             <button @click="confirmVariantSelection" :disabled="!selectedVariant" class="flex-1 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500 disabled:opacity-50">Continue</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Add-On Modal -->
     <div
       v-if="showAddOnModal && selectedItem"
@@ -205,8 +238,8 @@
             </div>
           </div>
           <div class="flex-1">
-            <h3 class="text-lg font-bold text-white">{{ selectedItem.name }}</h3>
-            <p class="text-primary-400 font-semibold">${{ selectedItem.basePrice.toFixed(2) }}</p>
+            <h3 class="text-lg font-bold text-white">{{ selectedItem.name }} <span v-if="selectedVariant">({{ selectedVariant.size }})</span></h3>
+            <p class="text-primary-400 font-semibold">${{ (selectedVariant ? selectedVariant.price : selectedItem.basePrice).toFixed(2) }}</p>
           </div>
           <button @click="closeAddOnModal" class="p-2 text-neutral-400 hover:text-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -317,6 +350,12 @@ interface Category {
   children?: Category[]
 }
 
+interface Variant {
+  variantId: number
+  size: 'S' | 'M' | 'L'
+  price: number
+}
+
 interface MenuItem {
   menuItemId: number
   name: string
@@ -325,6 +364,7 @@ interface MenuItem {
   isAvailable: boolean
   categoryId: number
   category?: Category
+  variants?: Variant[]
 }
 
 // Use useState for persistent caching across navigation
@@ -340,7 +380,9 @@ const toastMessage = ref('')
 
 // Add-on Modal State
 const showAddOnModal = ref(false)
+const showVariantModal = ref(false)
 const selectedItem = ref<MenuItem | null>(null)
+const selectedVariant = ref<Variant | null>(null)
 const addOnList = shallowRef<AddOn[]>([])
 const selectedAddOns = ref<AddOn[]>([])
 const itemNotes = ref('')
@@ -436,11 +478,26 @@ const handleBreadcrumbClick = (index: number) => {
 }
 
 const handleAddToCart = (item: MenuItem) => {
-  // Open add-on modal instead of adding directly
   selectedItem.value = item
   selectedAddOns.value = []
   itemNotes.value = ''
-  showAddOnModal.value = true
+  selectedVariant.value = null
+
+  // Check for variants
+  if (item.variants && item.variants.length > 0) {
+    // Select middle size or first as default logic if needed, or just let user pick
+    // For now, no default selection or select first
+    selectedVariant.value = item.variants[0]
+    showVariantModal.value = true
+  } else {
+    // No variants, go to add-ons
+    showAddOnModal.value = true
+  }
+}
+
+const confirmVariantSelection = () => {
+    showVariantModal.value = false
+    showAddOnModal.value = true
 }
 
 const handleQuickAdd = (item: MenuItem) => {
@@ -473,8 +530,14 @@ const addOnTotal = computed(() => {
 const confirmAddToCart = () => {
   if (!selectedItem.value) return
   
-  if (selectedAddOns.value.length > 0 || itemNotes.value) {
-    addToCartWithAddOns(selectedItem.value, [...selectedAddOns.value], itemNotes.value)
+  if (selectedAddOns.value.length > 0 || itemNotes.value || selectedVariant.value) {
+    // If variant selected, override price and name for the cart item
+    const itemToAdd = { ...selectedItem.value }
+    if (selectedVariant.value) {
+        itemToAdd.basePrice = selectedVariant.value.price
+        itemToAdd.name = `${itemToAdd.name} (${selectedVariant.value.size})`
+    }
+    addToCartWithAddOns(itemToAdd, [...selectedAddOns.value], itemNotes.value)
   } else {
     addToCart(selectedItem.value)
   }

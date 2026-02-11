@@ -11,14 +11,17 @@ import com.example.backend.mapper.CustomerMapper;
 import com.example.backend.model.CustomerEntity;
 import com.example.backend.repository.CustomerRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+        this.customerRepository = customerRepository;
+        this.customerMapper = customerMapper;
+    }
 
     /**
      * Create a new customer

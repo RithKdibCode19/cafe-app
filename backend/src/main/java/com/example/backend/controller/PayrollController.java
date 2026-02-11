@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.dto.staff.PayrollResponseDTO;
 import com.example.backend.services.PayrollService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payroll")
-@RequiredArgsConstructor
 public class PayrollController {
 
     private final PayrollService payrollService;
+
+    public PayrollController(PayrollService payrollService) {
+        this.payrollService = payrollService;
+    }
 
     @GetMapping("/report")
     public ResponseEntity<List<PayrollResponseDTO>> getPayrollReport(

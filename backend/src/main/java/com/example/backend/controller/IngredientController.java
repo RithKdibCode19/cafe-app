@@ -19,14 +19,16 @@ import com.example.backend.dto.IngredientResponseDTO;
 import com.example.backend.services.IngredientService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/ingredients")
-@RequiredArgsConstructor
 public class IngredientController {
 
     private final IngredientService ingredientService;
+
+    public IngredientController(IngredientService ingredientService) {
+        this.ingredientService = ingredientService;
+    }
 
     @PostMapping
     public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {

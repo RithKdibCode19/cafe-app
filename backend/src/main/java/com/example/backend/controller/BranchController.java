@@ -16,14 +16,16 @@ import com.example.backend.dto.BranchResponseDTO;
 import com.example.backend.services.BranchService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/branches")
-@RequiredArgsConstructor
 public class BranchController {
 
     private final BranchService branchService;
+
+    public BranchController(BranchService branchService) {
+        this.branchService = branchService;
+    }
 
     @GetMapping
     public ResponseEntity<List<BranchResponseDTO>> getAllBranches() {

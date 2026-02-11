@@ -42,4 +42,28 @@ public class ExpenseEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorded_by")
     private UserEntity recordedBy;
+
+    public Long getExpenseId() { return expenseId; }
+    public void setExpenseId(Long expenseId) { this.expenseId = expenseId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
+
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
+
+    public UserEntity getRecordedBy() { return recordedBy; }
+    public void setRecordedBy(UserEntity recordedBy) { this.recordedBy = recordedBy; }
 }

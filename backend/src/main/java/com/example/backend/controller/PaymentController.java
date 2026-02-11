@@ -19,14 +19,16 @@ import com.example.backend.dto.PaymentResponseDTO;
 import com.example.backend.services.PaymentService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payments")
-@RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> processPayment(@Valid @RequestBody PaymentRequestDTO request) {

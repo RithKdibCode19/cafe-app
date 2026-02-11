@@ -17,14 +17,16 @@ import com.example.backend.dto.RecipeResponseDTO;
 import com.example.backend.services.RecipeService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/recipes")
-@RequiredArgsConstructor
 public class RecipeController {
 
     private final RecipeService recipeService;
+
+    public RecipeController(RecipeService recipeService) {
+        this.recipeService = recipeService;
+    }
 
     @PostMapping
     public ResponseEntity<RecipeResponseDTO> createRecipe(@Valid @RequestBody RecipeRequestDTO request) {

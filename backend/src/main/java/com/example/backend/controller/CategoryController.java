@@ -16,13 +16,15 @@ import com.example.backend.dto.CategoryRequestDTO;
 import com.example.backend.dto.CategoryResponseDTO;
 import com.example.backend.services.CategoryService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/categories")
-@RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
     @PostMapping("/add")
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody CategoryRequestDTO request) {
         CategoryResponseDTO response = categoryService.createCategory(request);

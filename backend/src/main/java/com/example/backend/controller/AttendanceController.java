@@ -16,15 +16,18 @@ import com.example.backend.dto.AttendanceResponseDTO;
 import com.example.backend.services.AttendanceService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/attendance")
-@RequiredArgsConstructor
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
     private final com.example.backend.services.QrCodeService qrCodeService;
+
+    public AttendanceController(AttendanceService attendanceService, com.example.backend.services.QrCodeService qrCodeService) {
+        this.attendanceService = attendanceService;
+        this.qrCodeService = qrCodeService;
+    }
 
     @PostMapping("/mobile-check-in/{employeeId}")
     public ResponseEntity<AttendanceResponseDTO> mobileClockIn(

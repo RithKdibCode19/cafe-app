@@ -13,14 +13,17 @@ import com.example.backend.mapper.IngredientMapper;
 import com.example.backend.model.IngredientEntity;
 import com.example.backend.repository.IngredientRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
     private final IngredientMapper ingredientMapper;
+
+    public IngredientService(IngredientRepository ingredientRepository, IngredientMapper ingredientMapper) {
+        this.ingredientRepository = ingredientRepository;
+        this.ingredientMapper = ingredientMapper;
+    }
 
     /**
      * Create a new ingredient

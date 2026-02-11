@@ -19,4 +19,5 @@ public class MenuItemResponseDTO {
     private Boolean isAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private java.util.List<VariantResponseDTO> variants;
 }

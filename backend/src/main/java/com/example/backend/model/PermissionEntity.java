@@ -33,7 +33,8 @@ public class PermissionEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Manual Getters/Setters
+
+
     public Long getPermissionId() { return permissionId; }
     public void setPermissionId(Long permissionId) { this.permissionId = permissionId; }
 

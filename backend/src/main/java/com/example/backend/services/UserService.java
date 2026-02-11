@@ -13,15 +13,20 @@ import com.example.backend.model.UserEntity;
 import com.example.backend.repository.EmployeeRepository;
 import com.example.backend.repository.RoleRepository;
 import com.example.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final EmployeeRepository employeeRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+
+    public UserService(UserRepository userRepository, EmployeeRepository employeeRepository, RoleRepository roleRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
+        this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
+    }
 
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO request) {

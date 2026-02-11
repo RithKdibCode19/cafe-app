@@ -8,13 +8,15 @@ import org.springframework.stereotype.Service;
 import com.example.backend.model.SystemSettingEntity;
 import com.example.backend.repository.SystemSettingRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class SystemSettingService {
 
     private final SystemSettingRepository repository;
+
+    public SystemSettingService(SystemSettingRepository repository) {
+        this.repository = repository;
+    }
 
     public List<SystemSettingEntity> getAllSettings() {
         return repository.findAll();

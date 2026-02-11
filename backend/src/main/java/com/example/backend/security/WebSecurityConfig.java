@@ -1,6 +1,5 @@
 package com.example.backend.security;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,11 +15,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class WebSecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtUtils jwtUtils;
+
+    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, JwtUtils jwtUtils) {
+        this.userDetailsService = userDetailsService;
+        this.jwtUtils = jwtUtils;
+    }
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {

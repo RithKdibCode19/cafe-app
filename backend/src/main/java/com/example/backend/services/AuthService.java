@@ -5,7 +5,6 @@ import com.example.backend.dto.user.LoginResponse;
 import com.example.backend.model.UserEntity;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.security.JwtUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,12 +12,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
+
+    public AuthService(AuthenticationManager authenticationManager, UserRepository userRepository, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.jwtUtils = jwtUtils;
+    }
 
     public LoginResponse login(LoginRequest request) {
         // 1. Authenticate using Spring Security

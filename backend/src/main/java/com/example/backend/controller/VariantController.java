@@ -18,14 +18,16 @@ import com.example.backend.dto.VariantResponseDTO;
 import com.example.backend.services.VariantService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/variants")
-@RequiredArgsConstructor
 public class VariantController {
 
     private final VariantService variantService;
+
+    public VariantController(VariantService variantService) {
+        this.variantService = variantService;
+    }
 
     @PostMapping
     public ResponseEntity<VariantResponseDTO> createVariant(@Valid @RequestBody VariantRequestDTO request) {

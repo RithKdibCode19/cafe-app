@@ -16,13 +16,15 @@ import com.example.backend.dto.MenuItemRequestDTO;
 import com.example.backend.dto.MenuItemResponseDTO;
 import com.example.backend.services.MenuItemService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/menu-items")
-@RequiredArgsConstructor
 public class MenuItemController {
     private final MenuItemService menuItemService;
+
+    public MenuItemController(MenuItemService menuItemService) {
+        this.menuItemService = menuItemService;
+    }
 
     @PostMapping("/add")
     public ResponseEntity<MenuItemResponseDTO> createMenuItem(@RequestBody MenuItemRequestDTO request) {

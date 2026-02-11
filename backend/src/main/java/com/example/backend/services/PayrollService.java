@@ -16,14 +16,17 @@ import com.example.backend.model.EmployeeEntity;
 import com.example.backend.repository.AttendanceRepository;
 import com.example.backend.repository.EmployeeRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class PayrollService {
 
     private final EmployeeRepository employeeRepository;
     private final AttendanceRepository attendanceRepository;
+
+    public PayrollService(EmployeeRepository employeeRepository, AttendanceRepository attendanceRepository) {
+        this.employeeRepository = employeeRepository;
+        this.attendanceRepository = attendanceRepository;
+    }
 
     public List<PayrollResponseDTO> generatePayrollReport(LocalDate startDate, LocalDate endDate) {
         List<EmployeeEntity> employees = employeeRepository.findAllByDeletedAtIsNull();
@@ -62,19 +65,19 @@ public class PayrollService {
             double hourlyEarnings = totalHours * hourlyRate;
             double totalEarnings = baseSalary + hourlyEarnings; // Assuming base salary is per period
 
-            payrollList.add(PayrollResponseDTO.builder()
-                    .employeeId(employee.getEmployeeId())
-                    .fullName(employee.getFullName())
-                    .position(employee.getPosition())
-                    .baseSalary(baseSalary)
-                    .hourlyRate(hourlyRate)
-                    .totalHoursWorked(totalHours)
-                    .hourlyEarnings(hourlyEarnings)
-                    .totalEarnings(totalEarnings)
-                    .daysWorked(daysWorked)
-                    .lateOccurrences(lateOccurrences)
-                    .totalLateMinutes(totalLateMinutes)
-                    .build());
+            payrollList.add(new PayrollResponseDTO(
+                    employee.getEmployeeId(),
+                    employee.getFullName(),
+                    employee.getPosition(),
+                    baseSalary,
+                    hourlyRate,
+                    totalHours,
+                    hourlyEarnings,
+                    totalEarnings,
+                    daysWorked,
+                    lateOccurrences,
+                    totalLateMinutes
+            ));
         }
 
         return payrollList;

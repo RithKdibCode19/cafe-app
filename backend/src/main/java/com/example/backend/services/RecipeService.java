@@ -17,16 +17,21 @@ import com.example.backend.repository.IngredientRepository;
 import com.example.backend.repository.MenuItemRepository;
 import com.example.backend.repository.RecipeRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
     private final MenuItemRepository menuItemRepository;
     private final IngredientRepository ingredientRepository;
     private final RecipeMapper recipeMapper;
+
+    public RecipeService(RecipeRepository recipeRepository, MenuItemRepository menuItemRepository, IngredientRepository ingredientRepository, RecipeMapper recipeMapper) {
+        this.recipeRepository = recipeRepository;
+        this.menuItemRepository = menuItemRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.recipeMapper = recipeMapper;
+    }
 
     @Transactional
     public RecipeResponseDTO createRecipe(RecipeRequestDTO request) {

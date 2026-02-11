@@ -17,16 +17,21 @@ import com.example.backend.repository.IngredientRepository;
 import com.example.backend.repository.StockInRepository;
 import com.example.backend.repository.SupplierRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class StockInService {
 
     private final StockInRepository stockInRepository;
     private final SupplierRepository supplierRepository;
     private final IngredientRepository ingredientRepository;
     private final StockInMapper stockInMapper;
+
+    public StockInService(StockInRepository stockInRepository, SupplierRepository supplierRepository, IngredientRepository ingredientRepository, StockInMapper stockInMapper) {
+        this.stockInRepository = stockInRepository;
+        this.supplierRepository = supplierRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.stockInMapper = stockInMapper;
+    }
 
     /**
      * Record new stock receipt

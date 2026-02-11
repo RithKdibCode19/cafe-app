@@ -26,10 +26,8 @@ import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.repository.VariantRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -44,6 +42,21 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final com.example.backend.repository.PaymentRepository paymentRepository;
     private final TelegramService telegramService;
+
+    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService) {
+        this.orderRepository = orderRepository;
+        this.branchRepository = branchRepository;
+        this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
+        this.menuItemRepository = menuItemRepository;
+        this.variantRepository = variantRepository;
+        this.addOnRepository = addOnRepository;
+        this.recipeRepository = recipeRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.orderMapper = orderMapper;
+        this.paymentRepository = paymentRepository;
+        this.telegramService = telegramService;
+    }
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
         com.example.backend.model.PaymentEntity payment = new com.example.backend.model.PaymentEntity();

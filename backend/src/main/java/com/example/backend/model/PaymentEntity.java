@@ -59,6 +59,30 @@ public class PaymentEntity extends BaseEntity {
         QR
     }
 
+    public PaymentMethod getMethod() { return method; }
+    public void setMethod(PaymentMethod method) { this.method = method; }
+
+    public Double getPaidAmount() { return paidAmount; }
+    public void setPaidAmount(Double paidAmount) { this.paidAmount = paidAmount; }
+
+    public Double getChangeAmount() { return changeAmount; }
+    public void setChangeAmount(Double changeAmount) { this.changeAmount = changeAmount; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public LocalDateTime getPaidAt() { return paidAt; }
+    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+
+    public Long getPaymentId() { return paymentId; }
+    public void setPaymentId(Long paymentId) { this.paymentId = paymentId; }
+
+    public OrderEntity getOrder() { return order; }
+    public void setOrder(OrderEntity order) { this.order = order; }
+
     public enum PaymentStatus {
         PENDING,
         PAID,

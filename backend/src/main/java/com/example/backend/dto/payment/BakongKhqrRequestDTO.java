@@ -24,4 +24,19 @@ public class BakongKhqrRequestDTO {
 
     @NotBlank(message = "Bill number is required")
     private String billNumber;
+
+    public String getBakongAccountId() { return bakongAccountId; }
+    public void setBakongAccountId(String bakongAccountId) { this.bakongAccountId = bakongAccountId; }
+
+    public String getMerchantName() { return merchantName; }
+    public void setMerchantName(String merchantName) { this.merchantName = merchantName; }
+
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
+
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getBillNumber() { return billNumber; }
+    public void setBillNumber(String billNumber) { this.billNumber = billNumber; }
 }

@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.model.SystemSettingEntity;
 import com.example.backend.services.SystemSettingService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/settings")
-@RequiredArgsConstructor
 public class SystemSettingController {
 
     private final SystemSettingService service;
+
+    public SystemSettingController(SystemSettingService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<SystemSettingEntity>> getAllSettings() {

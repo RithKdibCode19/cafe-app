@@ -15,14 +15,16 @@ import com.example.backend.dto.StockAdjustmentResponseDTO;
 import com.example.backend.services.StockAdjustmentService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/stock-adjustments")
-@RequiredArgsConstructor
 public class StockAdjustmentController {
 
     private final StockAdjustmentService stockAdjustmentService;
+
+    public StockAdjustmentController(StockAdjustmentService stockAdjustmentService) {
+        this.stockAdjustmentService = stockAdjustmentService;
+    }
 
     @PostMapping
     public ResponseEntity<StockAdjustmentResponseDTO> createAdjustment(

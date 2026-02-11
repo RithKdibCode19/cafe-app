@@ -20,15 +20,18 @@ import com.example.backend.dto.customer.CustomerHistoryDTO;
 import com.example.backend.services.CustomerHistoryService;
 import com.example.backend.services.CustomerService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/customers")
-@RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
     private final CustomerHistoryService customerHistoryService;
+
+    public CustomerController(CustomerService customerService, CustomerHistoryService customerHistoryService) {
+        this.customerService = customerService;
+        this.customerHistoryService = customerHistoryService;
+    }
 
     @PostMapping("/add")
     public ResponseEntity<CustomerResponseDTO> createCustomer(@jakarta.validation.Valid @RequestBody CustomerRequestDTO request) {

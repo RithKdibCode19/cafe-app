@@ -17,10 +17,8 @@ import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.EmployeeRepository;
 import com.example.backend.repository.ShiftRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class ShiftService {
 
     private final ShiftRepository shiftRepository;
@@ -31,6 +29,17 @@ public class ShiftService {
     private final com.example.backend.repository.PaymentRepository paymentRepository;
     private final ShiftMapper shiftMapper;
     private final TelegramService telegramService;
+
+    public ShiftService(ShiftRepository shiftRepository, EmployeeRepository employeeRepository, BranchRepository branchRepository, com.example.backend.repository.UserRepository userRepository, com.example.backend.repository.OrderRepository orderRepository, com.example.backend.repository.PaymentRepository paymentRepository, ShiftMapper shiftMapper, TelegramService telegramService) {
+        this.shiftRepository = shiftRepository;
+        this.employeeRepository = employeeRepository;
+        this.branchRepository = branchRepository;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
+        this.shiftMapper = shiftMapper;
+        this.telegramService = telegramService;
+    }
 
     @Transactional
     public ShiftResponseDTO createShift(ShiftRequestDTO request) {

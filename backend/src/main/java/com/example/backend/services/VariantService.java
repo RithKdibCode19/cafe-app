@@ -15,15 +15,19 @@ import com.example.backend.model.VariantEntity;
 import com.example.backend.repository.MenuItemRepository;
 import com.example.backend.repository.VariantRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class VariantService {
 
     private final VariantRepository variantRepository;
     private final MenuItemRepository menuItemRepository;
     private final VariantMapper variantMapper;
+
+    public VariantService(VariantRepository variantRepository, MenuItemRepository menuItemRepository, VariantMapper variantMapper) {
+        this.variantRepository = variantRepository;
+        this.menuItemRepository = menuItemRepository;
+        this.variantMapper = variantMapper;
+    }
 
     /**
      * Create a new variant

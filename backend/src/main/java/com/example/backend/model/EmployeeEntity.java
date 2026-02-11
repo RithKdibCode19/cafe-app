@@ -103,4 +103,10 @@ public class EmployeeEntity extends BaseEntity {
     public void setStatus(Status status) {
         this.status = status;
     }
+
+    public Double getBaseSalary() { return baseSalary; }
+    public void setBaseSalary(Double baseSalary) { this.baseSalary = baseSalary; }
+
+    public Double getHourlyRate() { return hourlyRate; }
+    public void setHourlyRate(Double hourlyRate) { this.hourlyRate = hourlyRate; }
 }

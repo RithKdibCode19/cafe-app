@@ -19,14 +19,16 @@ import com.example.backend.dto.SupplierResponseDTO;
 import com.example.backend.services.SupplierService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/suppliers")
-@RequiredArgsConstructor
 public class SupplierController {
 
     private final SupplierService supplierService;
+
+    public SupplierController(SupplierService supplierService) {
+        this.supplierService = supplierService;
+    }
 
     @PostMapping
     public ResponseEntity<SupplierResponseDTO> createSupplier(@Valid @RequestBody SupplierRequestDTO request) {

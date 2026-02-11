@@ -18,14 +18,16 @@ import com.example.backend.dto.ShiftResponseDTO;
 import com.example.backend.services.ShiftService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/shifts")
-@RequiredArgsConstructor
 public class ShiftController {
 
     private final ShiftService shiftService;
+
+    public ShiftController(ShiftService shiftService) {
+        this.shiftService = shiftService;
+    }
 
     @PostMapping
     public ResponseEntity<ShiftResponseDTO> createShift(@Valid @RequestBody ShiftRequestDTO request) {

@@ -19,14 +19,16 @@ import com.example.backend.dto.PermissionResponseDTO;
 import com.example.backend.services.PermissionService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/permissions")
-@RequiredArgsConstructor
 public class PermissionController {
 
     private final PermissionService permissionService;
+
+    public PermissionController(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
 
     @PostMapping
     public ResponseEntity<PermissionResponseDTO> createPermission(@Valid @RequestBody PermissionRequestDTO request) {

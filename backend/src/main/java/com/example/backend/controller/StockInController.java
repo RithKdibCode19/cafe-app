@@ -19,14 +19,16 @@ import com.example.backend.dto.StockInResponseDTO;
 import com.example.backend.services.StockInService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/stock-in")
-@RequiredArgsConstructor
 public class StockInController {
 
     private final StockInService stockInService;
+
+    public StockInController(StockInService stockInService) {
+        this.stockInService = stockInService;
+    }
 
     @PostMapping
     public ResponseEntity<StockInResponseDTO> recordStockIn(@Valid @RequestBody StockInRequestDTO request) {
