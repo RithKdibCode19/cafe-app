@@ -712,6 +712,24 @@
             <div>
               <label
                 class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >Branch</label
+              >
+              <select
+                v-model="newAdjustment.branchId"
+                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+              >
+                <option
+                  v-for="branch in branches"
+                  :key="branch.branchId"
+                  :value="branch.branchId"
+                >
+                  {{ branch.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                 >Adjustment Qty (+/-)</label
               >
               <input
@@ -841,6 +859,7 @@ const users = ref<User[]>([]);
 const loading = ref(true);
 const searchQuery = ref("");
 const filterStatus = ref("all");
+const branches = ref<any[]>([]);
 
 const showCreateModal = ref(false);
 const showStockInModal = ref(false);
@@ -876,6 +895,7 @@ const newStockIn = reactive({
 
 const newAdjustment = reactive({
   ingredientId: null as number | null,
+  branchId: null as number | null,
   qtyChange: 0,
   reasonType: "WASTAGE",
   note: "",
@@ -939,6 +959,15 @@ const fetchUsers = async () => {
       { userId: 1, username: "admin" },
       { userId: 2, username: "staff" },
     ];
+  }
+};
+
+const fetchBranches = async () => {
+  try {
+    const data = await get<any[]>("/branches");
+    branches.value = data || [];
+  } catch (err) {
+    console.error("Failed to fetch branches", err);
   }
 };
 
@@ -1035,6 +1064,8 @@ const createStockIn = async () => {
 const openAdjustment = (item: Ingredient) => {
   selectedIngredient.value = item;
   newAdjustment.ingredientId = item.ingredientId;
+  newAdjustment.branchId =
+    branches.value.length > 0 ? branches.value[0].branchId : null;
   newAdjustment.qtyChange = 0;
   newAdjustment.note = "";
   newAdjustment.date = new Date().toISOString();
@@ -1086,5 +1117,6 @@ onMounted(() => {
   fetchIngredients();
   fetchSuppliers();
   fetchUsers();
+  fetchBranches();
 });
 </script>

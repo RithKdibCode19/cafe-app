@@ -25,12 +25,21 @@ public class StockAdjustmentService {
     private final IngredientRepository ingredientRepository;
     private final StockAdjustmentMapper stockAdjustmentMapper;
     private final UserRepository userRepository;
+    private final BranchStockService branchStockService;
+    private final com.example.backend.repository.BranchRepository branchRepository;
 
-    public StockAdjustmentService(StockAdjustmentRepository stockAdjustmentRepository, IngredientRepository ingredientRepository, StockAdjustmentMapper stockAdjustmentMapper, UserRepository userRepository) {
+    public StockAdjustmentService(StockAdjustmentRepository stockAdjustmentRepository, 
+                                IngredientRepository ingredientRepository, 
+                                StockAdjustmentMapper stockAdjustmentMapper, 
+                                UserRepository userRepository,
+                                BranchStockService branchStockService,
+                                com.example.backend.repository.BranchRepository branchRepository) {
         this.stockAdjustmentRepository = stockAdjustmentRepository;
         this.ingredientRepository = ingredientRepository;
         this.stockAdjustmentMapper = stockAdjustmentMapper;
         this.userRepository = userRepository;
+        this.branchStockService = branchStockService;
+        this.branchRepository = branchRepository;
     }
 
     /**
@@ -45,9 +54,13 @@ public class StockAdjustmentService {
         UserEntity creator = userRepository.findById(request.getCreatedBy())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getCreatedBy()));
 
+        com.example.backend.model.BranchEntity branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new RuntimeException("Branch not found with ID: " + request.getBranchId()));
+
         // 2. Map Request DTO → Entity
         StockAdjustmentEntity adjustment = stockAdjustmentMapper.toEntity(request);
         adjustment.setIngredient(ingredient);
+        adjustment.setBranch(branch);
         adjustment.setReasonType(StockAdjustmentEntity.StockAdjustmentReason.valueOf(request.getReasonType()));
         adjustment.setCreatedBy(creator);
         adjustment.setStatus(StockAdjustmentEntity.AdjustmentStatus.PENDING);
@@ -89,12 +102,10 @@ public class StockAdjustmentService {
             throw new RuntimeException("User [" + approver.getEmployee().getFullName() + "] is not authorized to approve adjustments");
         }
 
-        // 1. Update Ingredient Stock
-        IngredientEntity ingredient = adjustment.getIngredient();
-        double newStock = ingredient.getCurrentStock() + adjustment.getQtyChange();
-        ingredient.setCurrentStock(newStock);
-        ingredient.setUpdatedAt(LocalDateTime.now());
-        ingredientRepository.save(ingredient);
+        // 1. Update Branch and Global Stock
+        branchStockService.adjustStock(adjustment.getBranch().getBranchId(), 
+                                    adjustment.getIngredient().getIngredientId(), 
+                                    adjustment.getQtyChange());
 
         // 2. Update Adjustment Status
         adjustment.setStatus(StockAdjustmentEntity.AdjustmentStatus.APPROVED);

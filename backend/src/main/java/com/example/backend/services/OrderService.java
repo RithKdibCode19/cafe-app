@@ -45,8 +45,9 @@ public class OrderService {
     private final com.example.backend.repository.PaymentRepository paymentRepository;
     private final TelegramService telegramService;
     private final SystemSettingService systemSettingService;
+    private final BranchStockService branchStockService;
 
-    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService) {
+    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService, BranchStockService branchStockService) {
         this.orderRepository = orderRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
@@ -60,6 +61,7 @@ public class OrderService {
         this.paymentRepository = paymentRepository;
         this.telegramService = telegramService;
         this.systemSettingService = systemSettingService;
+        this.branchStockService = branchStockService;
     }
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
@@ -102,11 +104,12 @@ public class OrderService {
                 com.example.backend.model.IngredientEntity ingredient = recipe.getIngredient();
                 Double quantityNeeded = recipe.getQuantityNeeded() * qty;
 
-                // Deduct from current stock
-                ingredient.setCurrentStock(ingredient.getCurrentStock() - quantityNeeded);
-                ingredientRepository.save(ingredient);
+                // Deduct from branch-specific stock
+                branchStockService.adjustStock(order.getBranch().getBranchId(), 
+                                            ingredient.getIngredientId(), 
+                                            -quantityNeeded);
 
-                // Check if now below reorder level
+                // Check if now below reorder level (using global stock for alert, but could be branch-specific)
                 if (ingredient.getReorderLevel() != null && 
                     ingredient.getCurrentStock() <= ingredient.getReorderLevel()) {
                     Map<String, Object> item2 = new java.util.HashMap<>();
@@ -141,9 +144,10 @@ public class OrderService {
                 com.example.backend.model.IngredientEntity ingredient = recipe.getIngredient();
                 Double quantityNeeded = recipe.getQuantityNeeded() * qty;
 
-                // Restore to current stock
-                ingredient.setCurrentStock(ingredient.getCurrentStock() + quantityNeeded);
-                ingredientRepository.save(ingredient);
+                // Restore to branch-specific stock
+                branchStockService.adjustStock(order.getBranch().getBranchId(), 
+                                            ingredient.getIngredientId(), 
+                                            quantityNeeded);
             }
         }
     }

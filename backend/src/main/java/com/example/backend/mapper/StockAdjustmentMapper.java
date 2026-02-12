@@ -16,6 +16,7 @@ public interface StockAdjustmentMapper {
     
     @Mapping(source = "approvedBy.employee.fullName", target = "approvedByName")
     @Mapping(source = "createdBy.employee.fullName", target = "createdByName")
+    @Mapping(source = "branch.name", target = "branchName")
     StockAdjustmentResponseDTO toResponseDTO(StockAdjustmentEntity entity);
 
     @Mapping(target = "ingredient", ignore = true)

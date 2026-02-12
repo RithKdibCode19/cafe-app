@@ -417,6 +417,15 @@
         </div>
       </div>
 
+      <!-- Smart Suggestions -->
+      <div class="px-4 pb-4">
+        <PosSmartSuggestions
+          :last-item-id="lastAddedItem?.id || null"
+          :last-item-name="lastAddedItem?.name || ''"
+          @add="addToCart"
+        />
+      </div>
+
       <!-- Order totals -->
       <div class="p-4 border-t border-neutral-700 space-y-3 bg-neutral-800">
         <div class="flex justify-between text-sm text-neutral-400">
@@ -1615,6 +1624,22 @@ const {
 const { post, get } = useApi();
 const { user: authUser, logout: authLogout } = useAuth();
 const toast = useToast();
+
+const lastAddedItem = ref<{ id: number; name: string } | null>(null);
+
+watch(
+  () => cartItems.value.length,
+  (newLen, oldLen) => {
+    if (newLen > oldLen) {
+      const last = cartItems.value[cartItems.value.length - 1];
+      if (last) {
+        lastAddedItem.value = { id: last.menuItemId, name: last.name };
+      }
+    } else if (newLen === 0) {
+      lastAddedItem.value = null;
+    }
+  },
+);
 
 const logout = () => {
   authLogout();

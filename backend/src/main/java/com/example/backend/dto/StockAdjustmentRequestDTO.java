@@ -32,6 +32,9 @@ public class StockAdjustmentRequestDTO {
     @NotNull(message = "Date is required")
     private LocalDateTime date;
 
+    @NotNull(message = "Branch ID is required")
+    private Long branchId;
+
     // Manual Getters/Setters
     public Long getIngredientId() { return ingredientId; }
     public void setIngredientId(Long ingredientId) { this.ingredientId = ingredientId; }
@@ -53,4 +56,7 @@ public class StockAdjustmentRequestDTO {
 
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
 }

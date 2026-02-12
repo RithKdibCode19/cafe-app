@@ -60,6 +60,10 @@ public class StockAdjustmentEntity extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime date;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private BranchEntity branch;
+
     public enum StockAdjustmentReason {
         WASTAGE,
         DAMAGE,
@@ -100,4 +104,7 @@ public class StockAdjustmentEntity extends BaseEntity {
 
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
 }

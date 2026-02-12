@@ -110,6 +110,23 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         List<OrderEntity> findByCreatedAtBetweenWithItems(@Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
         // ... existing methods ...
+        @org.springframework.data.jpa.repository.Query("SELECT oi.menuItem.name, COUNT(oi) as total " +
+                        "FROM OrderEntity o " +
+                        "JOIN o.items oi " +
+                        "WHERE o.branch.branchId = :branchId " +
+                        "AND o.status IN ('PAID', 'COMPLETED', 'READY', 'PREPARING') " +
+                        "AND o.deletedAt IS NULL " +
+                        "GROUP BY oi.menuItem.name " +
+                        "ORDER BY total DESC")
+        java.util.List<Object[]> findTopMenuItemForBranch(@org.springframework.data.repository.query.Param("branchId") Long branchId, org.springframework.data.domain.Pageable pageable);
+
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.branch.branchId = :branchId " +
+                        "AND o.status IN ('PAID', 'COMPLETED', 'READY', 'PREPARING') " +
+                        "AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL")
+        long countOrdersForBranchAndPeriod(@org.springframework.data.repository.query.Param("branchId") Long branchId,
+                        @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+                        @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
 
         // --- Pagination Support ---
 

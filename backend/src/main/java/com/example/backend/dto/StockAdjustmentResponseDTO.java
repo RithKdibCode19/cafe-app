@@ -23,6 +23,7 @@ public class StockAdjustmentResponseDTO {
     private String approvedByName;
     private String createdByName;
     private String status;
+    private String branchName;
     private LocalDateTime date;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
