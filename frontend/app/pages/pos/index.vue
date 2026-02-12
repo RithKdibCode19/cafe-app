@@ -1,163 +1,171 @@
 <template>
   <NuxtLayout name="pos">
-    <div class="h-full flex flex-col p-6 lg:p-8">
-      <!-- Toast Notification -->
-      <Transition name="toast">
-        <div
-          v-if="showToast"
-          class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-3"
+    <!-- Top Components (Category Nav) used to be here or can be here -->
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-row h-full overflow-hidden">
+      <!-- Left Sidebar: Root Categories -->
+      <aside
+        class="w-28 md:w-32 bg-neutral-900 border-r border-neutral-800 flex flex-col items-center py-6 gap-4 overflow-y-auto scrollbar-hide shrink-0"
+      >
+        <!-- All Items Button -->
+        <button
+          @click="handleRootSelect('all')"
+          :class="[
+            'flex flex-col items-center justify-center gap-2 w-20 h-20 md:w-24 md:h-24 rounded-2xl font-bold transition-all duration-200 text-[10px] md:text-xs',
+            selectedRootId === 'all'
+              ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/30'
+              : 'bg-neutral-800/50 text-neutral-400 hover:bg-neutral-800 hover:text-white',
+          ]"
         >
-          <div
-            class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span class="text-center">All Menu</span>
+        </button>
+
+        <!-- Root Categories -->
+        <button
+          v-for="cat in rootCategories"
+          :key="cat.categoryId"
+          @click="handleRootSelect(cat.categoryId)"
+          :class="[
+            'flex flex-col items-center justify-center gap-2 w-20 h-20 md:w-24 md:h-24 rounded-2xl font-bold transition-all duration-200 border-2 text-[10px] md:text-xs px-1',
+            selectedRootId === cat.categoryId
+              ? 'bg-white text-neutral-900 border-white shadow-xl'
+              : 'bg-neutral-800/50 border-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white',
+          ]"
+        >
+          <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-700/30 flex items-center justify-center mb-1 group-hover:bg-neutral-600/30 transition-colors">
+            <span class="text-sm md:text-base">{{ cat.name.charAt(0) }}</span>
+          </div>
+          <span class="text-center line-clamp-2">{{ cat.name }}</span>
+        </button>
+      </aside>
+
+      <!-- Right Column: Sub Categories, Search & Items -->
+      <div class="flex-1 flex flex-col min-w-0 bg-neutral-900/50">
+        <!-- Breadcrumbs & Search -->
+        <div class="flex items-center justify-between px-6 py-4 gap-6 bg-neutral-900 border-b border-neutral-800 shrink-0">
+          <!-- Breadcrumbs -->
+          <nav class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+            <button
+              @click="handleRootSelect('all')"
+              class="text-neutral-500 hover:text-white transition-colors flex items-center gap-1 shrink-0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </button>
+
+            <template v-for="(cat, index) in categoryPath" :key="cat.categoryId">
+              <span class="text-neutral-700 shrink-0">/</span>
+              <button
+                @click="navigateToPathLevel(index)"
+                :class="[
+                  'text-sm font-medium transition-colors whitespace-nowrap px-2 py-1 rounded-lg',
+                  index === categoryPath.length - 1
+                    ? 'text-white bg-neutral-800'
+                    : 'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50'
+                ]"
+              >
+                {{ cat.name }}
+              </button>
+            </template>
+          </nav>
+
+          <!-- Search Bar -->
+          <div class="relative w-64 lg:w-80 shrink-0">
+            <div
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search dishes..."
+              class="w-full pl-10 pr-4 py-2.5 bg-neutral-800/80 border border-neutral-700/50 rounded-xl text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500/50 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Sub Categories Row (Tabs) -->
+        <div v-if="currentChildCategories.length > 0" class="flex items-center px-6 py-4 gap-3 bg-neutral-900 border-b border-neutral-800/50 overflow-x-auto scrollbar-hide shrink-0">
+          <div class="text-[10px] font-bold text-neutral-600 uppercase tracking-widest mr-2 shrink-0">Explore</div>
+          <button
+            v-for="sub in currentChildCategories"
+            :key="sub.categoryId"
+            @click="handleCategoryDrillDown(sub)"
+            class="group flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap bg-neutral-800/40 text-neutral-400 hover:bg-primary-600/10 hover:text-primary-400 border border-neutral-800 hover:border-primary-500/30 shadow-sm"
+          >
+            <span>{{ sub.name }}</span>
             <svg
+              v-if="sub.children && sub.children.length > 0"
               xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
+              class="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          </div>
-          <span class="font-semibold text-base">{{ toastMessage }}</span>
-        </div>
-      </Transition>
-
-      <!-- Header Section -->
-      <div
-        class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6"
-      >
-        <!-- Breadcrumbs -->
-        <div class="flex items-center gap-3 text-sm">
-          <button
-            @click="handleMainAllClick"
-            class="flex items-center gap-2 text-neutral-400 hover:text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            <span
-              :class="
-                categoryPath.length === 0
-                  ? 'text-white font-bold'
-                  : 'font-medium'
-              "
-              >Menu</span
-            >
-          </button>
-          <template v-for="(cat, index) in categoryPath" :key="cat.categoryId">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 text-neutral-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
               <path d="m9 18 6-6-6-6" />
             </svg>
-            <button
-              @click="handleBreadcrumbClick(index)"
-              :class="[
-                'flex items-center gap-2',
-                index === categoryPath.length - 1
-                  ? 'text-white font-bold'
-                  : 'text-neutral-400 hover:text-white font-medium',
-              ]"
-            >
-              <component :is="getCategoryIcon(cat.name)" class="w-5 h-5" />
-              {{ cat.name }}
-            </button>
-          </template>
+          </button>
         </div>
 
-        <!-- Search Bar -->
-        <div class="relative w-full lg:w-96">
-          <div
-            class="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-500"
+      <!-- Current Selected Category Info -->
+      <div
+        class="flex items-center justify-between p-6 lg:px-8 pt-4 pb-2 gap-6 shrink-0"
+      >
+        <!-- Mobile Menu Button (visible only on small screens) -->
+        <button class="lg:hidden text-white">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          </div>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search menu..."
-            class="w-full pl-14 pr-5 py-3.5 bg-neutral-800 border border-neutral-700 rounded-2xl text-sm focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 text-white placeholder-neutral-500"
-          />
-        </div>
-      </div>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
 
-      <!-- Categories Navigation -->
-      <div class="mb-10">
-        <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
-          <button
-            v-if="categoryPath.length > 0"
-            @click="handleBack()"
-            class="flex items-center gap-2 px-5 py-3 rounded-2xl font-medium whitespace-nowrap bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white border border-neutral-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            Back
-          </button>
-
-          <button
-            v-for="category in currentViewCategories"
-            :key="category.categoryId"
-            @click="handleCategoryClick(category)"
-            :class="[
-              'flex items-center gap-2 px-5 py-3 rounded-2xl font-medium whitespace-nowrap border',
-              selectedCategory === category.categoryId
-                ? 'bg-primary-600 border-primary-500 text-white'
-                : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:bg-neutral-700 hover:text-white',
-            ]"
-          >
-            <component :is="getCategoryIcon(category.name)" class="w-5 h-5" />
-            {{ category.name }}
-            <span
-              v-if="category.children && category.children.length > 0"
-              class="bg-white/15 rounded-xl px-2.5 py-1 text-xs font-bold"
-            >
-              {{ category.children.length }}
-            </span>
-          </button>
+        <!-- Breadcrumbs / Title -->
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-white">
+            {{ currentCategoryName }}
+          </h1>
+          <p class="text-sm text-neutral-500" v-if="!loading">
+            {{ filteredItems.length }} items available
+          </p>
         </div>
       </div>
 
@@ -221,11 +229,12 @@
           class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-8"
         >
           <button
-            v-for="item in filteredItems"
+            v-for="(item, idx) in filteredItems"
             :key="item.menuItemId"
             @click="handleAddToCart(item)"
             :disabled="!item.isAvailable"
-            class="group relative bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-700 hover:border-primary-500 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+            class="group relative bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-700 hover:border-primary-500 text-left disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 reveal-item"
+            :style="{ '--delay': (idx % 10) * 50 + 'ms' }"
           >
             <!-- Image Container -->
             <div class="aspect-square bg-neutral-800 relative overflow-hidden">
@@ -286,41 +295,46 @@
                 </span>
               </div>
 
-              <!-- Add Button Overlay -->
-              <div
-                v-if="item.isAvailable"
-                class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100"
-              >
-                <div class="bg-white text-primary-600 p-2.5 rounded-xl">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-6 h-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M12 5v14" />
-                    <path d="M5 12h14" />
-                  </svg>
-                </div>
+            <!-- Add Button Overlay -->
+            <div
+              v-if="item.isAvailable"
+              class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+            >
+              <div class="bg-white text-primary-600 p-2.5 rounded-xl shadow-lg">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
               </div>
             </div>
+          </div>
 
-            <!-- Content -->
-            <div class="p-5">
-              <h3
-                class="font-bold text-neutral-100 text-base leading-snug line-clamp-2 h-12"
-              >
-                {{ item.name }}
-              </h3>
+          <!-- Content -->
+          <div class="p-5 flex flex-col items-start gap-1">
+            <h3
+              class="font-bold text-neutral-100 text-base leading-snug line-clamp-2 h-12"
+            >
+              {{ item.name }}
+            </h3>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+              <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{{ item.category?.name || 'Item' }}</span>
             </div>
-          </button>
-        </div>
+          </div>
+        </button>
       </div>
     </div>
+  </div>
+</div>
 
     <!-- Variant Selection Modal -->
     <div
@@ -472,97 +486,110 @@
         </div>
 
         <!-- Add-ons List -->
-        <div class="flex-1 overflow-y-auto p-4">
+        <div class="flex-1 overflow-y-auto p-6">
           <div
             v-if="addOnsLoading"
-            class="flex items-center justify-center py-8"
+            class="flex flex-col items-center justify-center py-12 gap-4"
           >
             <div
-              class="w-8 h-8 border-2 border-primary-500/30 border-t-primary-500 rounded-full animate-spin"
+              class="w-10 h-10 border-2 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"
             ></div>
+            <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Loading options...</span>
           </div>
 
-          <div v-else-if="addOnList.length > 0" class="space-y-3">
-            <h4
-              class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-3"
-            >
-              Customize Your Order
-            </h4>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                v-for="addOn in addOnList"
-                :key="addOn.addonId"
-                @click="toggleAddOn(addOn)"
-                :class="[
-                  'p-3 rounded-xl border text-left transition-colors',
-                  isAddOnSelected(addOn.addonId)
-                    ? 'bg-primary-600/20 border-primary-500 text-white'
-                    : 'bg-neutral-700/50 border-neutral-600 text-neutral-300 hover:border-neutral-500',
-                ]"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium">{{ addOn.name }}</span>
-                  <span
-                    :class="[
-                      'text-xs font-bold',
-                      isAddOnSelected(addOn.addonId)
-                        ? 'text-primary-400'
-                        : 'text-neutral-500',
-                    ]"
+          <div v-else-if="addOnList.length > 0" class="space-y-6">
+            <div>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="w-1 h-4 bg-primary-500 rounded-full"></span>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Customize Your Order</h4>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  v-for="addOn in addOnList"
+                  :key="addOn.addonId"
+                  @click="toggleAddOn(addOn)"
+                  :class="[
+                    'relative p-4 rounded-2xl border-2 text-left transition-all duration-200 group overflow-hidden',
+                    isAddOnSelected(addOn.addonId)
+                      ? 'bg-primary-600/10 border-primary-500 shadow-[0_0_20px_rgba(249,115,22,0.1)] scale-[1.02]'
+                      : 'bg-neutral-800/50 border-neutral-700/50 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-800 scale-100',
+                  ]"
+                >
+                  <!-- Selection Badge -->
+                  <div 
+                    v-if="isAddOnSelected(addOn.addonId)"
+                    class="absolute -top-1 -right-1"
                   >
-                    +${{ addOn.price.toFixed(2) }}
-                  </span>
-                </div>
-              </button>
+                    <div class="bg-primary-500 text-white p-1 rounded-bl-xl shadow-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-1">
+                    <span :class="['text-sm font-bold transition-colors', isAddOnSelected(addOn.addonId) ? 'text-white' : 'text-neutral-300 group-hover:text-white']">
+                      {{ addOn.name }}
+                    </span>
+                    <span
+                      :class="[
+                        'text-xs font-black font-mono',
+                        isAddOnSelected(addOn.addonId)
+                          ? 'text-primary-400'
+                          : 'text-neutral-500',
+                      ]"
+                    >
+                      +${{ addOn.price.toFixed(2) }}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="w-1 h-4 bg-primary-500 rounded-full"></span>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Special Instructions</h4>
+              </div>
+              <textarea
+                v-model="itemNotes"
+                placeholder="Ex: Less ice, extra hot, no sugar..."
+                rows="3"
+                class="w-full px-5 py-4 rounded-2xl bg-neutral-900 border-2 border-neutral-700/50 text-white placeholder-neutral-600 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium text-sm resize-none"
+              ></textarea>
             </div>
           </div>
 
-          <div v-else class="text-center py-8 text-neutral-500">
-            <p>No add-ons available</p>
-          </div>
-
-          <!-- Notes Input -->
-          <div class="mt-4">
-            <label
-              class="block text-sm font-bold text-neutral-400 uppercase tracking-wider mb-2"
-              >Special Instructions</label
-            >
-            <textarea
-              v-model="itemNotes"
-              placeholder="e.g., Less ice, extra hot..."
-              rows="2"
-              class="w-full px-4 py-3 rounded-xl bg-neutral-700 border border-neutral-600 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-            ></textarea>
+          <div v-else class="text-center py-16">
+            <div class="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-800">
+               <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-neutral-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <p class="text-neutral-500 text-sm font-bold uppercase tracking-widest">No add-ons available</p>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="p-4 border-t border-neutral-700 bg-neutral-900/50">
-          <div class="flex items-center justify-between mb-3 text-sm">
-            <span class="text-neutral-400">
-              {{
-                selectedAddOns.length > 0
-                  ? `${selectedAddOns.length} add-on(s)`
-                  : "No add-ons"
-              }}
-            </span>
-            <span class="text-white font-bold">
-              Total: ${{ (selectedItem.basePrice + addOnTotal).toFixed(2) }}
-            </span>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              @click="closeAddOnModal"
-              class="px-4 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500"
-            >
-              Cancel
-            </button>
-            <button
-              @click="confirmAddToCart"
-              class="px-4 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500"
-            >
-              Add to Cart
-            </button>
+        <!-- Sticky Footer -->
+        <div class="p-6 border-t border-neutral-700/50 bg-neutral-900/80 backdrop-blur-md">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest leading-none mb-1">Current Balance</span>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-white">${{ ((selectedVariant?.price || selectedItem.basePrice) + addOnTotal).toFixed(2) }}</span>
+                <span v-if="selectedAddOns.length > 0" class="text-xs font-bold text-primary-400">+ {{ selectedAddOns.length }} items</span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+               <button
+                @click="closeAddOnModal"
+                class="px-6 py-4 rounded-2xl border-2 border-neutral-700 text-sm font-bold text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                @click="confirmAddToCart"
+                class="px-8 py-4 rounded-2xl bg-primary-600 text-white text-sm font-black uppercase tracking-wider hover:bg-primary-500 shadow-lg shadow-primary-900/30 active:scale-95 transition-all"
+              >
+                Add to Cart
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -618,11 +645,20 @@ const cachedCategories = useState<Category[]>("pos-categories", () => []);
 const cachedMenuItems = useState<MenuItem[]>("pos-menu-items", () => []);
 
 const selectedCategory = ref<number | "all">("all");
+const expandedIds = ref<number[]>([]);
 const searchQuery = ref("");
 const debouncedSearchQuery = ref("");
 const loading = ref(true);
 const showToast = ref(false);
 const toastMessage = ref("");
+
+const updateDebouncedSearch = useDebounceFn((val: string) => {
+  debouncedSearchQuery.value = val;
+}, 300);
+
+watch(searchQuery, (newVal) => {
+  updateDebouncedSearch(newVal);
+});
 
 // Add-on Modal State
 const showAddOnModal = ref(false);
@@ -634,161 +670,116 @@ const selectedAddOns = ref<AddOn[]>([]);
 const itemNotes = ref("");
 const addOnsLoading = ref(false);
 
-// Use shallowRef for large arrays to reduce reactivity overhead
+// Basic data refs
 const rootCategories = shallowRef<Category[]>([]);
 const menuItems = shallowRef<MenuItem[]>([]);
 
-// Debounce search to reduce recomputations
-const updateDebouncedSearch = useDebounceFn((val: string) => {
-  debouncedSearchQuery.value = val;
-}, 150);
-
-// Watch searchQuery and debounce updates
-watch(searchQuery, (newVal) => {
-  updateDebouncedSearch(newVal);
-});
-
-// Navigation Stack for Breadcrumbs/Back functionality
+// Navigation State
+const selectedRootId = ref<number | "all">("all");
 const categoryPath = ref<Category[]>([]);
 
-// Memoized descendant ID cache
-const descendantCache = new Map<number, number[]>();
-
-// Category Icons mapping (static, no reactivity needed)
-const categoryIcons: Record<string, () => ReturnType<typeof h>> = {
-  Beverages: () =>
-    h(
-      "svg",
-      {
-        xmlns: "http://www.w3.org/2000/svg",
-        viewBox: "0 0 24 24",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "2",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      [
-        h("path", { d: "M17 8h1a4 4 0 1 1 0 8h-1" }),
-        h("path", { d: "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" }),
-      ],
-    ),
-  Coffee: () =>
-    h(
-      "svg",
-      {
-        xmlns: "http://www.w3.org/2000/svg",
-        viewBox: "0 0 24 24",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "2",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      [
-        h("path", { d: "M17 8h1a4 4 0 1 1 0 8h-1" }),
-        h("path", { d: "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" }),
-        h("line", { x1: "6", x2: "6", y1: "2", y2: "4" }),
-        h("line", { x1: "10", x2: "10", y1: "2", y2: "4" }),
-      ],
-    ),
-  "Tea & Milk": () =>
-    h(
-      "svg",
-      {
-        xmlns: "http://www.w3.org/2000/svg",
-        viewBox: "0 0 24 24",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "2",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      [
-        h("path", { d: "M7 21h10" }),
-        h("path", { d: "M5 3h14" }),
-        h("path", { d: "M6 3v18" }),
-        h("path", { d: "M18 3v18" }),
-        h("path", { d: "M9 10h6" }),
-      ],
-    ),
-  Food: () =>
-    h(
-      "svg",
-      {
-        xmlns: "http://www.w3.org/2000/svg",
-        viewBox: "0 0 24 24",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "2",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      [
-        h("path", { d: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }),
-        h("path", { d: "M7 2v20" }),
-        h("path", { d: "M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" }),
-      ],
-    ),
-  Bakery: () =>
-    h(
-      "svg",
-      {
-        xmlns: "http://www.w3.org/2000/svg",
-        viewBox: "0 0 24 24",
-        fill: "none",
-        stroke: "currentColor",
-        "stroke-width": "2",
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
-      },
-      [
-        h("path", { d: "M20 10S17 3 12 3 4 10 4 10" }),
-        h("path", { d: "M4 10v10h16V10" }),
-        h("circle", { cx: "12", cy: "15", r: "3" }),
-      ],
-    ),
-};
-
-const getCategoryIcon = (name: string) => {
-  return categoryIcons[name] || categoryIcons["Beverages"];
-};
-
-const currentViewCategories = computed(() => {
-  if (categoryPath.value.length === 0) {
-    return rootCategories.value;
-  }
-  const currentParent = categoryPath.value[categoryPath.value.length - 1];
-  return currentParent.children || [];
+// Computed Navigation Properties
+const currentCategory = computed(() => {
+  if (categoryPath.value.length === 0) return null;
+  return categoryPath.value[categoryPath.value.length - 1];
 });
 
-const handleCategoryClick = (category: Category) => {
-  selectedCategory.value = category.categoryId;
-  if (category.children && category.children.length > 0) {
-    categoryPath.value.push(category);
+const currentChildCategories = computed(() => {
+  if (selectedRootId.value === "all" && categoryPath.value.length === 0) return [];
+  return currentCategory.value?.children || [];
+});
+
+const activeCategoryId = computed(() => {
+  return currentCategory.value?.categoryId || "all";
+});
+
+// Navigation handlers
+const handleRootSelect = (id: number | "all") => {
+  if (id === "all") {
+    selectedRootId.value = "all";
+    categoryPath.value = [];
+    return;
+  }
+
+  const root = rootCategories.value.find((c) => c.categoryId === id);
+  if (root) {
+    selectedRootId.value = id;
+    categoryPath.value = [root];
   }
 };
 
-const handleBack = () => {
-  categoryPath.value.pop();
-  if (categoryPath.value.length > 0) {
-    selectedCategory.value =
-      categoryPath.value[categoryPath.value.length - 1].categoryId;
-  } else {
-    selectedCategory.value = "all";
-  }
+const handleCategoryDrillDown = (category: Category) => {
+  categoryPath.value.push(category);
 };
 
-const handleMainAllClick = () => {
-  categoryPath.value = [];
-  selectedCategory.value = "all";
-};
-
-const handleBreadcrumbClick = (index: number) => {
+const navigateToPathLevel = (index: number) => {
   categoryPath.value = categoryPath.value.slice(0, index + 1);
-  selectedCategory.value =
-    categoryPath.value[categoryPath.value.length - 1].categoryId;
 };
+
+const currentCategoryName = computed(() => {
+  if (activeCategoryId.value === "all") return "All Menu Items";
+  return currentCategory.value?.name || "Menu Items";
+});
+
+// Memoized descendant ID cache (keep existing logic)
+const descendantCache = new Map<number, number[]>();
+
+// Update filteredItems to use activeCategoryId
+const filteredItems = computed(() => {
+  let result = menuItems.value;
+
+  // 1. Category Filter
+  if (activeCategoryId.value !== "all") {
+    const targetId = Number(activeCategoryId.value);
+    let validIds: number[] = [targetId];
+
+    // Reuse existing efficient caching logic...
+    if (descendantCache.has(targetId)) {
+      validIds = descendantCache.get(targetId)!;
+    } else {
+      const getDescendants = (cats: Category[], id: number): number[] => {
+        let ids: number[] = [id]; // include self
+        const findCat = (list: Category[]): Category | null => {
+          for (const c of list) {
+            if (c.categoryId === id) return c;
+            if (c.children) {
+              const found = findCat(c.children);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const target = findCat(rootCategories.value);
+        if (!target) return ids;
+
+        const collect = (c: Category) => {
+          ids.push(c.categoryId);
+          if (c.children) c.children.forEach(collect);
+        };
+        if (target.children) target.children.forEach(collect);
+
+        return ids;
+      };
+      validIds = getDescendants(rootCategories.value, targetId);
+      descendantCache.set(targetId, validIds);
+    }
+
+    result = result.filter(
+      (item) =>
+        validIds.includes(item.categoryId) ||
+        (item.category && validIds.includes(item.category.categoryId)),
+    );
+  }
+
+  // 2. Text Search
+  if (debouncedSearchQuery.value) {
+    const q = debouncedSearchQuery.value.toLowerCase();
+    result = result.filter((item) => item.name.toLowerCase().includes(q));
+  }
+
+  return result;
+});
 
 const handleAddToCart = (item: MenuItem) => {
   selectedItem.value = item;
@@ -800,7 +791,7 @@ const handleAddToCart = (item: MenuItem) => {
   if (item.variants && item.variants.length > 0) {
     // Select middle size or first as default logic if needed, or just let user pick
     // For now, no default selection or select first
-    selectedVariant.value = item.variants[0];
+    selectedVariant.value = item.variants?.[0] || null;
     showVariantModal.value = true;
   } else {
     // No variants, go to add-ons
@@ -844,14 +835,13 @@ const addOnTotal = computed(() => {
 
 const confirmAddToCart = () => {
   if (!selectedItem.value) return;
+  const itemToAdd = { ...selectedItem.value };
 
   if (
     selectedAddOns.value.length > 0 ||
     itemNotes.value ||
     selectedVariant.value
   ) {
-    // If variant selected, override price and name for the cart item
-    const itemToAdd = { ...selectedItem.value };
     if (selectedVariant.value) {
       itemToAdd.basePrice = selectedVariant.value.price;
       itemToAdd.name = `${itemToAdd.name} (${selectedVariant.value.size})`;
@@ -902,8 +892,6 @@ const fetchData = async () => {
     // Cache for future visits
     cachedCategories.value = cats || [];
     cachedMenuItems.value = items || [];
-    // Build descendant cache
-    buildDescendantCache(rootCategories.value);
   } catch (err) {
     console.error("Failed to fetch POS data", err);
   } finally {
@@ -921,7 +909,6 @@ const refreshDataInBackground = async () => {
       rootCategories.value = cats;
       cachedCategories.value = cats;
       descendantCache.clear();
-      buildDescendantCache(cats);
     }
     if (items) {
       menuItems.value = items;
@@ -931,90 +918,6 @@ const refreshDataInBackground = async () => {
     // Silent fail for background refresh
   }
 };
-
-// Build descendant cache once when data loads
-const buildDescendantCache = (categories: Category[]) => {
-  const traverse = (cat: Category) => {
-    const ids: number[] = [cat.categoryId];
-    if (cat.children) {
-      cat.children.forEach((child) => {
-        ids.push(...getDescendantIds(child.categoryId, categories));
-      });
-    }
-    descendantCache.set(cat.categoryId, ids);
-  };
-
-  const traverseAll = (cats: Category[]) => {
-    cats.forEach((cat) => {
-      traverse(cat);
-      if (cat.children) traverseAll(cat.children);
-    });
-  };
-
-  traverseAll(categories);
-};
-
-// Memoized helper to get all descendant IDs
-const getDescendantIds = (catId: number, categories: Category[]): number[] => {
-  // Check cache first
-  if (descendantCache.has(catId)) {
-    return descendantCache.get(catId)!;
-  }
-
-  const ids: number[] = [catId];
-  const findCat = (list: Category[]): Category | null => {
-    for (const c of list) {
-      if (c.categoryId === catId) return c;
-      if (c.children) {
-        const found = findCat(c.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  };
-
-  const targetCat = findCat(categories);
-  if (!targetCat) return ids;
-
-  const collectIds = (c: Category) => {
-    ids.push(c.categoryId);
-    if (c.children) {
-      c.children.forEach(collectIds);
-    }
-  };
-
-  if (targetCat.children) {
-    targetCat.children.forEach(collectIds);
-  }
-
-  // Cache result
-  descendantCache.set(catId, ids);
-  return ids;
-};
-
-const filteredItems = computed(() => {
-  let result = menuItems.value;
-
-  if (selectedCategory.value !== "all") {
-    const allowedIds = getDescendantIds(
-      selectedCategory.value,
-      rootCategories.value,
-    );
-    result = result.filter(
-      (item) =>
-        allowedIds.includes(item.categoryId) ||
-        allowedIds.includes(item.category?.categoryId || -1),
-    );
-  }
-
-  // Use debounced search query
-  if (debouncedSearchQuery.value) {
-    const q = debouncedSearchQuery.value.toLowerCase();
-    result = result.filter((item) => item.name.toLowerCase().includes(q));
-  }
-
-  return result;
-});
 
 const fetchAddOns = async () => {
   addOnsLoading.value = true;
@@ -1035,6 +938,27 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.reveal-item {
+  contain: content;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: revealIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes revealIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optimize scrolling on heavy lists */
+.scrollbar-thin {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
 .toast-enter-active {
   animation: toast-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }

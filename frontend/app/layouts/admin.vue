@@ -99,6 +99,18 @@
         </div>
 
         <div class="flex items-center gap-4">
+          <LanguageSwitcher />
+
+          <!-- Notifications -->
+          <button
+            class="hidden lg:flex w-10 h-10 items-center justify-center rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors relative"
+          >
+            <BellIcon class="w-5 h-5" />
+            <span
+              class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-neutral-900"
+            ></span>
+          </button>
+
           <!-- Low Stock Alert -->
           <NuxtLink
             to="/admin/inventory"
@@ -487,6 +499,7 @@ const BranchIcon = () =>
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: DashboardIcon },
   { name: "Menu", href: "/admin/menu", icon: MenuIcon },
+  { name: "Categories", href: "/admin/categories", icon: MenuIcon },
   { name: "Orders", href: "/admin/orders", icon: OrdersIcon },
   { name: "Staff", href: "/admin/staff", icon: StaffIcon },
   { name: "Customers", href: "/admin/customers", icon: CustomersIcon },

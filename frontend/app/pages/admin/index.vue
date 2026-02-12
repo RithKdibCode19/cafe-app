@@ -75,8 +75,11 @@
       <div class="space-y-6">
         <!-- Top Products -->
         <div class="card p-6">
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Top Products</h3>
-          <div class="space-y-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">Top Products</h3>
+            <span v-if="!loading && topProducts.length > 0" class="text-xs text-neutral-500 font-medium">Today</span>
+          </div>
+          <div class="space-y-3">
             <template v-if="loading">
               <div v-for="i in 3" :key="i" class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-2xl skeleton-shimmer"></div>
@@ -88,18 +91,82 @@
               </div>
             </template>
             <template v-else>
-              <div v-for="product in topProducts" :key="product.name" class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                  <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">{{ product.initial }}</span>
+              <div 
+                v-for="(product, index) in topProducts" 
+                :key="product.name" 
+                class="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
+              >
+                <!-- Rank Badge -->
+                <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                  <span 
+                    class="text-xs font-bold"
+                    :class="{
+                      'text-yellow-500': index === 0,
+                      'text-neutral-400': index === 1,
+                      'text-orange-600': index === 2,
+                      'text-neutral-500': index > 2
+                    }"
+                  >
+                    {{ index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}` }}
+                  </span>
                 </div>
+                
+                <!-- Product Icon -->
+                <div 
+                  class="w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
+                  :class="{
+                    'bg-yellow-100 dark:bg-yellow-900/30': index === 0,
+                    'bg-neutral-100 dark:bg-neutral-700': index === 1,
+                    'bg-orange-100 dark:bg-orange-900/30': index === 2,
+                    'bg-primary-100 dark:bg-primary-900/30': index > 2
+                  }"
+                >
+                  <span 
+                    class="text-sm font-bold"
+                    :class="{
+                      'text-yellow-700 dark:text-yellow-400': index === 0,
+                      'text-neutral-700 dark:text-neutral-300': index === 1,
+                      'text-orange-700 dark:text-orange-400': index === 2,
+                      'text-primary-600 dark:text-primary-400': index > 2
+                    }"
+                  >
+                    {{ product.initial }}
+                  </span>
+                </div>
+                
+                <!-- Product Info -->
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ product.name }}</p>
-                  <p class="text-xs text-neutral-500">{{ product.sold }} sold</p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-neutral-900 dark:text-white truncate">
+                      {{ product.name }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-xs text-neutral-500">{{ product.sold }} sold</span>
+                    <span v-if="product.category" class="text-xs text-neutral-400">•</span>
+                    <span v-if="product.category" class="text-xs text-neutral-400 truncate">{{ product.category }}</span>
+                  </div>
                 </div>
-                <span class="text-sm font-semibold text-neutral-900 dark:text-white font-mono">${{ product.revenue }}</span>
+                
+                <!-- Revenue -->
+                <div class="flex-shrink-0 text-right">
+                  <p class="text-sm font-bold text-neutral-900 dark:text-white font-mono">
+                    ${{ product.revenue }}
+                  </p>
+                  <p v-if="product.sold > 0" class="text-[10px] text-neutral-400 font-medium">
+                    ${{ (parseFloat(product.revenue) / product.sold).toFixed(2) }}/ea
+                  </p>
+                </div>
               </div>
-              <div v-if="topProducts.length === 0" class="text-center py-4 text-neutral-400 text-sm italic">
-                  No products sold today
+              <div v-if="topProducts.length === 0" class="text-center py-8">
+                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="9" r="7"/>
+                    <path d="m13 13 8 8"/>
+                  </svg>
+                </div>
+                <p class="text-neutral-400 text-sm font-medium">No products sold today</p>
+                <p class="text-neutral-500 text-xs mt-1">Sales data will appear here</p>
               </div>
             </template>
           </div>
@@ -286,7 +353,8 @@ const fetchDashboardData = async () => {
                 name: item.name,
                 initial: item.name?.charAt(0).toUpperCase() || '?',
                 sold: item.quantitySold,
-                revenue: item.revenue?.toFixed(2) || '0.00'
+                revenue: item.revenue?.toFixed(2) || '0.00',
+                category: item.categoryName || null
             }))
             
             // Payment Breakdown

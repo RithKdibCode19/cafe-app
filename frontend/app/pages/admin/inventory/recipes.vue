@@ -63,8 +63,8 @@
                         </td>
                     </tr>
                     <tr v-for="rec in recipes" :key="rec.recipeId" class="border-b border-neutral-700 hover:bg-neutral-700/30 transition-colors group">
-                    <td class="py-4 font-medium text-white">{{ rec.ingredient?.name || 'Unknown Ingredient' }}</td>
-                    <td class="py-4 text-neutral-400 text-sm">{{ rec.ingredient?.unit }}</td>
+                    <td class="py-4 font-medium text-white">{{ rec.ingredientName || 'Unknown Ingredient' }}</td>
+                    <td class="py-4 text-neutral-400 text-sm">{{ rec.ingredientUnit }}</td>
                     <td class="py-4 font-mono font-bold text-primary-400 text-lg">{{ rec.quantityNeeded }}</td>
                     <td class="py-4 text-right opacity-60 group-hover:opacity-100 transition-opacity">
                         <button @click="deleteRecipe(rec.recipeId)" class="text-red-400 hover:text-red-300 hover:bg-red-900/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border border-transparent hover:border-red-800">

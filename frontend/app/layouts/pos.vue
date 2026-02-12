@@ -21,27 +21,8 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <!-- Search -->
-          <div class="relative">
-            <input
-              type="text"
-              placeholder="Search menu..."
-              class="w-64 px-4 py-2 pl-10 rounded-xl bg-neutral-700 border border-neutral-600 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          </div>
+          <LanguageSwitcher />
+
 
           <!-- Shift Status -->
           <button
@@ -1086,65 +1067,13 @@
       </div>
     </div>
     <!-- Shift Modal -->
-    <div v-if="showShiftModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 p-6">
-        <h3 class="text-xl font-bold text-white mb-4">
-            {{ shiftAction === 'OPEN' ? 'Start Shift' : 'End Shift' }}
-        </h3>
-        
-        <div v-if="shiftAction === 'CLOSE' && currentShiftSummary" class="mb-4 text-sm text-neutral-400 bg-neutral-900/50 p-3 rounded-lg border border-neutral-700 space-y-2">
-            <div class="flex justify-between">
-                <span>Shift Started:</span>
-                <span class="text-white">{{ currentShiftSummary.checkInTime ? new Date(currentShiftSummary.checkInTime).toLocaleTimeString() : '-' }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span>Starting Cash:</span>
-                <span class="text-white font-mono">${{ currentShiftSummary.startingCash?.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span>Cash Sales:</span>
-                <span class="text-success-400 font-mono">+${{ currentShiftSummary.salesByMethod?.CASH?.toFixed(2) || '0.00' }}</span>
-            </div>
-            <div class="border-t border-neutral-600 my-1"></div>
-            <div class="flex justify-between font-bold text-white">
-                <span>Expected Cash:</span>
-                <span class="font-mono">${{ currentShiftSummary.expectedCash?.toFixed(2) }}</span>
-            </div>
-            
-             <!-- Live Difference Calculation -->
-            <div class="flex justify-between font-bold" :class="[(shiftAmount - (currentShiftSummary.expectedCash || 0)) >= 0 ? 'text-success-500' : 'text-red-500']">
-                <span>Difference:</span>
-                <span class="font-mono">{{ (shiftAmount - (currentShiftSummary.expectedCash || 0)) >= 0 ? '+' : '' }}{{ (shiftAmount - (currentShiftSummary.expectedCash || 0)).toFixed(2) }}</span>
-            </div>
-        </div>
-
-        <p class="text-neutral-400 text-sm mb-4">
-            {{ shiftAction === 'OPEN' ? 'Enter starting cash amount.' : 'Count cash in drawer and enter amount.' }}
-        </p>
-        
-        <div class="relative mb-6">
-          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">$</span>
-          <input 
-            v-model="shiftAmount" 
-            type="number" 
-            min="0"
-            step="0.01"
-            class="w-full bg-neutral-900 border border-neutral-700 rounded-xl py-4 pl-8 pr-4 text-white text-xl font-bold focus:outline-none focus:border-primary-500 transition-colors"
-            placeholder="0.00"
-            @keyup.enter="performShiftAction" 
-          />
-        </div>
-        
-        <div class="flex gap-3">
-          <button @click="showShiftModal = false" class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500 font-bold">
-            Cancel
-          </button>
-          <button @click="performShiftAction" :class="['flex-1 py-3 rounded-xl text-white font-bold shadow-lg transition-colors', shiftAction === 'OPEN' ? 'bg-success-600 hover:bg-success-500 shadow-success-900/20' : 'bg-red-600 hover:bg-red-500 shadow-red-900/20']">
-            {{ shiftAction === 'OPEN' ? 'Start Shift' : 'End Shift' }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Shift Modal -->
+    <PosShiftModal 
+      v-model="showShiftModal"
+      :shift="currentShift"
+      :summary="currentShiftSummary"
+      @success="onShiftSuccess"
+    />
   </div>
 </template>
 
@@ -1301,10 +1230,6 @@ const applyDiscount = () => {
 // --- Shift Management ---
 const currentShift = ref<any>(null)
 const showShiftModal = ref(false)
-const shiftAction = ref<'OPEN' | 'CLOSE'>('OPEN')
-const shiftAmount = ref(0)
-const shiftError = ref('')
-
 const currentShiftSummary = ref<any>(null)
 
 const checkCurrentShift = async () => {
@@ -1327,40 +1252,18 @@ const checkCurrentShift = async () => {
 }
 
 const openShiftModal = async () => {
-  shiftError.value = ''
-  shiftAmount.value = 0
   if (currentShift.value) {
-    shiftAction.value = 'CLOSE'
-    // Refresh summary
     try {
         const summary = await get<any>(`/shifts/summary?userId=${authUser.value.userId}`, {})
         currentShiftSummary.value = summary
     } catch (e) { console.error(e) }
-  } else {
-    shiftAction.value = 'OPEN'
   }
   showShiftModal.value = true
 }
 
-const performShiftAction = async () => {
-  if (!authUser.value?.userId) return
-  shiftError.value = ''
-  
-  try {
-    if (shiftAction.value === 'OPEN') {
-        const data = await post<any>(`/shifts/open?userId=${authUser.value.userId}&startingCash=${shiftAmount.value}`)
-        currentShift.value = data
-        toast.success("Shift opened successfully")
-    } else {
-        const data = await post<any>(`/shifts/close?userId=${authUser.value.userId}&endingCash=${shiftAmount.value}`)
-        currentShift.value = null // Shift closed
-        toast.success("Shift closed successfully")
-    }
-    showShiftModal.value = false
-  } catch (e: any) {
-    shiftError.value = e.message || "Failed to update shift"
-    toast.error(shiftError.value)
-  }
+const onShiftSuccess = (shift: any) => {
+  currentShift.value = shift
+  if (!shift) currentShiftSummary.value = null
 }
 
 onMounted(() => {

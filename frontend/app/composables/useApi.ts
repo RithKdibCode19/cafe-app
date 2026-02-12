@@ -10,9 +10,9 @@ export const useApi = () => {
      * @param options - Fetch options
      */
     const fetchApi = <T>(endpoint: string, options?: Parameters<typeof $fetch>[1]) => {
-        const { token } = useAuth()
+        const { token, logout } = useAuth()
+        const toast = useToast()
         
-        // Fix: Use any or correct HeadersInit type to avoid TS errors with Headers object
         const headers: any = {
             'Content-Type': 'application/json',
             ...options?.headers
@@ -24,7 +24,25 @@ export const useApi = () => {
 
         return $fetch<T>(`${config.public.apiBase}${endpoint}`, {
             ...options,
-            headers
+            headers,
+            onResponseError({ response }) {
+                const status = response.status
+                const errorData = response._data
+                const message = errorData?.message || errorData?.error || 'An unexpected error occurred'
+
+                if (status === 401) {
+                    toast.error('Session expired. Please login again.')
+                    logout()
+                } else if (status === 403) {
+                    toast.error('You do not have permission to perform this action.')
+                } else if (status === 400) {
+                    toast.error(message)
+                } else if (status >= 500) {
+                    toast.error('Server error. Please try again later.')
+                } else {
+                    toast.error(message)
+                }
+            }
         })
     }
 

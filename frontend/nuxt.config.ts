@@ -4,11 +4,23 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   // Modules
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxtjs/google-fonts',
-    '@vueuse/nuxt'
-  ],
+  modules: ["@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxtjs/google-fonts", "@nuxtjs/i18n"],
+
+  i18n: {
+    locales: [
+      { code: 'en', iso: 'en-US', file: 'en.json', name: 'English' },
+      { code: 'km', iso: 'km-KH', file: 'km.json', name: 'Khmer' }
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix', // Start simple
+    lazy: true,
+    langDir: 'locales',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root',  // recommended
+    }
+  },
 
   // CSS
   css: [],
