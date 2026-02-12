@@ -45,11 +45,17 @@ public class StockAdjustmentEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    @Column(name = "approved_by")
-    private Long approvedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private UserEntity approvedBy;
 
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private UserEntity createdBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "adjustment_status", nullable = false)
+    private AdjustmentStatus status = AdjustmentStatus.PENDING;
 
     @Column(nullable = false)
     private LocalDateTime date;
@@ -59,6 +65,12 @@ public class StockAdjustmentEntity extends BaseEntity {
         DAMAGE,
         EXPIRED,
         COUNT_CORRECTION
+    }
+
+    public enum AdjustmentStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
     }
 
     // Manual Getters/Setters
@@ -77,11 +89,14 @@ public class StockAdjustmentEntity extends BaseEntity {
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 
-    public Long getApprovedBy() { return approvedBy; }
-    public void setApprovedBy(Long approvedBy) { this.approvedBy = approvedBy; }
+    public UserEntity getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(UserEntity approvedBy) { this.approvedBy = approvedBy; }
 
-    public Long getCreatedBy() { return createdBy; }
-    public void setCreatedBy(Long createdBy) { this.createdBy = createdBy; }
+    public UserEntity getCreatedBy() { return createdBy; }
+    public void setCreatedBy(UserEntity createdBy) { this.createdBy = createdBy; }
+
+    public AdjustmentStatus getStatus() { return status; }
+    public void setStatus(AdjustmentStatus status) { this.status = status; }
 
     public LocalDateTime getDate() { return date; }
     public void setDate(LocalDateTime date) { this.date = date; }

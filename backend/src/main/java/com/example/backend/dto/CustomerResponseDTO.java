@@ -19,6 +19,7 @@ public class CustomerResponseDTO {
     private String gender;
     private java.time.LocalDate dob;
     private Integer loyaltyPoints;
+    private String membershipLevel;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

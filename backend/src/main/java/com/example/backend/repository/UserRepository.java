@@ -22,4 +22,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     // Check if username exists
     boolean existsByUserNameAndDeletedAtIsNull(String userName);
+
+    // Find user by PIN (for approval)
+    Optional<UserEntity> findByPinCodeAndDeletedAtIsNull(String pinCode);
 }

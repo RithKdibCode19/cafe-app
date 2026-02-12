@@ -25,6 +25,8 @@ public class OrderResponseDTO {
     private Double taxAmount;
     private Double totalAmount;
     private Integer pointsRedeemed;
+    private String statusReason;
+    private String approvedByName;
     private List<OrderItemResponseDTO> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

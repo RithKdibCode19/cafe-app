@@ -52,9 +52,18 @@ export const useCart = () => {
         }
     }
 
-    const redeemPoints = (points: number) => {
-        // 10 Points = $1
-        const discount = points / 10
+    const redeemPoints = async (points: number) => {
+        let redeemRate = 0.1
+        try {
+            const { get: apiGet } = useApi()
+            const settings = await apiGet<any[]>('/settings')
+            const rateSetting = settings?.find(s => s.key === 'LOYALTY_REDEEM_RATE')
+            if (rateSetting) redeemRate = parseFloat(rateSetting.value)
+        } catch (e) {
+            console.error('Failed to fetch loyalty rate, using default', e)
+        }
+
+        const discount = points * redeemRate
         pointsDiscount.value = discount
         toast.info(`Redeemed ${points} points ($${discount.toFixed(2)} discount)`)
     }

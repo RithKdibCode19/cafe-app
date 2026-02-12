@@ -62,6 +62,7 @@ public class CustomerHistoryService {
         history.setCustomerName(customer.getName());
         history.setPhone(customer.getPhone());
         history.setLoyaltyPoints(customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0);
+        history.setMembershipLevel(customer.getMembershipLevel());
 
         if (customer.getCreatedAt() != null) {
             history.setMemberSince(customer.getCreatedAt().format(dateFormatter));

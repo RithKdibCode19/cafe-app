@@ -104,11 +104,10 @@ public class OrderController {
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(
             @PathVariable Long id,
             @RequestParam String status,
-            @RequestParam(required = false) Long userId, // e.g. from current session
+            @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
-        Long effectiveUserId = (userId != null) ? userId : 1L; // Default to system/admin if null
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, status, effectiveUserId, reason));
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status, pinCode, reason));
     }
 
     /**
@@ -226,8 +225,7 @@ public class OrderController {
      */
     @PutMapping("/{id}/pay")
     public ResponseEntity<OrderResponseDTO> markOrderAsPaid(@PathVariable Long id) {
-        // Assume User ID 1 for now
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID", 1L, "Payment Received");
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID", null, "Payment Received");
         return ResponseEntity.ok(response);
     }
 
@@ -238,9 +236,10 @@ public class OrderController {
     @PutMapping("/{id}/void")
     public ResponseEntity<OrderResponseDTO> voidOrder(
             @PathVariable Long id,
+            @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID", 1L, reason);
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID", pinCode, reason);
         return ResponseEntity.ok(response);
     }
 
@@ -251,9 +250,10 @@ public class OrderController {
     @PutMapping("/{id}/refund")
     public ResponseEntity<OrderResponseDTO> refundOrder(
             @PathVariable Long id,
+            @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND", 1L, reason);
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND", pinCode, reason);
         return ResponseEntity.ok(response);
     }
 }

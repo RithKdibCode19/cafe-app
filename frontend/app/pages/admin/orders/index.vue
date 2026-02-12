@@ -493,91 +493,20 @@
         </div>
       </div>
 
-      <!-- Adjustment (Void/Refund) Confirmation Modal -->
-      <div
-        v-if="adjustmentTarget"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-neutral-200 dark:border-neutral-700 animate-in fade-in zoom-in duration-300"
-        >
-          <div
-            class="w-16 h-16 rounded-full bg-error-100 dark:bg-error-900/30 flex items-center justify-center mx-auto mb-6"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-8 h-8 text-error-600"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-              <path
-                d="m12.8 2.8 8.1 14.2c.4.7.4 1.5 0 2.2-.4.7-1.1 1.1-1.9 1.1H5.1c-.8 0-1.5-.4-1.9-1.1-.4-.7-.4-1.5 0-2.2L11.2 2.8c.4-.7 1.2-.7 1.6 0Z"
-              />
-            </svg>
-          </div>
-
-          <h3
-            class="text-xl font-black text-neutral-900 dark:text-white mb-2 text-center uppercase tracking-tight"
-          >
-            Confirm {{ adjustmentTarget.type }}
-          </h3>
-          <p class="text-neutral-500 mb-8 text-center leading-relaxed">
-            Are you sure you want to
-            {{ adjustmentTarget.type.toLowerCase() }} order
-            <span
-              class="font-mono font-bold text-neutral-900 dark:text-white px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-700 rounded"
-              >{{ adjustmentTarget.order.orderNo }}</span
-            >? This will update the inventory and balance.
-          </p>
-
-          <div class="space-y-4">
-            <div>
-              <label
-                class="text-xs font-black text-neutral-500 uppercase tracking-widest mb-2 block"
-                >Reason for adjustment</label
-              >
-              <textarea
-                v-model="adjustmentReason"
-                rows="3"
-                class="input w-full bg-neutral-50 dark:bg-neutral-900"
-                placeholder="Required: why is this being adjusted?"
-              ></textarea>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4 mt-10">
-            <button
-              @click="adjustmentTarget = null"
-              class="btn-secondary py-3"
-              :disabled="submittingAdjustment"
-            >
-              Cancel
-            </button>
-            <button
-              @click="confirmAdjustment"
-              class="btn-primary py-3"
-              :class="
-                adjustmentTarget.type === 'REFUND'
-                  ? 'bg-error-600 border-error-600 hover:bg-error-700 shadow-xl shadow-error-500/20'
-                  : 'bg-warning-600 border-warning-600 hover:bg-warning-700 shadow-xl shadow-warning-500/20'
-              "
-              :disabled="submittingAdjustment || !adjustmentReason.trim()"
-            >
-              {{ submittingAdjustment ? "Processing..." : "Proceed" }}
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- New Approval Modal (PIN + Reason) -->
+      <ApprovalModal 
+        v-model="showApprovalModal"
+        :action-type="approvalActionType"
+        :loading="submittingAdjustment"
+        @approve="handleApprovedAdjustment"
+      />
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import ApprovalModal from "~/components/pos/ApprovalModal.vue";
 
 definePageMeta({
   layout: false,
@@ -601,8 +530,9 @@ const pageSize = 20;
 
 // Adjustment State
 const adjustmentTarget = ref<any | null>(null);
-const adjustmentReason = ref("");
 const submittingAdjustment = ref(false);
+const showApprovalModal = ref(false);
+const approvalActionType = ref<'VOID' | 'REFUND'>('VOID');
 
 // -- Fetch Logic --
 const fetchOrders = async () => {
@@ -677,31 +607,30 @@ const viewOrder = (order: any) => {
 
 const initiateAdjustment = (order: any, type: "VOID" | "REFUND") => {
   adjustmentTarget.value = { order, type };
-  adjustmentReason.value = "";
+  approvalActionType.value = type;
+  showApprovalModal.value = true;
   selectedOrder.value = null;
 };
 
-const confirmAdjustment = async () => {
-  if (!adjustmentTarget.value || !adjustmentReason.value.trim()) return;
+const handleApprovedAdjustment = async (data: { pin: string, reason: string }) => {
+  if (!adjustmentTarget.value) return;
 
   submittingAdjustment.value = true;
   try {
-    // We use the specialized PosOrderAdjustment API for high-audit tracking
-    const payload = {
-      orderId: adjustmentTarget.value.order.orderId,
-      type: adjustmentTarget.value.type,
-      amount: adjustmentTarget.value.order.totalAmount,
-      reason: adjustmentReason.value,
-      requestedBy: 1, // Default user ID for demonstration
-      approvedBy: 1, // Admin auto-approval for demonstration
-    };
+    const orderId = adjustmentTarget.value.order.orderId;
+    const type = adjustmentTarget.value.type; // VOID or REFUND
 
-    await post("/pos-order-adjustments", payload);
+    const endpoint = `/orders/${orderId}/${type.toLowerCase()}`;
+    await put(endpoint, null, {
+        pinCode: data.pin,
+        reason: data.reason
+    });
 
     await fetchOrders();
 
+    showApprovalModal.value = false;
     adjustmentTarget.value = null;
-    toast.success(`Order ${payload.type} successfully processed`);
+    toast.success(`Order ${type} successfully processed`);
   } catch (err: any) {
     console.error("Adjustment failed", err);
     toast.error(err.response?.data?.message || "Failed to process adjustment");

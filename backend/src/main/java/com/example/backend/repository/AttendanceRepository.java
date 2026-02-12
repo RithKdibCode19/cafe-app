@@ -13,6 +13,8 @@ public interface AttendanceRepository extends JpaRepository<AttendanceEntity, Lo
 
     List<AttendanceEntity> findByEmployeeEmployeeIdAndDeletedAtIsNull(Long employeeId);
 
+    List<AttendanceEntity> findByCheckInBetweenAndDeletedAtIsNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
+
     List<AttendanceEntity> findByEmployeeEmployeeIdAndCheckInBetweenAndDeletedAtIsNull(
             Long employeeId,
             java.time.LocalDateTime start,

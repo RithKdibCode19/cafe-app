@@ -403,6 +403,47 @@ public class DataSeeder implements CommandLineRunner {
         createSetting("CURRENCY_SYMBOL", "$", "Currency Symbol", "FINANCE");
         createSetting("RECEIPT_FOOTER", "Thank you for dining with us!", "Receipt Footer Message", "GENERAL");
         createSetting("THEME", "LIGHT", "Default Theme", "APPEARANCE");
+        
+        // Loyalty Program
+        createSetting("LOYALTY_EARN_RATE", "1", "Points earned per $1 spent", "LOYALTY");
+        createSetting("LOYALTY_REDEEM_RATE", "0.1", "USD discount per 1 point", "LOYALTY");
+        createSetting("LOYALTY_SILVER_THRESHOLD", "300", "Points required for Silver tier", "LOYALTY");
+        createSetting("LOYALTY_GOLD_THRESHOLD", "1000", "Points required for Gold tier", "LOYALTY");
+        
+        recalculateAllMembershipLevels();
+    }
+
+    private void recalculateAllMembershipLevels() {
+        // This ensures existing data is patched on startup
+        System.out.println("Starting Membership Tier Recalculation...");
+        
+        int silverThreshold = 300;
+        int goldThreshold = 1000;
+        
+        try {
+            SystemSettingEntity silverSet = systemSettingRepository.findByKey("LOYALTY_SILVER_THRESHOLD").orElse(null);
+            if (silverSet != null) silverThreshold = Integer.parseInt(silverSet.getValue());
+            
+            SystemSettingEntity goldSet = systemSettingRepository.findByKey("LOYALTY_GOLD_THRESHOLD").orElse(null);
+            if (goldSet != null) goldThreshold = Integer.parseInt(goldSet.getValue());
+        } catch (Exception e) {
+            System.err.println("Failed to parse loyalty thresholds: " + e.getMessage());
+        }
+
+        List<CustomerEntity> allCustomers = customerRepository.findAll();
+        int count = 0;
+        for (CustomerEntity customer : allCustomers) {
+            int points = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
+            String computedLevel = points >= goldThreshold ? "GOLD" : (points >= silverThreshold ? "SILVER" : "BRONZE");
+            
+            if (!computedLevel.equals(customer.getMembershipLevel())) {
+                System.out.println("Updating " + customer.getName() + " from " + customer.getMembershipLevel() + " to " + computedLevel + " (Points: " + points + ")");
+                customer.setMembershipLevel(computedLevel);
+                customerRepository.save(customer);
+                count++;
+            }
+        }
+        System.out.println("Membership Tier Recalculation complete. Updated " + count + " customers.");
     }
 
     private void seedAddOns() {
@@ -603,7 +644,7 @@ public class DataSeeder implements CommandLineRunner {
         cust.setGender(gender);
         cust.setLoyaltyPoints(points);
         cust.setStatus(CustomerEntity.Status.ACTIVE);
-        cust.setMembershipLevel(points > 200 ? "GOLD" : "BRONZE");
+        cust.setMembershipLevel(points >= 1000 ? "GOLD" : (points >= 300 ? "SILVER" : "BRONZE"));
         return customerRepository.save(cust);
     }
 

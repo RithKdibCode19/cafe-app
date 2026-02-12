@@ -77,6 +77,13 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "points_redeemed")
     private Integer pointsRedeemed = 0;
 
+    @Column(name = "status_reason", columnDefinition = "TEXT")
+    private String statusReason;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by_id")
+    private UserEntity approvedBy;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
 
@@ -207,5 +214,21 @@ public class OrderEntity extends BaseEntity {
 
     public void setPointsRedeemed(Integer pointsRedeemed) {
         this.pointsRedeemed = pointsRedeemed;
+    }
+
+    public String getStatusReason() {
+        return statusReason;
+    }
+
+    public void setStatusReason(String statusReason) {
+        this.statusReason = statusReason;
+    }
+
+    public UserEntity getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(UserEntity approvedBy) {
+        this.approvedBy = approvedBy;
     }
 }

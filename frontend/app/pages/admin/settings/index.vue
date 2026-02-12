@@ -172,6 +172,107 @@
          </div>
       </div>
 
+      <!-- Tab Content: Loyalty Program -->
+      <div v-if="activeTab === 'loyalty'" class="space-y-6">
+        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
+           <div class="flex items-center gap-4 mb-6 pb-6 border-b border-neutral-200 dark:border-neutral-800">
+              <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
+              <div>
+                 <h3 class="text-lg font-bold text-neutral-900 dark:text-white">Loyalty Rewards Program</h3>
+                 <p class="text-sm text-neutral-500">Configure how points are earned and redeemed</p>
+              </div>
+           </div>
+
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <!-- Point Calculation -->
+              <div class="space-y-4">
+                 <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Earning & Redemption
+                 </h4>
+                 
+                 <div class="space-y-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
+                    <div>
+                       <label class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2">Point Earn Rate</label>
+                       <div class="flex items-center gap-3">
+                          <input 
+                              v-model="loyaltyConfig.earnRate" 
+                              type="number" 
+                              step="0.1"
+                              class="w-full bg-white dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                          >
+                          <span class="text-sm text-neutral-500 whitespace-nowrap">Points per $1</span>
+                       </div>
+                       <p class="text-[10px] text-neutral-400 mt-1 italic">Example: 1 means $10 spent = 10 points</p>
+                    </div>
+
+                    <div>
+                       <label class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2">Point Value ($)</label>
+                       <div class="flex items-center gap-3">
+                          <input 
+                              v-model="loyaltyConfig.redeemRate" 
+                              type="number" 
+                              step="0.01"
+                              class="w-full bg-white dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                          >
+                          <span class="text-sm text-neutral-500 whitespace-nowrap">Discount per point</span>
+                       </div>
+                       <p class="text-[10px] text-neutral-400 mt-1 italic">Example: 0.1 means 10 points = $1.00 discount</p>
+                    </div>
+                 </div>
+              </div>
+
+              <!-- Membership Tiers -->
+              <div class="space-y-4">
+                 <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.34M12 11c1.33 0 2.3-1.63 1.4-2.8a1.3 1.3 0 0 0-1.4-.2 1.3 1.3 0 0 0-1.4.2c-.9 1.17.07 2.8 1.4 2.8z"/><path d="M10 2c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1h-2c-.55 0-1 .45-1 1v1z"/><path d="M5.5 10c.28 0 .5.22.5.5V14c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-3.5c0-.28.22-.5.5-.5h.5c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1h-15c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h.5z"/></svg>
+                    Membership Tiers
+                 </h4>
+                 
+                 <div class="space-y-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl">
+                    <div>
+                       <label class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2">Silver Tier Threshold</label>
+                       <div class="flex items-center gap-3">
+                          <input 
+                              v-model="loyaltyConfig.silverThreshold" 
+                              type="number" 
+                              class="w-full bg-white dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                          >
+                          <span class="text-sm text-neutral-500 whitespace-nowrap">Points</span>
+                       </div>
+                    </div>
+
+                    <div>
+                       <label class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2">Gold Tier Threshold</label>
+                       <div class="flex items-center gap-3">
+                          <input 
+                              v-model="loyaltyConfig.goldThreshold" 
+                              type="number" 
+                              class="w-full bg-white dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                          >
+                          <span class="text-sm text-neutral-500 whitespace-nowrap">Points</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+           <div class="flex justify-end p-6 border-t border-neutral-100 dark:border-neutral-800 -mx-6 -mb-6">
+              <button 
+                 @click="saveLoyaltyConfig" 
+                 :disabled="savingLoyalty"
+                 class="btn-primary py-3 px-8 text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary-500/20"
+              >
+                 <div v-if="savingLoyalty" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                 <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                 Apply Settings
+              </button>
+           </div>
+        </div>
+      </div>
+
       <!-- Tab Content: Notifications -->
       <div v-if="activeTab === 'notifications'" class="space-y-6">
          <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
@@ -450,6 +551,7 @@ const toast = useToast()
 const tabs = [
   { id: 'users', name: 'User Accounts' },
   { id: 'roles', name: 'Roles & Access' },
+  { id: 'loyalty', name: 'Loyalty Program' },
   { id: 'notifications', name: 'Notifications' },
   { id: 'config', name: 'System Config' }
 ]
@@ -493,6 +595,15 @@ const telegramConfig = reactive({
   largeOrderThreshold: 100,
   shiftDiscrepancy: false
 })
+
+// Loyalty Configuration
+const loyaltyConfig = reactive({
+  earnRate: 1.0,
+  redeemRate: 0.1,
+  silverThreshold: 300,
+  goldThreshold: 1000
+})
+const savingLoyalty = ref(false)
 const savingTelegram = ref(false)
 const testingTelegram = ref(false)
 
@@ -505,6 +616,12 @@ const loadTelegramConfig = () => {
   telegramConfig.largeOrder = findSetting('NOTIFY_LARGE_ORDER') === 'true'
   telegramConfig.largeOrderThreshold = parseInt(findSetting('LARGE_ORDER_THRESHOLD')) || 100
   telegramConfig.shiftDiscrepancy = findSetting('NOTIFY_SHIFT_DISCREPANCY') === 'true'
+
+  // Loyalty
+  loyaltyConfig.earnRate = parseFloat(findSetting('LOYALTY_EARN_RATE')) || 1.0
+  loyaltyConfig.redeemRate = parseFloat(findSetting('LOYALTY_REDEEM_RATE')) || 0.1
+  loyaltyConfig.silverThreshold = parseInt(findSetting('LOYALTY_SILVER_THRESHOLD')) || 300
+  loyaltyConfig.goldThreshold = parseInt(findSetting('LOYALTY_GOLD_THRESHOLD')) || 1000
 }
 
 const saveTelegramConfig = async () => {
@@ -536,6 +653,25 @@ const testTelegram = async () => {
     toast.error('Failed to send test notification. Check your configuration.')
   } finally {
     testingTelegram.value = false
+  }
+}
+
+const saveLoyaltyConfig = async () => {
+  savingLoyalty.value = true
+  try {
+    const payload: Record<string, string> = {
+      'LOYALTY_EARN_RATE': loyaltyConfig.earnRate.toString(),
+      'LOYALTY_REDEEM_RATE': loyaltyConfig.redeemRate.toString(),
+      'LOYALTY_SILVER_THRESHOLD': loyaltyConfig.silverThreshold.toString(),
+      'LOYALTY_GOLD_THRESHOLD': loyaltyConfig.goldThreshold.toString()
+    }
+    await post('/settings/batch', payload)
+    toast.success('Loyalty program settings updated!')
+    fetchData() // Refresh settings from server
+  } catch (err) {
+    toast.error('Failed to update loyalty settings')
+  } finally {
+    savingLoyalty.value = false
   }
 }
 

@@ -20,8 +20,9 @@ public class StockAdjustmentResponseDTO {
     private Double qtyChange;
     private String reasonType;
     private String note;
-    private Long approvedBy;
-    private Long createdBy;
+    private String approvedByName;
+    private String createdByName;
+    private String status;
     private LocalDateTime date;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

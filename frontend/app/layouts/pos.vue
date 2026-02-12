@@ -14,7 +14,11 @@
             <div
               class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
             >
-              <img src="~/assets/images/cofeoshop.jpg" alt="Cafe POS" class="w-full h-full object-cover" />
+              <img
+                src="~/assets/images/cofeoshop.jpg"
+                alt="Cafe POS"
+                class="w-full h-full object-cover"
+              />
             </div>
             <span class="font-bold text-lg">Cofeoshop</span>
           </NuxtLink>
@@ -23,14 +27,64 @@
         <div class="flex items-center gap-3">
           <LanguageSwitcher />
 
-
           <!-- Shift Status -->
           <button
             @click="openShiftModal"
-            :class="['px-3 py-1.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors', currentShift ? 'bg-success-500/10 text-success-500 border border-success-500/20 hover:bg-success-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20']"
+            :class="[
+              'px-3 py-1.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors',
+              currentShift
+                ? 'bg-success-500/10 text-success-500 border border-success-500/20 hover:bg-success-500/20'
+                : 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20',
+            ]"
           >
-            <div :class="['w-2 h-2 rounded-full', currentShift ? 'bg-success-500 animate-pulse' : 'bg-red-500']"></div>
-            {{ currentShift ? 'Shift Open' : 'Shift Closed' }}
+            <div
+              :class="[
+                'w-2 h-2 rounded-full',
+                currentShift ? 'bg-success-500 animate-pulse' : 'bg-red-500',
+              ]"
+            ></div>
+            {{ currentShift ? "Shift Open" : "Shift Closed" }}
+          </button>
+
+          <!-- Order History -->
+          <button
+            @click="openOrderHistory"
+            class="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+            title="Order History"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+
+          <!-- Drawer Action -->
+          <button
+            @click="showDrawerModal = true"
+            class="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+            title="Cash Management"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect width="20" height="12" x="2" y="6" rx="2" />
+              <path d="M12 12h.01" />
+              <path d="M17 12h.01" />
+              <path d="M7 12h.01" />
+            </svg>
           </button>
 
           <!-- Admin link -->
@@ -146,7 +200,7 @@
             }}</strong></span
           >
           <button
-            v-if="customer.points >= 10 && pointsDiscount === 0"
+            v-if="customer.points > 0 && pointsDiscount === 0"
             @click="applyPoints(customer.points)"
             class="text-primary-400 hover:underline"
           >
@@ -159,38 +213,71 @@
       </div>
 
       <!-- Held Orders Panel -->
-      <div v-if="heldOrders.length > 0" class="px-4 py-2 border-b border-neutral-700 bg-neutral-900/50">
+      <div
+        v-if="heldOrders.length > 0"
+        class="px-4 py-2 border-b border-neutral-700 bg-neutral-900/50"
+      >
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Held Orders</span>
-          <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-bold">{{ heldOrders.length }}</span>
+          <span
+            class="text-xs font-bold text-neutral-400 uppercase tracking-wider"
+            >Held Orders</span
+          >
+          <span
+            class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-bold"
+            >{{ heldOrders.length }}</span
+          >
         </div>
         <div class="space-y-2 max-h-32 overflow-y-auto scrollbar-thin">
-          <div 
-            v-for="order in heldOrders" 
+          <div
+            v-for="order in heldOrders"
             :key="order.id"
             class="flex items-center justify-between p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 group"
           >
             <div class="flex-1 min-w-0">
-              <div class="text-sm text-white font-medium truncate">{{ order.note }}</div>
-              <div class="text-xs text-neutral-400">{{ order.items.length }} items · {{ order.customer.name }}</div>
+              <div class="text-sm text-white font-medium truncate">
+                {{ order.note }}
+              </div>
+              <div class="text-xs text-neutral-400">
+                {{ order.items.length }} items · {{ order.customer.name }}
+              </div>
             </div>
             <div class="flex gap-1">
-              <button 
-                @click="resumeOrder(order.id)" 
+              <button
+                @click="resumeOrder(order.id)"
                 class="p-1.5 rounded-lg text-primary-400 hover:bg-primary-500/20"
                 title="Resume Order"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="9 10 4 15 9 20" />
+                  <path d="M20 4v7a4 4 0 0 1-4 4H4" />
                 </svg>
               </button>
-              <button 
-                @click="removeHeldOrder(order.id)" 
+              <button
+                @click="removeHeldOrder(order.id)"
                 class="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100"
                 title="Remove"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
                 </svg>
               </button>
             </div>
@@ -200,18 +287,27 @@
 
       <!-- Order items -->
       <div class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
-        
         <!-- Order Type Toggle -->
         <div class="flex p-1 bg-neutral-700/50 rounded-lg mb-2">
-          <button 
+          <button
             @click="orderType = 'DINE_IN'"
-            :class="['flex-1 py-1.5 rounded-md text-xs font-bold transition-all', orderType === 'DINE_IN' ? 'bg-primary-600 text-white shadow' : 'text-neutral-400 hover:text-white']"
+            :class="[
+              'flex-1 py-1.5 rounded-md text-xs font-bold transition-all',
+              orderType === 'DINE_IN'
+                ? 'bg-primary-600 text-white shadow'
+                : 'text-neutral-400 hover:text-white',
+            ]"
           >
             Dine In
           </button>
-          <button 
+          <button
             @click="orderType = 'TAKEAWAY'"
-            :class="['flex-1 py-1.5 rounded-md text-xs font-bold transition-all', orderType === 'TAKEAWAY' ? 'bg-orange-600 text-white shadow' : 'text-neutral-400 hover:text-white']"
+            :class="[
+              'flex-1 py-1.5 rounded-md text-xs font-bold transition-all',
+              orderType === 'TAKEAWAY'
+                ? 'bg-orange-600 text-white shadow'
+                : 'text-neutral-400 hover:text-white',
+            ]"
           >
             Takeaway
           </button>
@@ -258,28 +354,41 @@
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-start">
                 <div class="min-w-0">
-                  <h4 class="text-white font-medium truncate">{{ item.name }}</h4>
+                  <h4 class="text-white font-medium truncate">
+                    {{ item.name }}
+                  </h4>
                   <!-- Show add-ons if any -->
-                  <div v-if="item.addOns && item.addOns.length > 0" class="flex flex-wrap gap-1 mt-1">
-                    <span 
-                      v-for="addon in item.addOns" 
+                  <div
+                    v-if="item.addOns && item.addOns.length > 0"
+                    class="flex flex-wrap gap-1 mt-1"
+                  >
+                    <span
+                      v-for="addon in item.addOns"
                       :key="addon.addonId"
                       class="text-[10px] px-1.5 py-0.5 bg-primary-500/20 text-primary-400 rounded"
                     >
                       + {{ addon.name }}
                     </span>
                   </div>
-                  <div v-if="item.notes" class="text-[10px] text-neutral-500 mt-1 italic truncate">
+                  <div
+                    v-if="item.notes"
+                    class="text-[10px] text-neutral-500 mt-1 italic truncate"
+                  >
                     {{ item.notes }}
                   </div>
                 </div>
                 <span class="text-primary-400 font-bold flex-shrink-0 ml-2"
-                  >${{ ((item.price + (item.addOnTotal || 0)) * item.qty).toFixed(2) }}</span
+                  >${{
+                    ((item.price + (item.addOnTotal || 0)) * item.qty).toFixed(
+                      2,
+                    )
+                  }}</span
                 >
               </div>
               <div class="flex items-center justify-between mt-2">
                 <span class="text-xs text-neutral-400"
-                  >${{ (item.price + (item.addOnTotal || 0)).toFixed(2) }} / unit</span
+                  >${{ (item.price + (item.addOnTotal || 0)).toFixed(2) }} /
+                  unit</span
                 >
 
                 <div
@@ -314,13 +423,20 @@
           <span>Subtotal</span>
           <span>${{ subtotal.toFixed(2) }}</span>
         </div>
-        
+
         <!-- Manual Discount -->
         <div class="flex justify-between text-sm text-neutral-400 items-center">
-           <span>Discount</span>
-           <button @click="openDiscountModal" class="text-primary-400 hover:text-primary-300 text-xs font-bold px-2 py-1 bg-primary-500/10 rounded border border-primary-500/20 transition-colors">
-             {{ manualDiscount > 0 ? '-$' + manualDiscount.toFixed(2) : 'Add Discount' }}
-           </button>
+          <span>Discount</span>
+          <button
+            @click="openDiscountModal"
+            class="text-primary-400 hover:text-primary-300 text-xs font-bold px-2 py-1 bg-primary-500/10 rounded border border-primary-500/20 transition-colors"
+          >
+            {{
+              manualDiscount > 0
+                ? "-$" + manualDiscount.toFixed(2)
+                : "Add Discount"
+            }}
+          </button>
         </div>
         <div
           v-if="pointsDiscount > 0"
@@ -364,7 +480,13 @@
           Checkout
         </button>
         <div class="grid grid-cols-2 gap-2">
-          <button @click="openHoldOrderModal()" :disabled="cartItems.length === 0" class="btn-secondary text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed">Hold Order</button>
+          <button
+            @click="openHoldOrderModal()"
+            :disabled="cartItems.length === 0"
+            class="btn-secondary text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Hold Order
+          </button>
           <button
             @click="clearCart"
             class="btn-ghost text-error-400 hover:bg-error-500/10"
@@ -376,6 +498,114 @@
     </aside>
 
     <!-- Payment Modal -->
+    <!-- Order History Modal -->
+    <div
+      v-if="showOrderHistoryModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-2xl border border-neutral-700 flex flex-col max-h-[80vh]"
+      >
+        <div
+          class="p-4 border-b border-neutral-700 flex justify-between items-center"
+        >
+          <h3 class="text-lg font-bold text-white tracking-tight uppercase">
+            Order History
+          </h3>
+          <button
+            @click="showOrderHistoryModal = false"
+            class="text-neutral-400 hover:text-white transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
+          <div v-if="orderLoading" class="flex justify-center p-8">
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
+            ></div>
+          </div>
+          <div
+            v-else-if="recentOrders.length === 0"
+            class="text-center p-8 text-neutral-500"
+          >
+            No recent orders found.
+          </div>
+          <div v-else class="space-y-3">
+            <div
+              v-for="order in recentOrders"
+              :key="order.orderId"
+              class="bg-neutral-900 border border-neutral-700 rounded-xl p-4 hover:border-neutral-500 transition-colors group"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div
+                    class="text-sm font-black text-white font-mono tracking-tight"
+                  >
+                    {{ order.orderNo }}
+                  </div>
+                  <div class="text-[10px] text-neutral-500 font-bold uppercase">
+                    {{ new Date(order.createdAt).toLocaleTimeString() }} ·
+                    {{ order.customer?.name || "Walk-in" }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span
+                    :class="[
+                      'text-[10px] px-2 py-0.5 rounded-full font-black uppercase',
+                      order.status === 'PAID'
+                        ? 'bg-success-500/10 text-success-400'
+                        : order.status === 'PENDING'
+                          ? 'bg-warning-500/10 text-warning-400'
+                          : 'bg-neutral-800 text-neutral-500',
+                    ]"
+                    >{{ order.status }}</span
+                  >
+                  <span class="text-white font-black"
+                    >${{ (order.totalAmount || 0).toFixed(2) }}</span
+                  >
+                </div>
+              </div>
+              <div
+                class="flex justify-end gap-2 mt-2 pt-2 border-t border-neutral-800"
+              >
+                <button
+                  v-if="order.status === 'PENDING'"
+                  @click="initiateAdjustment(order, 'VOID')"
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20"
+                >
+                  Void
+                </button>
+                <button
+                  v-if="order.status === 'PAID'"
+                  @click="initiateAdjustment(order, 'REFUND')"
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20"
+                >
+                  Refund
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approval Modal (PIN + Reason) -->
+    <PosApprovalModal
+      v-model="showApprovalModal"
+      :action-type="approvalActionType"
+      :loading="adjustmentLoading"
+      @approve="handleApprovedAdjustment"
+    />
     <div
       v-if="showPaymentModal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
@@ -469,50 +699,133 @@
             class="w-full max-w-md bg-neutral-900/80 p-5 rounded-3xl border border-neutral-700 flex flex-col h-full overflow-hidden"
           >
             <div class="text-center mb-2 flex-shrink-0">
-               <p class="text-neutral-400 text-xs mb-1">Total Due</p>
-               <h3 class="text-3xl font-black text-white tracking-tight">${{ total.toFixed(2) }}</h3>
+              <p class="text-neutral-400 text-xs mb-1">Total Due</p>
+              <h3 class="text-3xl font-black text-white tracking-tight">
+                ${{ total.toFixed(2) }}
+              </h3>
             </div>
 
             <!-- Cash Input Display -->
-            <div class="bg-neutral-800 rounded-xl p-3 mb-3 border border-neutral-700 relative overflow-hidden flex-shrink-0">
-                <div class="flex justify-between items-end mb-1">
-                    <span class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Cash Received</span>
-                </div>
-                <!-- Input field (readonly) -->
-                <div class="flex items-center justify-between">
-                     <span class="text-xl font-bold text-neutral-500">$</span>
-                     <span :class="['text-3xl font-mono font-bold tracking-tight', cashReceived ? 'text-white' : 'text-neutral-600']">
-                        {{ cashReceived ? cashReceived : '0.00' }}
-                     </span>
-                </div>
-                <!-- Quick add buttons -->
-                <div class="flex gap-2 mt-2 pt-2 border-t border-neutral-700 overflow-x-auto scrollbar-hide">
-                    <button @click="setCash(total)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">Exact</button>
-                    <button @click="setCash(Math.ceil(total))" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">${{ Math.ceil(total) }}</button>
-                    <button @click="setCash(10)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$10</button>
-                    <button @click="setCash(20)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$20</button>
-                    <button @click="setCash(50)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$50</button>
-                </div>
+            <div
+              class="bg-neutral-800 rounded-xl p-3 mb-3 border border-neutral-700 relative overflow-hidden flex-shrink-0"
+            >
+              <div class="flex justify-between items-end mb-1">
+                <span
+                  class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest"
+                  >Cash Received</span
+                >
+              </div>
+              <!-- Input field (readonly) -->
+              <div class="flex items-center justify-between">
+                <span class="text-xl font-bold text-neutral-500">$</span>
+                <span
+                  :class="[
+                    'text-3xl font-mono font-bold tracking-tight',
+                    cashReceived ? 'text-white' : 'text-neutral-600',
+                  ]"
+                >
+                  {{ cashReceived ? cashReceived : "0.00" }}
+                </span>
+              </div>
+              <!-- Quick add buttons -->
+              <div
+                class="flex gap-2 mt-2 pt-2 border-t border-neutral-700 overflow-x-auto scrollbar-hide"
+              >
+                <button
+                  @click="setCash(total)"
+                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
+                >
+                  Exact
+                </button>
+                <button
+                  @click="setCash(Math.ceil(total))"
+                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
+                >
+                  ${{ Math.ceil(total) }}
+                </button>
+                <button
+                  @click="setCash(10)"
+                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
+                >
+                  $10
+                </button>
+                <button
+                  @click="setCash(20)"
+                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
+                >
+                  $20
+                </button>
+                <button
+                  @click="setCash(50)"
+                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
+                >
+                  $50
+                </button>
+              </div>
             </div>
 
             <!-- Change Display -->
-            <div class="flex justify-between items-center px-4 py-3 bg-neutral-800 rounded-xl border border-neutral-700 mb-3 flex-shrink-0">
-                 <span class="text-neutral-400 font-bold uppercase text-[10px]">Change Due</span>
-                 <span :class="['text-xl font-black font-mono', changeDue >= 0 ? 'text-success-400' : 'text-error-500']">
-                    {{ changeDue >= 0 ? '$' + changeDue.toFixed(2) : '-$' + Math.abs(changeDue).toFixed(2) }}
-                 </span>
+            <div
+              class="flex justify-between items-center px-4 py-3 bg-neutral-800 rounded-xl border border-neutral-700 mb-3 flex-shrink-0"
+            >
+              <span class="text-neutral-400 font-bold uppercase text-[10px]"
+                >Change Due</span
+              >
+              <span
+                :class="[
+                  'text-xl font-black font-mono',
+                  changeDue >= 0 ? 'text-success-400' : 'text-error-500',
+                ]"
+              >
+                {{
+                  changeDue >= 0
+                    ? "$" + changeDue.toFixed(2)
+                    : "-$" + Math.abs(changeDue).toFixed(2)
+                }}
+              </span>
             </div>
 
             <!-- Keypad -->
             <div class="grid grid-cols-3 gap-2 flex-1 min-h-0">
-                <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" @click="addCashDigit(n.toString())" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors shadow-sm flex items-center justify-center">
-                    {{ n }}
-                </button>
-                <button @click="addCashDigit('.')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">.</button>
-                <button @click="addCashDigit('0')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">0</button>
-                <button @click="clearCash" class="h-full max-h-14 rounded-lg bg-error-500/10 hover:bg-error-500/20 text-error-500 hover:text-error-400 text-lg font-bold transition-colors flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
-                </button>
+              <button
+                v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]"
+                :key="n"
+                @click="addCashDigit(n.toString())"
+                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors shadow-sm flex items-center justify-center"
+              >
+                {{ n }}
+              </button>
+              <button
+                @click="addCashDigit('.')"
+                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center"
+              >
+                .
+              </button>
+              <button
+                @click="addCashDigit('0')"
+                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center"
+              >
+                0
+              </button>
+              <button
+                @click="clearCash"
+                class="h-full max-h-14 rounded-lg bg-error-500/10 hover:bg-error-500/20 text-error-500 hover:text-error-400 text-lg font-bold transition-colors flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"
+                  />
+                  <line x1="18" y1="9" x2="12" y2="15" />
+                  <line x1="12" y1="9" x2="18" y2="15" />
+                </svg>
+              </button>
             </div>
 
             <button
@@ -520,7 +833,13 @@
               :disabled="isProcessing || changeDue < 0"
               class="w-full btn-primary py-3 rounded-xl mt-3 text-sm font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
-              {{ isProcessing ? "Processing..." : (changeDue < 0 ? "Insufficient Cash" : "Confirm Payment") }}
+              {{
+                isProcessing
+                  ? "Processing..."
+                  : changeDue < 0
+                    ? "Insufficient Cash"
+                    : "Confirm Payment"
+              }}
             </button>
           </div>
 
@@ -821,17 +1140,24 @@
         </div>
       </div>
     </div>
-<!-- Hold Order Modal -->
-    <div v-if="showHoldOrderModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 overflow-hidden animate-in zoom-in duration-200">
+    <!-- Hold Order Modal -->
+    <div
+      v-if="showHoldOrderModal"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 overflow-hidden animate-in zoom-in duration-200"
+      >
         <div class="p-6 border-b border-neutral-700">
           <h3 class="text-xl font-bold text-white">Hold Order</h3>
         </div>
         <div class="p-6 space-y-4">
-          <label class="block text-sm font-medium text-neutral-400">Order Note</label>
-          <input 
-            v-model="holdOrderNote" 
-            type="text" 
+          <label class="block text-sm font-medium text-neutral-400"
+            >Order Note</label
+          >
+          <input
+            v-model="holdOrderNote"
+            type="text"
             class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500"
             placeholder="e.g. Table 5"
             @keyup.enter="confirmHoldOrder"
@@ -839,8 +1165,18 @@
           />
         </div>
         <div class="p-6 bg-neutral-900/50 flex justify-end gap-3">
-          <button @click="showHoldOrderModal = false" class="px-4 py-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors">Cancel</button>
-          <button @click="confirmHoldOrder" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-colors">Hold Order</button>
+          <button
+            @click="showHoldOrderModal = false"
+            class="px-4 py-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmHoldOrder"
+            class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-colors"
+          >
+            Hold Order
+          </button>
         </div>
       </div>
     </div>
@@ -857,13 +1193,23 @@
           class="p-6 border-b border-neutral-700 flex justify-between items-center"
         >
           <h3 class="text-xl font-bold text-white">Select Customer</h3>
-          <button 
-            @click="toggleCreateCustomer" 
+          <button
+            @click="toggleCreateCustomer"
             class="ml-4 text-xs font-bold px-3 py-1.5 bg-neutral-700 border border-neutral-600 text-white rounded-lg hover:bg-primary-600 hover:border-primary-500 transition-colors flex items-center gap-1"
           >
             <span v-if="!isCreatingCustomer">
-             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-             New Customer
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-3 h-3 inline mr-1"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              New Customer
             </span>
             <span v-else>Cancel</span>
           </button>
@@ -887,31 +1233,62 @@
 
         <div class="p-6 space-y-6">
           <!-- Create Customer Form -->
-          <div v-if="isCreatingCustomer" class="space-y-4 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div
+            v-if="isCreatingCustomer"
+            class="space-y-4 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-200"
+          >
             <div>
-                <label class="block text-xs font-medium text-neutral-400 mb-1">Customer Name *</label>
-                <input v-model="newCustomer.name" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="John Doe" />
+              <label class="block text-xs font-medium text-neutral-400 mb-1"
+                >Customer Name *</label
+              >
+              <input
+                v-model="newCustomer.name"
+                type="text"
+                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
+                placeholder="John Doe"
+              />
             </div>
             <div>
-                <label class="block text-xs font-medium text-neutral-400 mb-1">Phone (Optional)</label>
-                <input v-model="newCustomer.phone" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="012 345 678" />
+              <label class="block text-xs font-medium text-neutral-400 mb-1"
+                >Phone (Optional)</label
+              >
+              <input
+                v-model="newCustomer.phone"
+                type="text"
+                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
+                placeholder="012 345 678"
+              />
             </div>
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-medium text-neutral-400 mb-1">Gender (Optional)</label>
-                    <select v-model="newCustomer.gender" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm">
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-neutral-400 mb-1">Date of Birth (Optional)</label>
-                    <input v-model="newCustomer.dob" type="date" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" />
-                </div>
+              <div>
+                <label class="block text-xs font-medium text-neutral-400 mb-1"
+                  >Gender (Optional)</label
+                >
+                <select
+                  v-model="newCustomer.gender"
+                  class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
+                >
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-neutral-400 mb-1"
+                  >Date of Birth (Optional)</label
+                >
+                <input
+                  v-model="newCustomer.dob"
+                  type="date"
+                  class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
             </div>
-            <button @click="createCustomer" class="w-full py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg shadow-primary-900/20">
-                Create & Select Customer
+            <button
+              @click="createCustomer"
+              class="w-full py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg shadow-primary-900/20"
+            >
+              Create & Select Customer
             </button>
           </div>
 
@@ -948,38 +1325,46 @@
                 >Default</span
               >
             </button>
-            
+
             <!-- Recent Customers Header -->
             <div v-if="!customerSearch && recentCustomers.length > 0">
-                <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Recent Customers</p>
-                <button
+              <p
+                class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2"
+              >
+                Recent Customers
+              </p>
+              <button
                 v-for="res in recentCustomers"
                 :key="'recent-' + res.customerId"
                 @click="selectCustomerFromModal(res)"
                 class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group mb-2 border border-transparent hover:border-neutral-600"
-                >
+              >
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">
-                        {{ res.fullName.charAt(0).toUpperCase() }}
+                  <div
+                    class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white"
+                  >
+                    {{ res.fullName.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <div
+                      class="text-white font-bold group-hover:text-primary-400"
+                    >
+                      {{ res.fullName }}
                     </div>
-                    <div>
-                        <div class="text-white font-bold group-hover:text-primary-400">
-                        {{ res.fullName }}
-                        </div>
-                        <div class="text-xs text-neutral-400">
-                        {{ res.phone || "No phone" }}
-                        </div>
+                    <div class="text-xs text-neutral-400">
+                      {{ res.phone || "No phone" }}
                     </div>
+                  </div>
                 </div>
                 <div class="text-right">
-                    <div class="text-xs font-black text-warning-500">
+                  <div class="text-xs font-black text-warning-500">
                     {{ res.loyaltyPoints || 0 }} pts
-                    </div>
-                    <div class="text-[10px] text-neutral-500">
+                  </div>
+                  <div class="text-[10px] text-neutral-500">
                     {{ res.membershipLevel }}
-                    </div>
+                  </div>
                 </div>
-                </button>
+              </button>
             </div>
 
             <!-- Search Results -->
@@ -1002,18 +1387,22 @@
               class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group"
             >
               <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">
-                        {{ res.fullName.charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                        <div class="text-white font-bold group-hover:text-primary-400">
-                        {{ res.fullName }}
-                        </div>
-                        <div class="text-xs text-neutral-400">
-                        {{ res.phone || "No phone" }}
-                        </div>
-                    </div>
-               </div>
+                <div
+                  class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white"
+                >
+                  {{ res.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <div
+                    class="text-white font-bold group-hover:text-primary-400"
+                  >
+                    {{ res.fullName }}
+                  </div>
+                  <div class="text-xs text-neutral-400">
+                    {{ res.phone || "No phone" }}
+                  </div>
+                </div>
+              </div>
               <div class="text-right">
                 <div class="text-xs font-black text-warning-500">
                   {{ res.loyaltyPoints || 0 }} pts
@@ -1036,31 +1425,47 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Discount Modal -->
-    <div v-if="showDiscountModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 p-6">
+    <div
+      v-if="showDiscountModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 p-6"
+      >
         <h3 class="text-xl font-bold text-white mb-4">Apply Discount</h3>
-        <p class="text-neutral-400 text-sm mb-4">Enter a fixed discount amount.</p>
-        
+        <p class="text-neutral-400 text-sm mb-4">
+          Enter a fixed discount amount.
+        </p>
+
         <div class="relative mb-6">
-          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">$</span>
-          <input 
-            v-model="manualDiscountInput" 
-            type="number" 
+          <span
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold"
+            >$</span
+          >
+          <input
+            v-model="manualDiscountInput"
+            type="number"
             min="0"
             step="0.01"
             class="w-full bg-neutral-900 border border-neutral-700 rounded-xl py-4 pl-8 pr-4 text-white text-xl font-bold focus:outline-none focus:border-primary-500 transition-colors"
             placeholder="0.00"
-            @keyup.enter="applyDiscount" 
+            @keyup.enter="applyDiscount"
           />
         </div>
-        
+
         <div class="flex gap-3">
-          <button @click="showDiscountModal = false" class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500 font-bold">
+          <button
+            @click="showDiscountModal = false"
+            class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500 font-bold"
+          >
             Cancel
           </button>
-          <button @click="applyDiscount" class="flex-1 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500 shadow-lg shadow-primary-900/20">
+          <button
+            @click="applyDiscount"
+            class="flex-1 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500 shadow-lg shadow-primary-900/20"
+          >
             Apply
           </button>
         </div>
@@ -1068,16 +1473,128 @@
     </div>
     <!-- Shift Modal -->
     <!-- Shift Modal -->
-    <PosShiftModal 
+    <PosShiftModal
       v-model="showShiftModal"
       :shift="currentShift"
       :summary="currentShiftSummary"
       @success="onShiftSuccess"
     />
+
+    <!-- Drawer Action Modal -->
+    <div
+      v-if="showDrawerModal"
+      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+    >
+      <div
+        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 flex flex-col"
+      >
+        <div
+          class="p-4 border-b border-neutral-700 flex justify-between items-center"
+        >
+          <h3 class="text-white font-black uppercase tracking-tighter text-sm">
+            Cash Management
+          </h3>
+          <button
+            @click="showDrawerModal = false"
+            class="text-neutral-400 hover:text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 space-y-5">
+          <div>
+            <label
+              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
+              >Action Type</label
+            >
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                @click="drawerForm.type = 'PAY_OUT'"
+                :class="[
+                  'py-2 rounded-lg text-xs font-bold border transition-all',
+                  drawerForm.type === 'PAY_OUT'
+                    ? 'bg-error-500/20 text-error-400 border-error-500/50'
+                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
+                ]"
+              >
+                PAY OUT
+              </button>
+              <button
+                @click="drawerForm.type = 'CASH_DROP'"
+                :class="[
+                  'py-2 rounded-lg text-xs font-bold border transition-all',
+                  drawerForm.type === 'CASH_DROP'
+                    ? 'bg-primary-500/20 text-primary-400 border-primary-500/50'
+                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
+                ]"
+              >
+                DROP
+              </button>
+              <button
+                @click="drawerForm.type = 'NO_SALE_OPEN'"
+                :class="[
+                  'py-2 rounded-lg text-xs font-bold border transition-all',
+                  drawerForm.type === 'NO_SALE_OPEN'
+                    ? 'bg-neutral-700 text-white border-neutral-600'
+                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
+                ]"
+              >
+                NO SALE
+              </button>
+            </div>
+          </div>
+          <div v-if="drawerForm.type !== 'NO_SALE_OPEN'">
+            <label
+              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
+              >Amount</label
+            >
+            <input
+              v-model.number="drawerForm.amount"
+              type="number"
+              step="0.01"
+              class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white font-bold p-3 focus:ring-primary-500"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label
+              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
+              >Reason</label
+            >
+            <textarea
+              v-model="drawerForm.reason"
+              rows="2"
+              class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white text-sm p-3 focus:ring-primary-500"
+              placeholder="Required for audit..."
+            ></textarea>
+          </div>
+          <button
+            @click="submitDrawerAction"
+            :disabled="
+              !drawerForm.reason ||
+              (drawerForm.type !== 'NO_SALE_OPEN' && !drawerForm.amount)
+            "
+            class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold uppercase tracking-widest disabled:opacity-50 transition-colors"
+          >
+            Record Action
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { reactive, ref, computed, watch, onMounted } from "vue";
+
 const {
   cartItems,
   heldOrders,
@@ -1114,11 +1631,11 @@ const selecting = ref(false);
 
 // --- Customer Creation State ---
 const isCreatingCustomer = ref(false);
-const newCustomer = reactive({ name: '', phone: '', gender: 'MALE', dob: '' });
+const newCustomer = reactive({ name: "", phone: "", gender: "MALE", dob: "" });
 
 // --- Hold Order State ---
 const showHoldOrderModal = ref(false);
-const holdOrderNote = ref('');
+const holdOrderNote = ref("");
 
 const openCustomerModal = () => {
   showCustomerModal.value = true;
@@ -1128,19 +1645,21 @@ const openCustomerModal = () => {
 };
 
 const fetchRecentCustomers = async () => {
-    try {
-        const data = await get<any[]>("/customers/recent");
-        recentCustomers.value = data || [];
-    } catch (e) {
-        console.error("Failed to fetch recent customers", e);
-    }
+  try {
+    const data = await get<any[]>("/customers/recent");
+    recentCustomers.value = data || [];
+  } catch (e) {
+    console.error("Failed to fetch recent customers", e);
+  }
 };
 
 const searchCustomers = async () => {
   if (customerSearch.value.length < 2) return;
   selecting.value = true;
   try {
-    const data = await get<any[]>("/customers/search", { query: customerSearch.value });
+    const data = await get<any[]>("/customers/search", {
+      query: customerSearch.value,
+    });
     searchResults.value = data || [];
   } finally {
     selecting.value = false;
@@ -1161,140 +1680,157 @@ const applyPoints = (points: number) => {
 
 // --- Customer Creation Logic ---
 const toggleCreateCustomer = () => {
-    isCreatingCustomer.value = !isCreatingCustomer.value;
-    newCustomer.name = '';
-    newCustomer.phone = '';
-    newCustomer.gender = 'MALE';
-    newCustomer.dob = '';
+  isCreatingCustomer.value = !isCreatingCustomer.value;
+  newCustomer.name = "";
+  newCustomer.phone = "";
+  newCustomer.gender = "MALE";
+  newCustomer.dob = "";
 };
 
 const createCustomer = async () => {
-    if (!newCustomer.name) {
-        toast.error("Name is required");
-        return;
-    }
-    try {
-        const payload = {
-            fullName: newCustomer.name,
-            phone: newCustomer.phone,
-            gender: newCustomer.gender,
-            dob: newCustomer.dob || null,
-            loyaltyPoints: 0,
-            membershipLevel: "BRONZE",
-        };
-        const data = await post<any>("/customers/add", payload);
-        toast.success("Customer created!");
-        selectCustomerFromModal(data);
-        isCreatingCustomer.value = false;
-        customerSearch.value = "";
-    } catch (e) {
-        console.error(e);
-        toast.error("Failed to create customer");
-    }
-    // Refresh recent list
-    fetchRecentCustomers();
+  if (!newCustomer.name) {
+    toast.error("Name is required");
+    return;
+  }
+  try {
+    const payload = {
+      fullName: newCustomer.name,
+      phone: newCustomer.phone,
+      gender: newCustomer.gender,
+      dob: newCustomer.dob || null,
+      loyaltyPoints: 0,
+      membershipLevel: "BRONZE",
+    };
+    const data = await post<any>("/customers/add", payload);
+    toast.success("Customer created!");
+    selectCustomerFromModal(data);
+    isCreatingCustomer.value = false;
+    customerSearch.value = "";
+  } catch (e) {
+    console.error(e);
+    toast.error("Failed to create customer");
+  }
+  // Refresh recent list
+  fetchRecentCustomers();
 };
 
 // --- Hold Order Logic ---
 const openHoldOrderModal = () => {
-    holdOrderNote.value = `Order #${heldOrders.value.length + 1}`;
-    showHoldOrderModal.value = true;
+  holdOrderNote.value = `Order #${heldOrders.value.length + 1}`;
+  showHoldOrderModal.value = true;
 };
 
 const confirmHoldOrder = () => {
-    if (holdOrder(holdOrderNote.value)) {
-        showHoldOrderModal.value = false;
-    }
+  if (holdOrder(holdOrderNote.value)) {
+    showHoldOrderModal.value = false;
+  }
 };
 
-const orderType = ref('DINE_IN')
+const orderType = ref("DINE_IN");
 // discountAmount removed, using manualDiscount from useCart
-const showDiscountModal = ref(false)
-const manualDiscountInput = ref(0)
-
+const showDiscountModal = ref(false);
+const manualDiscountInput = ref(0);
 
 const toggleOrderType = () => {
-  orderType.value = orderType.value === 'DINE_IN' ? 'TAKEAWAY' : 'DINE_IN'
-}
+  orderType.value = orderType.value === "DINE_IN" ? "TAKEAWAY" : "DINE_IN";
+};
 
 const openDiscountModal = () => {
-  manualDiscountInput.value = manualDiscount.value
-  showDiscountModal.value = true
-}
+  manualDiscountInput.value = manualDiscount.value;
+  showDiscountModal.value = true;
+};
 
 const applyDiscount = () => {
-  manualDiscount.value = Number(manualDiscountInput.value)
-  showDiscountModal.value = false
-}
+  manualDiscount.value = Number(manualDiscountInput.value);
+  showDiscountModal.value = false;
+};
 
 // --- Shift Management ---
-const currentShift = ref<any>(null)
-const showShiftModal = ref(false)
-const currentShiftSummary = ref<any>(null)
+const currentShift = ref<any>(null);
+const showShiftModal = ref(false);
+const currentShiftSummary = ref<any>(null);
 
 const checkCurrentShift = async () => {
-  if (!authUser.value?.userId) return
+  if (!authUser.value?.userId) return;
   try {
-    const data = await get<any>(`/shifts/current?userId=${authUser.value.userId}`, {})
-    currentShift.value = data 
+    const data = await get<any>(
+      `/shifts/current?userId=${authUser.value.userId}`,
+      {},
+    );
+    currentShift.value = data;
     if (currentShift.value) {
-        shiftAction.value = 'CLOSE'
-        // Fetch summary if closing
-        const summary = await get<any>(`/shifts/summary?userId=${authUser.value.userId}`, {})
-        currentShiftSummary.value = summary
+      shiftAction.value = "CLOSE";
+      // Fetch summary if closing
+      const summary = await get<any>(
+        `/shifts/summary?userId=${authUser.value.userId}`,
+        {},
+      );
+      currentShiftSummary.value = summary;
     } else {
-        shiftAction.value = 'OPEN'
-        currentShiftSummary.value = null
+      shiftAction.value = "OPEN";
+      currentShiftSummary.value = null;
     }
   } catch (e) {
-    console.error("Failed to check shift", e)
+    console.error("Failed to check shift", e);
   }
-}
+};
 
 const openShiftModal = async () => {
   if (currentShift.value) {
     try {
-        const summary = await get<any>(`/shifts/summary?userId=${authUser.value.userId}`, {})
-        currentShiftSummary.value = summary
-    } catch (e) { console.error(e) }
+      const summary = await get<any>(
+        `/shifts/summary?userId=${authUser.value.userId}`,
+        {},
+      );
+      currentShiftSummary.value = summary;
+    } catch (e) {
+      console.error(e);
+    }
   }
-  showShiftModal.value = true
-}
+  showShiftModal.value = true;
+};
 
 const onShiftSuccess = (shift: any) => {
-  currentShift.value = shift
-  if (!shift) currentShiftSummary.value = null
-}
+  currentShift.value = shift;
+  if (!shift) currentShiftSummary.value = null;
+};
 
 onMounted(() => {
-    checkCurrentShift()
-})
+  checkCurrentShift();
+});
 
-watch(() => authUser.value, (newVal) => {
+watch(
+  () => authUser.value,
+  (newVal) => {
     if (newVal?.userId) {
-        checkCurrentShift()
+      checkCurrentShift();
     }
-})
+  },
+);
 
 // --- Persistence ---
 onMounted(() => {
-    const saved = localStorage.getItem('heldOrders');
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            heldOrders.value = parsed.map((o: any) => ({
-                ...o,
-                createdAt: new Date(o.createdAt),
-            }));
-        } catch (e) {
-            console.error("Failed to load held orders", e);
-        }
+  const saved = localStorage.getItem("heldOrders");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      heldOrders.value = parsed.map((o: any) => ({
+        ...o,
+        createdAt: new Date(o.createdAt),
+      }));
+    } catch (e) {
+      console.error("Failed to load held orders", e);
     }
+  }
 });
 
-watch(heldOrders, (newVal) => {
-    localStorage.setItem('heldOrders', JSON.stringify(newVal));
-}, { deep: true });
+watch(
+  heldOrders,
+  (newVal) => {
+    localStorage.setItem("heldOrders", JSON.stringify(newVal));
+  },
+  { deep: true },
+);
 const selectedMethod = ref("CASH");
 const khqrData = ref<any>(null);
 const pollingInterval = ref<any>(null);
@@ -1303,33 +1839,114 @@ const paymentStatus = ref("");
 const lastOrderId = ref<number | null>(null);
 const receiptData = ref<any>(null);
 
+// --- Order History & Adjustment ---
+const showOrderHistoryModal = ref(false);
+const orderLoading = ref(false);
+const recentOrders = ref<any[]>([]);
+const showApprovalModal = ref(false);
+const approvalActionType = ref<"VOID" | "REFUND">("VOID");
+const adjustmentLoading = ref(false);
+const adjustmentTarget = ref<any | null>(null);
+
+// --- Drawer Action State ---
+const showDrawerModal = ref(false);
+const drawerForm = reactive({
+  type: "NO_SALE_OPEN",
+  amount: 0,
+  reason: "",
+});
+
+const submitDrawerAction = async () => {
+  try {
+    await post("/drawer-actions", {
+      userId: authUser.value?.userId,
+      ...drawerForm,
+    });
+    toast.success("Drawer action recorded");
+    showDrawerModal.value = false;
+    // Reset form
+    drawerForm.type = "NO_SALE_OPEN";
+    drawerForm.amount = 0;
+    drawerForm.reason = "";
+  } catch (e) {
+    toast.error("Failed to record action");
+  }
+};
+
+const openOrderHistory = async () => {
+  showOrderHistoryModal.value = true;
+  orderLoading.value = true;
+  try {
+    const data = await get<any>("/orders", {
+      page: 0,
+      size: 20,
+      sort: "createdAt,desc",
+    });
+    recentOrders.value = data.content || [];
+  } catch (e) {
+    toast.error("Failed to load order history");
+  } finally {
+    orderLoading.value = false;
+  }
+};
+
+const initiateAdjustment = (order: any, type: "VOID" | "REFUND") => {
+  adjustmentTarget.value = order;
+  approvalActionType.value = type;
+  showApprovalModal.value = true;
+};
+
+const handleApprovedAdjustment = async (data: {
+  pin: string;
+  reason: string;
+}) => {
+  if (!adjustmentTarget.value) return;
+  adjustmentLoading.value = true;
+  try {
+    const orderId = adjustmentTarget.value.orderId;
+    const endpoint = `/orders/${orderId}/${approvalActionType.value.toLowerCase()}`;
+    await put(endpoint, null, {
+      pinCode: data.pin,
+      reason: data.reason,
+    });
+    toast.success(`Order ${approvalActionType.value} successful`);
+    showApprovalModal.value = false;
+    // Refresh list
+    openOrderHistory();
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || "Action failed");
+  } finally {
+    adjustmentLoading.value = false;
+  }
+};
+
 // -- Cash Payment Logic --
-const cashReceived = ref<string>('0');
+const cashReceived = ref<string>("0");
 const changeDue = computed(() => {
-    const received = parseFloat(cashReceived.value);
-    return received - total.value;
+  const received = parseFloat(cashReceived.value);
+  return received - total.value;
 });
 
 const addCashDigit = (d: string) => {
-    if (cashReceived.value === '0' && d !== '.') {
-        cashReceived.value = d;
-    } else {
-        if (d === '.' && cashReceived.value.includes('.')) return;
-        cashReceived.value += d;
-    }
-}
+  if (cashReceived.value === "0" && d !== ".") {
+    cashReceived.value = d;
+  } else {
+    if (d === "." && cashReceived.value.includes(".")) return;
+    cashReceived.value += d;
+  }
+};
 
 const clearCash = () => {
-    if (cashReceived.value.length === 1) {
-        cashReceived.value = '0';
-    } else {
-        cashReceived.value = cashReceived.value.slice(0, -1);
-    }
-}
+  if (cashReceived.value.length === 1) {
+    cashReceived.value = "0";
+  } else {
+    cashReceived.value = cashReceived.value.slice(0, -1);
+  }
+};
 
 const setCash = (amount: number) => {
-    cashReceived.value = amount.toString();
-}
+  cashReceived.value = amount.toString();
+};
 
 const openPaymentModal = () => {
   if (cartItems.value.length === 0) return;
@@ -1338,7 +1955,7 @@ const openPaymentModal = () => {
   khqrData.value = null;
   paymentStatus.value = "PENDING";
   // Reset cash control
-  cashReceived.value = '0'; 
+  cashReceived.value = "0";
 };
 
 const closePaymentModal = () => {
@@ -1416,10 +2033,10 @@ const completeOrder = async () => {
   try {
     // Determine actual paid amount
     let paidAmount = total.value;
-    if (selectedMethod.value === 'CASH') {
-        paidAmount = parseFloat(cashReceived.value);
-    } else if (selectedMethod.value === 'KHQR') {
-        paidAmount = khqrData.value?.payment?.amount || total.value;
+    if (selectedMethod.value === "CASH") {
+      paidAmount = parseFloat(cashReceived.value);
+    } else if (selectedMethod.value === "KHQR") {
+      paidAmount = khqrData.value?.payment?.amount || total.value;
     }
 
     const payload = {
@@ -1435,9 +2052,9 @@ const completeOrder = async () => {
         quantity: item.qty,
         unitPrice: item.price + (item.addOnTotal || 0),
         note: item.notes || "",
-        addOnIds: item.addOns?.map(a => a.addonId) || [],
+        addOnIds: item.addOns?.map((a) => a.addonId) || [],
       })),
-      pointsRedeemed: 0, 
+      pointsRedeemed: 0,
       paymentMethod: selectedMethod.value,
       receivedAmount: paidAmount, // Send actual cash received
       paymentReference:

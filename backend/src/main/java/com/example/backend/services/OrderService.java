@@ -44,8 +44,9 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final com.example.backend.repository.PaymentRepository paymentRepository;
     private final TelegramService telegramService;
+    private final SystemSettingService systemSettingService;
 
-    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService) {
+    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService) {
         this.orderRepository = orderRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
@@ -58,6 +59,7 @@ public class OrderService {
         this.orderMapper = orderMapper;
         this.paymentRepository = paymentRepository;
         this.telegramService = telegramService;
+        this.systemSettingService = systemSettingService;
     }
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
@@ -185,8 +187,14 @@ public class OrderService {
                 throw new RuntimeException("Insufficient points! Hack detected.");
             }
 
-            // 10 Points = $1 (Match frontend logic)
-            discount = request.getPointsRedeemed() / 10.0;
+            // Dynamic redemption rate (Default 0.1)
+            double redeemRate = 0.1;
+            try {
+                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
+                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
+            } catch (Exception e) {}
+            
+            discount = request.getPointsRedeemed() * redeemRate;
         }
 
         double taxRate = 0.0; // Consistent with createOrder
@@ -253,8 +261,14 @@ public class OrderService {
             if (availablePoints < request.getPointsRedeemed()) {
                 throw new RuntimeException("Insufficient loyalty points for redemption!");
             }
-            // Derive discount from points (10 points = $1)
-            discount = request.getPointsRedeemed() / 10.0;
+            // Dynamic redemption rate (Default 0.1)
+            double redeemRate = 0.1;
+            try {
+                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
+                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
+            } catch (Exception e) {}
+            
+            discount = request.getPointsRedeemed() * redeemRate;
         }
         order.setDiscountAmount(discount);
 
@@ -309,16 +323,32 @@ public class OrderService {
         if (customer == null)
             return;
 
-        // $1 = 1 Point
-        int pointsToGain = (int) Math.floor(order.getTotalAmount());
+        // Dynamic rates and thresholds
+        double earnRate = 1.0;
+        int silverThreshold = 300;
+        int goldThreshold = 1000;
+        
+        try {
+            String earnVal = systemSettingService.getValue("LOYALTY_EARN_RATE");
+            if (earnVal != null) earnRate = Double.parseDouble(earnVal);
+            
+            String silverVal = systemSettingService.getValue("LOYALTY_SILVER_THRESHOLD");
+            if (silverVal != null) silverThreshold = Integer.parseInt(silverVal);
+            
+            String goldVal = systemSettingService.getValue("LOYALTY_GOLD_THRESHOLD");
+            if (goldVal != null) goldThreshold = Integer.parseInt(goldVal);
+        } catch (Exception e) {}
+
+        // Calculate points to gain
+        int pointsToGain = (int) Math.floor(order.getTotalAmount() * earnRate);
         int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
         customer.setLoyaltyPoints(currentPoints + pointsToGain);
 
-        // Update Membership Level (Demonstration logic)
+        // Update Membership Level
         int totalPoints = customer.getLoyaltyPoints();
-        if (totalPoints > 1000) {
+        if (totalPoints >= goldThreshold) {
             customer.setMembershipLevel("GOLD");
-        } else if (totalPoints > 300) {
+        } else if (totalPoints >= silverThreshold) {
             customer.setMembershipLevel("SILVER");
         } else {
             customer.setMembershipLevel("BRONZE");
@@ -421,7 +451,7 @@ public class OrderService {
      * Update order status
      */
     @Transactional
-    public OrderResponseDTO updateOrderStatus(Long id, String status, Long userId, String reason) {
+    public OrderResponseDTO updateOrderStatus(Long id, String status, String pinCode, String reason) {
         OrderEntity order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
 
@@ -432,18 +462,38 @@ public class OrderService {
         OrderEntity.OrderStatus newStatus = OrderEntity.OrderStatus.valueOf(status);
         OrderEntity.OrderStatus currentStatus = order.getStatus();
 
+        // 1. PIN Authorization for VOID/REFUND
+        if (newStatus == OrderEntity.OrderStatus.VOID || newStatus == OrderEntity.OrderStatus.REFUND) {
+            if (pinCode == null || pinCode.isEmpty()) {
+                throw new RuntimeException("Authorization PIN is required for " + newStatus);
+            }
+            if (reason == null || reason.isEmpty()) {
+                throw new RuntimeException("Reason is required for " + newStatus);
+            }
+
+            UserEntity approver = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode)
+                    .orElseThrow(() -> new RuntimeException("Invalid Authorization PIN"));
+
+            // Check permission: ORDER_VOID
+            boolean hasPermission = approver.getRole().getPermissions().stream()
+                    .anyMatch(p -> "ORDER_VOID".equals(p.getCode()));
+            
+            if (!hasPermission) {
+                throw new RuntimeException("User [" + approver.getEmployee().getFullName() + "] is not authorized to approve " + newStatus);
+            }
+
+            order.setApprovedBy(approver);
+            order.setStatusReason(reason);
+        }
+
         // Business Rules for Transitions
         if (newStatus == OrderEntity.OrderStatus.VOID) {
-            if (currentStatus != OrderEntity.OrderStatus.PENDING) { // Can only void pending orders
+            if (currentStatus != OrderEntity.OrderStatus.PENDING) {
                 throw new RuntimeException("Only PENDING orders can be VOIDED. Current status: " + currentStatus);
             }
         } else if (newStatus == OrderEntity.OrderStatus.REFUND) {
-            if (currentStatus != OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.COMPLETED) { // Refund
-                                                                                                                       // allowed
-                                                                                                                       // for
-                                                                                                                       // PAID/COMPLETED
-                throw new RuntimeException(
-                        "Only PAID/COMPLETED orders can be REFUNDED. Current status: " + currentStatus);
+            if (currentStatus != OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.COMPLETED) {
+                throw new RuntimeException("Only PAID/COMPLETED orders can be REFUNDED. Current status: " + currentStatus);
             }
         }
 
@@ -468,10 +518,11 @@ public class OrderService {
             revertLoyaltyPoints(order);
         }
 
-        // Log to Audit Trail (If reason is provided)
+        // Log to Audit Trail
         if (reason != null && !reason.isEmpty()) {
             String existingNote = order.getNote() != null ? order.getNote() : "";
-            order.setNote(existingNote + " | [" + newStatus + "] Reason: " + reason + " (By User: " + userId + ")");
+            String approverInfo = order.getApprovedBy() != null ? " Approved By: " + order.getApprovedBy().getEmployee().getFullName() : "";
+            order.setNote(existingNote + " | [" + newStatus + "] Reason: " + reason + approverInfo);
         }
 
         OrderEntity updatedOrder = orderRepository.save(order);
@@ -483,8 +534,14 @@ public class OrderService {
         if (customer == null)
             return;
 
-        // Revert $1 = 1 Point logic
-        int pointsToRemove = (int) Math.floor(order.getTotalAmount());
+        // Revert points based on earn rate
+        double earnRate = 1.0;
+        try {
+            String earnVal = systemSettingService.getValue("LOYALTY_EARN_RATE");
+            if (earnVal != null) earnRate = Double.parseDouble(earnVal);
+        } catch (Exception e) {}
+        
+        int pointsToRemove = (int) Math.floor(order.getTotalAmount() * earnRate);
         int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
 
         // Don't let points go below 0 (though in a strict world, they might)
@@ -553,10 +610,14 @@ public class OrderService {
             int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
             // Note: Since this is an update, the points might have already been deducted.
             // But business rule says we can't modify PAID orders anyway (line 421).
-            if (availablePoints < request.getPointsRedeemed()) {
-                throw new RuntimeException("Insufficient loyalty points!");
-            }
-            discount = request.getPointsRedeemed() / 10.0;
+            // Dynamic redemption rate
+            double redeemRate = 0.1;
+            try {
+                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
+                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
+            } catch (Exception e) {}
+            
+            discount = request.getPointsRedeemed() * redeemRate;
         }
         existingOrder.setDiscountAmount(discount);
 

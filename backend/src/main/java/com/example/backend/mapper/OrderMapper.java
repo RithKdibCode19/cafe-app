@@ -15,6 +15,7 @@ public interface OrderMapper {
 
     OrderMapper INSTANCE = Mappers.getMapper(OrderMapper.class);
 
+    @Mapping(source = "approvedBy.employee.fullName", target = "approvedByName")
     OrderResponseDTO toResponseDTO(OrderEntity entity);
 
     @Mapping(target = "branch", ignore = true)

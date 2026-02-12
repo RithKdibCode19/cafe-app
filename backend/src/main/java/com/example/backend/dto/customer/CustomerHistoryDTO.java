@@ -12,6 +12,7 @@ public class CustomerHistoryDTO {
     private Integer loyaltyPoints;
     private String memberSince;
     private String lastVisit;
+    private String membershipLevel;
 
     private List<OrderHistory> recentOrders;
     private List<FavoriteItem> favoriteItems;
@@ -255,6 +256,14 @@ public class CustomerHistoryDTO {
 
     public void setLastVisit(String lastVisit) {
         this.lastVisit = lastVisit;
+    }
+
+    public String getMembershipLevel() {
+        return membershipLevel;
+    }
+
+    public void setMembershipLevel(String membershipLevel) {
+        this.membershipLevel = membershipLevel;
     }
 
     public List<OrderHistory> getRecentOrders() {

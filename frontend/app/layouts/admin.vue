@@ -265,6 +265,8 @@ const pageTitle = computed(() => {
     "/admin/reports": "Reports",
     "/admin/branches": "Branch Management",
     "/admin/settings": "Settings",
+    "/admin/staff": "Staff Management",
+    "/admin/staff/performance": "Staff Performance",
   };
   return titles[route.path] || "Dashboard";
 });
@@ -502,6 +504,7 @@ const navigation = [
   { name: "Categories", href: "/admin/categories", icon: MenuIcon },
   { name: "Orders", href: "/admin/orders", icon: OrdersIcon },
   { name: "Staff", href: "/admin/staff", icon: StaffIcon },
+  { name: "Performance", href: "/admin/staff/performance", icon: ReportsIcon },
   { name: "Customers", href: "/admin/customers", icon: CustomersIcon },
   { name: "Inventory", href: "/admin/inventory", icon: InventoryIcon },
   { name: "Recipes", href: "/admin/inventory/recipes", icon: MenuIcon },
