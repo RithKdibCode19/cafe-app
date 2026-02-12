@@ -45,7 +45,8 @@ const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const { url } = await $fetch<{ url: string }>('/api/upload', {
+    const { fetchApi } = useApi();
+    const { url } = await fetchApi<{ url: string }>('/upload', {
       method: 'POST',
       body: formData,
     });

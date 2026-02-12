@@ -14,8 +14,12 @@ export const useApi = () => {
         const toast = useToast()
         
         const headers: any = {
-            'Content-Type': 'application/json',
             ...options?.headers
+        }
+
+        // Only set Content-Type if body is NOT FormData (browser sets boundary for FormData)
+        if (!(options?.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json'
         }
 
         if (token.value) {

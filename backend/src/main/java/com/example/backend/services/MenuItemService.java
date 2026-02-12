@@ -3,6 +3,7 @@ package com.example.backend.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class MenuItemService {
         return menuItemMapper.toResponseDTO(entity);
     }
 
+    @CacheEvict(value = "menu-items", allEntries = true)
     @Transactional
     public MenuItemResponseDTO createMenuItem(MenuItemRequestDTO request) {
         MenuItemEntity entity = menuItemMapper.toEntity(request);
@@ -50,6 +52,7 @@ public class MenuItemService {
         return menuItemMapper.toResponseDTO(saved);
     }
 
+    @CacheEvict(value = "menu-items", allEntries = true)
     @Transactional
     public MenuItemResponseDTO updateMenuItem(Long id, MenuItemRequestDTO request) {
         MenuItemEntity entity = menuItemRepository.findById(id)
@@ -64,6 +67,7 @@ public class MenuItemService {
         return menuItemMapper.toResponseDTO(updated);
     }
 
+    @CacheEvict(value = "menu-items", allEntries = true)
     @Transactional
     public void deleteMenuItem(Long id) {
         MenuItemEntity entity = menuItemRepository.findById(id)

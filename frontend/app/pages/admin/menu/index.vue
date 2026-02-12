@@ -1512,8 +1512,15 @@ const saveItem = async () => {
     }
 
     await fetchMenu();
+    
+    // Invalidate POS cache so it re-fetches with the new image
+    const posCache = useState<any[]>("pos-menu-items");
+    const posCatCache = useState<any[]>("pos-categories");
+    if (posCache.value) posCache.value = [];
+    if (posCatCache.value) posCatCache.value = [];
+
     toast.success(isEditing.value ? "Menu item updated" : "Menu item created");
-    if (!isEditing.value) closeModal(); // Close on create
+    closeModal(); // Always close on success (create or edit)
   } catch (err) {
     console.error(err);
     toast.error("Failed to save menu item");
