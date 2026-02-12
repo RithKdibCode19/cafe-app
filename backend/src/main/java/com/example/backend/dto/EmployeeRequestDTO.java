@@ -25,6 +25,7 @@ public class EmployeeRequestDTO {
     private String status;
     private Double baseSalary;
     private Double hourlyRate;
+    private Long roleId;
 
     // Manual Getters/Setters
     public String getFullName() {
@@ -81,5 +82,13 @@ public class EmployeeRequestDTO {
 
     public void setHourlyRate(Double hourlyRate) {
         this.hourlyRate = hourlyRate;
+    }
+
+    public Long getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
 }

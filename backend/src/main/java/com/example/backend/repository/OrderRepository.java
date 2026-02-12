@@ -18,6 +18,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         // Find by branch
         List<OrderEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
 
+        // Find by branch (paginated)
+        Page<OrderEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId, Pageable pageable);
+
         // Find by status
         List<OrderEntity> findByStatusAndDeletedAtIsNull(OrderEntity.OrderStatus status);
 

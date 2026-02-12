@@ -44,6 +44,12 @@ public class AuthService {
         response.setUsername(user.getUserName());
         response.setToken(jwt);
         response.setRoleName(user.getRole() != null ? user.getRole().getRoleName() : "UNKNOWN");
+        
+        if (user.getRole() != null) {
+            response.setPermissions(user.getRole().getPermissions().stream()
+                    .map(com.example.backend.model.PermissionEntity::getCode)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
 
         if (user.getEmployee() != null) {
             response.setEmployeeName(user.getEmployee().getFullName());

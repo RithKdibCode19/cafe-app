@@ -14,6 +14,8 @@ public interface EmployeeMapper {
 
     EmployeeMapper INSTANCE = Mappers.getMapper(EmployeeMapper.class);
 
+    @Mapping(target = "roleId", ignore = true)
+    @Mapping(target = "roleName", ignore = true)
     EmployeeResponseDTO toResponseDTO(EmployeeEntity entity);
 
     @Mapping(target = "branch", ignore = true)

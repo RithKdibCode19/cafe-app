@@ -89,6 +89,7 @@
 
           <!-- Admin link -->
           <NuxtLink
+            v-if="isSuperAdmin"
             to="/admin"
             class="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
           >
@@ -1623,6 +1624,7 @@ const {
 } = useCart();
 const { post, get } = useApi();
 const { user: authUser, logout: authLogout } = useAuth();
+const { isSuperAdmin } = usePermissions();
 const toast = useToast();
 
 const lastAddedItem = ref<{ id: number; name: string } | null>(null);

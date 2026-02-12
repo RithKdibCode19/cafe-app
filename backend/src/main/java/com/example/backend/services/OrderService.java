@@ -211,6 +211,7 @@ public class OrderService {
      * Create a new order with all order items
      */
     @Transactional
+    @com.example.backend.security.IsolateByBranch("request")
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
         // 1. Generate order number if not provided
         if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
@@ -376,10 +377,16 @@ public class OrderService {
     /**
      * Get all orders (paginated)
      */
-    public Page<OrderResponseDTO> getAllOrdersPaginated(Pageable pageable, String status, String search) {
+    @com.example.backend.security.IsolateByBranch
+    public Page<OrderResponseDTO> getAllOrdersPaginated(Pageable pageable, String status, String search, Long branchId) {
         Page<OrderEntity> orderPage;
 
-        if (search != null && !search.trim().isEmpty()) {
+        if (branchId != null) {
+             // For now, we don't have a combined search+branch+status repo method, 
+             // so if branchId is present, we filter by branch.
+             // This is safe because Aspect will inject branchId for non-SuperAdmins.
+             orderPage = orderRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId, pageable);
+        } else if (search != null && !search.trim().isEmpty()) {
             orderPage = orderRepository.findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(search.trim(), pageable);
         } else if (status != null && !status.equalsIgnoreCase("ALL")) {
             try {
@@ -413,6 +420,7 @@ public class OrderService {
     /**
      * Get orders by branch
      */
+    @com.example.backend.security.IsolateByBranch
     public List<OrderResponseDTO> getOrdersByBranch(Long branchId) {
         List<OrderEntity> orders = orderRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId);
         return orders.stream()
@@ -557,6 +565,7 @@ public class OrderService {
      * Update entire order
      */
     @Transactional
+    @com.example.backend.security.IsolateByBranch("request")
     public OrderResponseDTO updateOrder(Long id, OrderRequestDTO request) {
         OrderEntity existingOrder = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
@@ -697,6 +706,7 @@ public class OrderService {
     /**
      * Get today's orders for a branch
      */
+    @com.example.backend.security.IsolateByBranch
     public List<OrderResponseDTO> getTodayOrdersForBranch(Long branchId) {
         LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);

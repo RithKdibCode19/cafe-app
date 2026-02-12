@@ -34,28 +34,69 @@
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
-        <NuxtLink
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.href"
-          :class="[
-            'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
-            isActive(item.href)
-              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-              : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800',
-          ]"
+      <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto scrollbar-thin">
+        <div
+          v-for="category in navigation"
+          :key="category.name"
+          class="space-y-1"
         >
-          <component :is="item.icon" class="w-5 h-5 flex-shrink-0" />
-          <span
+          <!-- Category Header (Toggle) -->
+          <button
+            @click="toggleCategory(category.name)"
             :class="[
-              'font-medium transition-opacity duration-200',
-              sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
+              'w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group',
+              isCategoryActive(category)
+                ? 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/5'
+                : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800',
             ]"
           >
-            {{ item.name }}
-          </span>
-        </NuxtLink>
+            <div class="flex items-center gap-3">
+              <component :is="category.icon" class="w-5 h-5 flex-shrink-0" />
+              <span
+                :class="[
+                  'text-sm transition-opacity duration-200 whitespace-nowrap',
+                  sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
+                ]"
+              >
+                {{ category.name }}
+              </span>
+            </div>
+            <svg
+              v-if="sidebarOpen"
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 transition-transform duration-300 opacity-60 group-hover:opacity-100"
+              :class="{
+                'rotate-180': expandedCategories.includes(category.name),
+              }"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+
+          <!-- Sub-items -->
+          <div
+            v-if="sidebarOpen && expandedCategories.includes(category.name)"
+            class="pl-11 pr-2 space-y-1 animate-in slide-in-from-top-2 duration-300"
+          >
+            <NuxtLink
+              v-for="child in category.children"
+              :key="child.name"
+              :to="child.href"
+              :class="[
+                'block px-3 py-2 rounded-lg text-xs transition-all duration-200',
+                isActive(child.href)
+                  ? 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/10'
+                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
+              ]"
+            >
+              {{ child.name }}
+            </NuxtLink>
+          </div>
+        </div>
       </nav>
 
       <!-- Toggle button -->
@@ -259,14 +300,21 @@ const fetchLowStockCount = async () => {
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     "/admin": "Dashboard",
-    "/admin/menu": "Menu Management",
-    "/admin/orders": "Orders",
-    "/admin/customers": "Customers",
-    "/admin/reports": "Reports",
+    "/admin/menu": "Product Menu",
+    "/admin/categories": "Categories",
+    "/admin/addons": "Menu Add-ons",
+    "/admin/orders": "Order History",
+    "/admin/customers": "Customer Database",
+    "/admin/reports": "Business Reports",
+    "/admin/inventory": "Inventory Stock",
+    "/admin/inventory/recipes": "Recipe Management",
+    "/admin/inventory/suppliers": "Suppliers",
+    "/admin/expenses": "Expense Tracking",
     "/admin/branches": "Branch Management",
-    "/admin/settings": "Settings",
-    "/admin/staff": "Staff Management",
+    "/admin/settings": "System Settings",
+    "/admin/staff": "Employee List",
     "/admin/staff/performance": "Staff Performance",
+    "/admin/staff/roles": "Security Roles",
   };
   return titles[route.path] || "Dashboard";
 });
@@ -498,30 +546,148 @@ const BranchIcon = () =>
     ],
   );
 
-const navigation = [
-  { name: "Dashboard", href: "/admin", icon: DashboardIcon },
-  { name: "Menu", href: "/admin/menu", icon: MenuIcon },
-  { name: "Categories", href: "/admin/categories", icon: MenuIcon },
-  { name: "Orders", href: "/admin/orders", icon: OrdersIcon },
-  { name: "Staff", href: "/admin/staff", icon: StaffIcon },
-  { name: "Performance", href: "/admin/staff/performance", icon: ReportsIcon },
-  { name: "Customers", href: "/admin/customers", icon: CustomersIcon },
-  { name: "Inventory", href: "/admin/inventory", icon: InventoryIcon },
-  { name: "Recipes", href: "/admin/inventory/recipes", icon: MenuIcon },
-  { name: "Expenses", href: "/admin/expenses", icon: ReportsIcon }, // Using ReportsIcon as placeholder
-  { name: "Suppliers", href: "/admin/inventory/suppliers", icon: StaffIcon },
-  { name: "Kitchen", href: "/kitchen", icon: KitchenIcon },
-  { name: "Add-ons", href: "/admin/addons", icon: AddOnsIcon },
-  { name: "Reports", href: "/admin/reports", icon: ReportsIcon },
-  { name: "Branches", href: "/admin/branches", icon: BranchIcon },
-  { name: "Settings", href: "/admin/settings", icon: SettingsIcon },
+const {
+  canAccessPOS,
+  canAccessInventory,
+  canAccessEmployees,
+  canAccessMenu,
+  canAccessReports,
+  isSuperAdmin,
+} = usePermissions();
+
+const expandedCategories = ref<string[]>([]);
+
+const toggleCategory = (category: string) => {
+  if (!sidebarOpen.value) {
+    sidebarOpen.value = true;
+    if (!expandedCategories.value.includes(category)) {
+      expandedCategories.value.push(category);
+    }
+    return;
+  }
+  const index = expandedCategories.value.indexOf(category);
+  if (index === -1) {
+    expandedCategories.value.push(category);
+  } else {
+    expandedCategories.value.splice(index, 1);
+  }
+};
+
+const rawNavigation = [
+  {
+    name: "Operations",
+    icon: DashboardIcon,
+    show: true,
+    children: [
+      { name: "Dashboard", href: "/admin", show: true },
+      { name: "Orders", href: "/admin/orders", show: canAccessPOS.value },
+      { name: "Customers", href: "/admin/customers", show: canAccessPOS.value },
+      { name: "Kitchen", href: "/kitchen", show: true },
+    ],
+  },
+  {
+    name: "Catalog",
+    icon: MenuIcon,
+    show: canAccessMenu.value,
+    children: [
+      { name: "Products", href: "/admin/menu", show: canAccessMenu.value },
+      {
+        name: "Categories",
+        href: "/admin/categories",
+        show: canAccessMenu.value,
+      },
+      { name: "Add-ons", href: "/admin/addons", show: canAccessMenu.value },
+    ],
+  },
+  {
+    name: "Inventory",
+    icon: InventoryIcon,
+    show: canAccessInventory.value,
+    children: [
+      {
+        name: "Stock",
+        href: "/admin/inventory",
+        show: canAccessInventory.value,
+      },
+      {
+        name: "Recipes",
+        href: "/admin/inventory/recipes",
+        show: canAccessInventory.value,
+      },
+      {
+        name: "Suppliers",
+        href: "/admin/inventory/suppliers",
+        show: canAccessInventory.value,
+      },
+      {
+        name: "Expenses",
+        href: "/admin/expenses",
+        show: canAccessReports.value,
+      },
+    ],
+  },
+  {
+    name: "Management",
+    icon: StaffIcon,
+    show: canAccessEmployees.value || isSuperAdmin.value,
+    children: [
+      {
+        name: "Staff List",
+        href: "/admin/staff",
+        show: canAccessEmployees.value,
+      },
+      {
+        name: "Performance",
+        href: "/admin/staff/performance",
+        show: canAccessEmployees.value,
+      },
+      { name: "Reports", href: "/admin/reports", show: canAccessReports.value },
+      { name: "Branches", href: "/admin/branches", show: isSuperAdmin.value },
+      { name: "Settings", href: "/admin/settings", show: isSuperAdmin.value },
+    ],
+  },
 ];
+
+const navigation = computed(() => {
+  return rawNavigation
+    .filter((category) => category.show)
+    .map((category) => ({
+      ...category,
+      children: category.children?.filter((child) => child.show) || [],
+    }))
+    .filter((category) => category.children.length > 0 || !category.children);
+});
+
+// Auto-expand categories that contain the active route
+watch(
+  () => route.fullPath,
+  (fullPath) => {
+    navigation.value.forEach((category) => {
+      if (
+        category.children?.some((child) => fullPath.startsWith(child.href)) &&
+        !expandedCategories.value.includes(category.name)
+      ) {
+        expandedCategories.value.push(category.name);
+      }
+    });
+  },
+  { immediate: true },
+);
 
 const isActive = (href: string) => {
   if (href === "/admin") {
     return route.path === "/admin";
   }
-  return route.path.startsWith(href);
+  // If href contains query, use fullPath for comparison
+  if (href.includes("?")) {
+    return route.fullPath === href;
+  }
+  // Otherwise default to path comparison
+  return route.path === href || route.path.startsWith(href + "/");
+};
+
+const isCategoryActive = (category: any) => {
+  return category.children?.some((child: any) => isActive(child.href));
 };
 
 const toggleDarkMode = () => {

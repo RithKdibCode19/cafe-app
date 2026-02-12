@@ -16,6 +16,7 @@ import com.example.backend.model.*;
 import com.example.backend.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -121,12 +122,23 @@ public class DataSeeder implements CommandLineRunner {
         branch.setPhone("555-0101");
         branch = branchRepository.save(branch);
 
-        // 3. Create Roles
+        // 3. Create Roles with Granular Permissions
         RoleEntity adminRole = createRole("ADMIN", "Administrator with full access", allPermissions);
-        RoleEntity managerRole = createRole("MANAGER", "Store Manager", null);
-        RoleEntity cashierRole = createRole("CASHIER", "Front of house stuff", null);
-        RoleEntity baristaRole = createRole("BARISTA", "Coffee specialist", null);
-        RoleEntity chefRole = createRole("CHEF", "Kitchen staff", null);
+        
+        RoleEntity managerRole = createRole("MANAGER", "Store Manager", filterPermissions(allPermissions, 
+            "POS_VIEW", "POS_VOID", "POS_REFUND", "POS_DRAWER", 
+            "INV_VIEW", "INV_ADJUST", "INV_TRANSFER", 
+            "EMP_VIEW", "EMP_ATTENDANCE", 
+            "RPT_DAILY", "RPT_INV"));
+            
+        RoleEntity cashierRole = createRole("CASHIER", "Front of house staff", filterPermissions(allPermissions, 
+            "POS_ORDER", "POS_VIEW", "POS_DRAWER", "MENU_VIEW"));
+            
+        RoleEntity baristaRole = createRole("BARISTA", "Coffee specialist", filterPermissions(allPermissions, 
+            "MENU_VIEW", "POS_VIEW")); // Baristas can see orders but not process payments usually
+            
+        RoleEntity chefRole = createRole("CHEF", "Kitchen staff", filterPermissions(allPermissions, 
+            "INV_VIEW", "INV_ADJUST", "RECIPE_MANAGE", "MENU_VIEW"));
 
         // 4. Create Employees and Users
         UserEntity adminUser = findOrCreateUser(branch, "Admin User", "admin", "password", "1234", adminRole,
@@ -370,23 +382,38 @@ public class DataSeeder implements CommandLineRunner {
 
     private List<PermissionEntity> seedPermissions() {
         List<PermissionEntity> perms = new ArrayList<>();
-        // Menu
-        addPermissionIfMissing(perms, "MENU_VIEW", "View menu items");
+        
+        // POS Group
+        addPermissionIfMissing(perms, "POS_ORDER", "Create and process orders");
+        addPermissionIfMissing(perms, "POS_VIEW", "View current sales and orders");
+        addPermissionIfMissing(perms, "POS_VOID", "Void unpaid orders");
+        addPermissionIfMissing(perms, "POS_REFUND", "Refund completed orders");
+        addPermissionIfMissing(perms, "POS_DRAWER", "Cash drawer operations (Open/Close)");
+
+        // Inventory Group
+        addPermissionIfMissing(perms, "INV_VIEW", "View stock levels and history");
+        addPermissionIfMissing(perms, "INV_ADJUST", "Perform manual stock adjustments");
+        addPermissionIfMissing(perms, "INV_TRANSFER", "Move stock between branches");
+        addPermissionIfMissing(perms, "RECIPE_MANAGE", "Manage menu item recipes");
+
+        // Employees Group
+        addPermissionIfMissing(perms, "EMP_VIEW", "View employee lists and status");
+        addPermissionIfMissing(perms, "EMP_MANAGE", "Create/Edit/Delete employees");
+        addPermissionIfMissing(perms, "EMP_PAYROLL", "Manage salaries and payroll");
+        addPermissionIfMissing(perms, "EMP_ATTENDANCE", "Manage shifts and attendance");
+
+        // Menu Group
+        addPermissionIfMissing(perms, "MENU_VIEW", "View categories and menu items");
         addPermissionIfMissing(perms, "MENU_MANAGE", "Create/Edit/Delete menu items");
-        // Orders
-        addPermissionIfMissing(perms, "ORDER_CREATE", "Create new orders");
-        addPermissionIfMissing(perms, "ORDER_VIEW", "View order history");
-        addPermissionIfMissing(perms, "ORDER_VOID", "Void or refund orders");
-        // Staff
-        addPermissionIfMissing(perms, "STAFF_VIEW", "View staff list");
-        addPermissionIfMissing(perms, "STAFF_MANAGE", "Manage employees and shifts");
-        // Inventory
-        addPermissionIfMissing(perms, "INVENTORY_VIEW", "View stock levels");
-        addPermissionIfMissing(perms, "INVENTORY_MANAGE", "Stock in and adjustments");
-        // Reports
-        addPermissionIfMissing(perms, "REPORT_VIEW", "View sales reports");
-        // Settings
-        addPermissionIfMissing(perms, "SETTINGS_MANAGE", "Manage system settings");
+        addPermissionIfMissing(perms, "CAT_MANAGE", "Manage product categories");
+        addPermissionIfMissing(perms, "ADDON_MANAGE", "Manage add-ons and variants");
+
+        // Reports Group
+        addPermissionIfMissing(perms, "RPT_DAILY", "View daily sales and performance reports");
+        addPermissionIfMissing(perms, "RPT_INV", "View inventory and wastage reports");
+
+        // System
+        addPermissionIfMissing(perms, "SYS_ALL", "Full system access (Super Admin)");
 
         return permissionRepository.findAll();
     }
@@ -553,15 +580,25 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private RoleEntity createRole(String name, String description, List<PermissionEntity> permissions) {
-        return roleRepository.findByRoleNameAndDeletedAtIsNull(name).orElseGet(() -> {
-            RoleEntity role = new RoleEntity();
-            role.setRoleName(name);
-            role.setDescription(description);
-            if (permissions != null) {
-                role.setPermissions(new java.util.HashSet<>(permissions));
-            }
-            return roleRepository.save(role);
+        RoleEntity role = roleRepository.findByRoleNameAndDeletedAtIsNull(name).orElseGet(() -> {
+            RoleEntity newRole = new RoleEntity();
+            newRole.setRoleName(name);
+            newRole.setDescription(description);
+            return newRole;
         });
+        
+        // Always update permissions even if role exists (to keep in sync with seeder)
+        if (permissions != null) {
+            role.setPermissions(new java.util.HashSet<>(permissions));
+        }
+        return roleRepository.save(role);
+    }
+
+    private List<PermissionEntity> filterPermissions(List<PermissionEntity> all, String... codes) {
+        List<String> codeList = Arrays.asList(codes);
+        return all.stream()
+                .filter(p -> codeList.contains(p.getCode()))
+                .collect(Collectors.toList());
     }
 
     private UserEntity createEmployeeAndUser(BranchEntity branch, String name, String username, String password,

@@ -23,6 +23,7 @@ public class BranchStockService {
     private final IngredientRepository ingredientRepository;
 
     @Transactional
+    @com.example.backend.security.IsolateByBranch
     public void adjustStock(Long branchId, Long ingredientId, Double delta) {
         BranchStockEntity stock = findOrCreateStock(branchId, ingredientId);
         stock.setCurrentStock(stock.getCurrentStock() + delta);
@@ -36,6 +37,7 @@ public class BranchStockService {
     }
 
     @Transactional
+    @com.example.backend.security.IsolateByBranch("fromBranchId")
     public void transferStock(Long fromBranchId, Long toBranchId, Long ingredientId, Double amount) {
         if (amount <= 0) throw new IllegalArgumentException("Transfer amount must be positive");
         
@@ -75,6 +77,7 @@ public class BranchStockService {
                 });
     }
 
+    @com.example.backend.security.IsolateByBranch
     public List<BranchStockEntity> getBranchInventory(Long branchId) {
         return branchStockRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId);
     }

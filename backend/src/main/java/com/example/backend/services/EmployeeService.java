@@ -21,11 +21,18 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final BranchRepository branchRepository;
+    private final com.example.backend.repository.UserRepository userRepository;
+    private final com.example.backend.repository.RoleRepository roleRepository;
     private final EmployeeMapper employeeMapper;
 
-    public EmployeeService(EmployeeRepository employeeRepository, BranchRepository branchRepository, EmployeeMapper employeeMapper) {
+    public EmployeeService(EmployeeRepository employeeRepository, BranchRepository branchRepository, 
+                           com.example.backend.repository.UserRepository userRepository,
+                           com.example.backend.repository.RoleRepository roleRepository,
+                           EmployeeMapper employeeMapper) {
         this.employeeRepository = employeeRepository;
         this.branchRepository = branchRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.employeeMapper = employeeMapper;
     }
 
@@ -43,14 +50,40 @@ public class EmployeeService {
         // 3. Save entity
         EmployeeEntity savedEmployee = employeeRepository.save(employee);
 
-        // 4. Map Entity → Response DTO
-        return employeeMapper.toResponseDTO(savedEmployee);
+        // 4. Update associated user role if roleId is provided
+        if (request.getRoleId() != null) {
+            userRepository.findByEmployeeEmployeeIdAndDeletedAtIsNull(savedEmployee.getEmployeeId())
+                    .ifPresent(user -> {
+                        roleRepository.findById(request.getRoleId())
+                                .ifPresent(user::setRole);
+                        userRepository.save(user);
+                    });
+        }
+
+        // 5. Map Entity → Response DTO
+        EmployeeResponseDTO response = employeeMapper.toResponseDTO(savedEmployee);
+        enrichWithRole(response, savedEmployee.getEmployeeId());
+        return response;
+    }
+
+    private void enrichWithRole(EmployeeResponseDTO dto, Long employeeId) {
+        userRepository.findByEmployeeEmployeeIdAndDeletedAtIsNull(employeeId)
+                .ifPresent(user -> {
+                    if (user.getRole() != null) {
+                        dto.setRoleId(user.getRole().getRoleId());
+                        dto.setRoleName(user.getRole().getRoleName());
+                    }
+                });
     }
 
     public List<EmployeeResponseDTO> getAllEmployees() {
         List<EmployeeEntity> employees = employeeRepository.findAllActiveEmployees();
         return employees.stream()
-                .map(employeeMapper::toResponseDTO)
+                .map(emp -> {
+                    EmployeeResponseDTO dto = employeeMapper.toResponseDTO(emp);
+                    enrichWithRole(dto, emp.getEmployeeId());
+                    return dto;
+                })
                 .toList();
     }
 
@@ -59,7 +92,9 @@ public class EmployeeService {
         if (employee == null) {
             throw new RuntimeException("Employee not found");
         }
-        return employeeMapper.toResponseDTO(employee);
+        EmployeeResponseDTO dto = employeeMapper.toResponseDTO(employee);
+        enrichWithRole(dto, id);
+        return dto;
     }
 
     @Transactional
@@ -88,9 +123,21 @@ public class EmployeeService {
             employee.setStatus(Status.valueOf(request.getStatus()));
         }
 
-        // 4. Save and return
+        // 4. Update user role if roleId is provided
+        if (request.getRoleId() != null) {
+            userRepository.findByEmployeeEmployeeIdAndDeletedAtIsNull(id)
+                    .ifPresent(user -> {
+                        roleRepository.findById(request.getRoleId())
+                                .ifPresent(user::setRole);
+                        userRepository.save(user);
+                    });
+        }
+
+        // 5. Save and return
         EmployeeEntity updatedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toResponseDTO(updatedEmployee);
+        EmployeeResponseDTO response = employeeMapper.toResponseDTO(updatedEmployee);
+        enrichWithRole(response, id);
+        return response;
     }
 
     @Transactional

@@ -83,4 +83,21 @@ public class ReportController {
         com.example.backend.dto.report.ShiftSummaryDTO summary = reportService.getCurrentShiftSummary(employeeId);
         return ResponseEntity.ok(ApiResponse.success(summary, "Current shift summary retrieved"));
     }
+
+    @GetMapping("/stock-movement")
+    public ResponseEntity<ApiResponse<com.example.backend.dto.report.StockMovementReportDTO>> getStockMovementReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long ingredientId) {
+
+        if (endDate == null)
+            endDate = LocalDate.now();
+        if (startDate == null)
+            startDate = endDate.minusDays(30);
+
+        com.example.backend.dto.report.StockMovementReportDTO report = reportService.getStockMovementReport(startDate,
+                endDate, branchId, ingredientId);
+        return ResponseEntity.ok(ApiResponse.success(report, "Stock movement report generated successfully"));
+    }
 }

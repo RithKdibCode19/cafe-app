@@ -68,9 +68,10 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponseDTO>> getAllOrders(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long branchId) {
         
-        Page<OrderResponseDTO> orders = orderService.getAllOrdersPaginated(pageable, status, search);
+        Page<OrderResponseDTO> orders = orderService.getAllOrdersPaginated(pageable, status, search, branchId);
         return ResponseEntity.ok(orders);
     }
 

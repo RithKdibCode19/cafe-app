@@ -16,6 +16,7 @@ public class LoginResponse {
     private String employeeName;
     private Long branchId;
     private String branchName;
+    private java.util.List<String> permissions;
 
     // Manual Getters/Setters
     public Long getUserId() { return userId; }

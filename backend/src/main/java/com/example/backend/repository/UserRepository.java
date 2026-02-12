@@ -25,4 +25,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     // Find user by PIN (for approval)
     Optional<UserEntity> findByPinCodeAndDeletedAtIsNull(String pinCode);
+
+    // Find user by employee ID
+    Optional<UserEntity> findByEmployeeEmployeeIdAndDeletedAtIsNull(Long employeeId);
 }
