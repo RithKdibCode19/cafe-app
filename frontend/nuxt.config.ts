@@ -13,7 +13,6 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'en',
     strategy: 'no_prefix', // Start simple
-    lazy: true,
     langDir: 'locales',
     detectBrowserLanguage: {
       useCookie: true,
@@ -44,8 +43,12 @@ export default defineNuxtConfig({
 
   // Runtime config for API communication
   runtimeConfig: {
+    // These values are only available on the server
+    apiBase: process.env.NUXT_API_BASE_INTERNAL || 'http://localhost:8081',
+
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8081/api'
+      // These values are available on both server and client
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     }
   },
 

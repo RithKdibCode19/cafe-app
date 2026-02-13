@@ -26,7 +26,10 @@ export const useApi = () => {
             headers['Authorization'] = `Bearer ${token.value}`
         }
 
-        return $fetch<T>(`${config.public.apiBase}${endpoint}`, {
+        // Use context-aware base URL
+        const baseURL = process.server ? config.apiBase : config.public.apiBase
+
+        return $fetch<T>(`${baseURL}${endpoint}`, {
             ...options,
             headers,
             onResponseError({ response }) {
@@ -66,7 +69,8 @@ export const useApi = () => {
     const download = async (endpoint: string, filename: string) => {
         try {
             const { token } = useAuth()
-            const response = await $fetch(`${config.public.apiBase}${endpoint}`, {
+            const baseURL = process.server ? config.apiBase : config.public.apiBase
+            const response = await $fetch(`${baseURL}${endpoint}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': token.value ? `Bearer ${token.value}` : ''
