@@ -14,12 +14,19 @@ import com.example.backend.repository.OrderItemRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class RecommendationService {
 
     private final OrderItemRepository orderItemRepository;
     private final MenuItemRepository menuItemRepository;
     private final MenuItemMapper menuItemMapper;
+
+    public RecommendationService(OrderItemRepository orderItemRepository,
+                                MenuItemRepository menuItemRepository,
+                                MenuItemMapper menuItemMapper) {
+        this.orderItemRepository = orderItemRepository;
+        this.menuItemRepository = menuItemRepository;
+        this.menuItemMapper = menuItemMapper;
+    }
 
     public List<MenuItemResponseDTO> getFrequentlyBoughtWith(Long menuItemId) {
         // Find top 4 items bought with this one

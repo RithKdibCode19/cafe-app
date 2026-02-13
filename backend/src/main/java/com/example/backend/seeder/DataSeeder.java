@@ -431,6 +431,10 @@ public class DataSeeder implements CommandLineRunner {
         createSetting("RECEIPT_FOOTER", "Thank you for dining with us!", "Receipt Footer Message", "GENERAL");
         createSetting("THEME", "LIGHT", "Default Theme", "APPEARANCE");
         
+        // Bakong Configuration
+        createSetting("BAKONG_ACCOUNT_ID", "vanny_meas@aclb", "Bakong Account ID for payments", "FINANCE");
+        createSetting("BAKONG_MERCHANT_NAME", "Cafe App", "Merchant Name shown in Bakong", "FINANCE");
+        
         // Loyalty Program
         createSetting("LOYALTY_EARN_RATE", "1", "Points earned per $1 spent", "LOYALTY");
         createSetting("LOYALTY_REDEEM_RATE", "0.1", "USD discount per 1 point", "LOYALTY");

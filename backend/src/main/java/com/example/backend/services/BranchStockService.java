@@ -1,6 +1,7 @@
 package com.example.backend.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,16 +12,41 @@ import com.example.backend.model.IngredientEntity;
 import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.BranchStockRepository;
 import com.example.backend.repository.IngredientRepository;
-
-import lombok.RequiredArgsConstructor;
+import com.example.backend.mapper.BranchStockMapper;
+import com.example.backend.dto.BranchStockResponseDTO;
 
 @Service
-@RequiredArgsConstructor
 public class BranchStockService {
 
     private final BranchStockRepository branchStockRepository;
     private final BranchRepository branchRepository;
     private final IngredientRepository ingredientRepository;
+    private final BranchStockMapper branchStockMapper;
+
+    public BranchStockService(BranchStockRepository branchStockRepository,
+                             BranchRepository branchRepository,
+                             IngredientRepository ingredientRepository,
+                             BranchStockMapper branchStockMapper) {
+        this.branchStockRepository = branchStockRepository;
+        this.branchRepository = branchRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.branchStockMapper = branchStockMapper;
+    }
+
+    public boolean isStockAvailable(Long branchId, Long ingredientId, Double requiredAmount) {
+        BranchStockEntity stock = findOrCreateStock(branchId, ingredientId);
+        return stock.getCurrentStock() >= requiredAmount;
+    }
+
+    public Double getCurrentStock(Long branchId, Long ingredientId) {
+        return findOrCreateStock(branchId, ingredientId).getCurrentStock();
+    }
+
+    public boolean isLowStock(Long branchId, Long ingredientId) {
+        BranchStockEntity stock = findOrCreateStock(branchId, ingredientId);
+        Double reorderLevel = stock.getReorderLevel() != null ? stock.getReorderLevel() : stock.getIngredient().getReorderLevel();
+        return stock.getCurrentStock() <= (reorderLevel != null ? reorderLevel : 0.0);
+    }
 
     @Transactional
     @com.example.backend.security.IsolateByBranch
@@ -78,7 +104,10 @@ public class BranchStockService {
     }
 
     @com.example.backend.security.IsolateByBranch
-    public List<BranchStockEntity> getBranchInventory(Long branchId) {
-        return branchStockRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId);
+    public List<BranchStockResponseDTO> getBranchInventory(Long branchId) {
+        return branchStockRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId)
+                .stream()
+                .map(branchStockMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }

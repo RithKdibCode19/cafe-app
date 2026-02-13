@@ -114,28 +114,24 @@ public class ReportService {
                 LocalDate sevenDaysAgo = today.minusDays(6);
                 LocalDateTime start = sevenDaysAgo.atStartOfDay();
                 LocalDateTime end = today.atTime(23, 59, 59);
-
-                List<OrderEntity> orders = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end).stream()
-                                .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
-                                .collect(Collectors.toList());
-
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+                List<Object[]> queryResults = orderRepository.findDailySalesSummary(start, end);
                 Map<String, DashboardStatsDTO.DailySales> dailyMap = new HashMap<>();
 
-                // Initialize last 7 days
+                // Initialize last 7 days with zero values
                 for (int i = 0; i < 7; i++) {
                         String dateStr = sevenDaysAgo.plusDays(i).format(dateFormatter);
                         dailyMap.put(dateStr, new DashboardStatsDTO.DailySales(dateStr, 0.0, 0));
                 }
 
-                // Aggregate
-                for (OrderEntity order : orders) {
-                        String dateStr = order.getCreatedAt().format(dateFormatter);
-                        DashboardStatsDTO.DailySales ds = dailyMap.get(dateStr);
-                        if (ds != null) {
-                                ds.setRevenue(ds.getRevenue()
-                                                + (order.getTotalAmount() != null ? order.getTotalAmount() : 0.0));
-                                ds.setOrderCount(ds.getOrderCount() + 1);
+                // Fill with actual data
+                for (Object[] row : queryResults) {
+                        String dateStr = (String) row[0];
+                        if (dailyMap.containsKey(dateStr)) {
+                                DashboardStatsDTO.DailySales ds = dailyMap.get(dateStr);
+                                ds.setRevenue((Double) row[1]);
+                                ds.setOrderCount(((Long) row[2]).intValue());
                         }
                 }
 
@@ -262,10 +258,17 @@ public class ReportService {
                 report.setPaymentMethodSummary(getPaymentMethodSummary(start, end, totalRevenue));
 
                 // Category sales
-                report.setCategorySales(getCategorySalesBreakdown(orders));
+                report.setCategorySales(orderRepository.findCategorySalesSummary(start, end).stream()
+                                .map(row -> new com.example.backend.dto.report.SalesReportDTO.CategorySales(
+                                                (Long) row[0], (String) row[1], (Double) row[2], (Integer) row[3]))
+                                .collect(Collectors.toList()));
 
                 // Top selling items
-                report.setTopSellingItems(getTopSellingItemsForReport(orders, 10));
+                report.setTopSellingItems(orderRepository.findTopSellingItemsSummary(start, end).stream()
+                                .map(row -> new com.example.backend.dto.report.SalesReportDTO.TopSellingItem(
+                                                (Long) row[0], (String) row[1], (String) row[2], (Integer) row[3],
+                                                (Double) row[4]))
+                                .collect(Collectors.toList()));
 
                 return report;
         }
@@ -307,13 +310,9 @@ public class ReportService {
         private List<com.example.backend.dto.report.SalesReportDTO.PaymentMethodSummary> getPaymentMethodSummary(
                         LocalDateTime start, LocalDateTime end, Double totalRevenue) {
 
-                List<PaymentEntity> payments = paymentRepository.findAll().stream()
-                                .filter(p -> p.getCreatedAt() != null &&
-                                                p.getCreatedAt().isAfter(start) &&
-                                                p.getCreatedAt().isBefore(end) &&
-                                                p.getDeletedAt() == null &&
-                                                p.getPaymentStatus() == PaymentEntity.PaymentStatus.PAID)
-                                .collect(Collectors.toList());
+                List<PaymentEntity> payments = paymentRepository
+                                .findByPaymentStatusAndCreatedAtBetweenAndDeletedAtIsNull(
+                                                PaymentEntity.PaymentStatus.PAID, start, end);
 
                 Map<String, com.example.backend.dto.report.SalesReportDTO.PaymentMethodSummary> methodMap = new HashMap<>();
 
@@ -337,76 +336,11 @@ public class ReportService {
                                 .collect(Collectors.toList());
         }
 
-        private List<com.example.backend.dto.report.SalesReportDTO.CategorySales> getCategorySalesBreakdown(
-                        List<OrderEntity> orders) {
-                Map<Long, com.example.backend.dto.report.SalesReportDTO.CategorySales> categoryMap = new HashMap<>();
+        // Deprecated: category breakdown now handled by findCategorySalesSummary in OrderRepository
+        // private List<com.example.backend.dto.report.SalesReportDTO.CategorySales> getCategorySalesBreakdown(List<OrderEntity> orders) { ... }
 
-                for (OrderEntity order : orders) {
-                        if (order.getItems() != null) {
-                                for (OrderItemEntity item : order.getItems()) {
-                                        if (item.getMenuItem() != null && item.getMenuItem().getCategory() != null) {
-                                                Long catId = item.getMenuItem().getCategory().getCategoryId();
-                                                String catName = item.getMenuItem().getCategory().getName();
-
-                                                com.example.backend.dto.report.SalesReportDTO.CategorySales cs = categoryMap
-                                                                .getOrDefault(catId,
-                                                                                new com.example.backend.dto.report.SalesReportDTO.CategorySales(
-                                                                                                catId, catName, 0.0,
-                                                                                                0));
-                                                cs.setRevenue(cs.getRevenue()
-                                                                + (item.getUnitPrice() != null && item.getQty() != null
-                                                                                ? item.getUnitPrice() * item.getQty()
-                                                                                : 0.0));
-                                                cs.setItemsSold(cs.getItemsSold()
-                                                                + (item.getQty() != null ? item.getQty() : 0));
-                                                categoryMap.put(catId, cs);
-                                        }
-                                }
-                        }
-                }
-
-                return categoryMap.values().stream()
-                                .sorted((a, b) -> b.getRevenue().compareTo(a.getRevenue()))
-                                .collect(Collectors.toList());
-        }
-
-        private List<com.example.backend.dto.report.SalesReportDTO.TopSellingItem> getTopSellingItemsForReport(
-                        List<OrderEntity> orders, int limit) {
-                Map<Long, com.example.backend.dto.report.SalesReportDTO.TopSellingItem> itemMap = new HashMap<>();
-
-                for (OrderEntity order : orders) {
-                        if (order.getItems() != null) {
-                                for (OrderItemEntity item : order.getItems()) {
-                                        if (item.getMenuItem() != null) {
-                                                Long menuItemId = item.getMenuItem().getMenuItemId();
-                                                String name = item.getMenuItem().getName();
-                                                String catName = item.getMenuItem().getCategory() != null
-                                                                ? item.getMenuItem().getCategory().getName()
-                                                                : "Uncategorized";
-
-                                                com.example.backend.dto.report.SalesReportDTO.TopSellingItem tsi = itemMap
-                                                                .getOrDefault(
-                                                                                menuItemId,
-                                                                                new com.example.backend.dto.report.SalesReportDTO.TopSellingItem(
-                                                                                                menuItemId,
-                                                                                                name, catName, 0, 0.0));
-                                                tsi.setQuantitySold(tsi.getQuantitySold()
-                                                                + (item.getQty() != null ? item.getQty() : 0));
-                                                tsi.setRevenue(tsi.getRevenue()
-                                                                + (item.getUnitPrice() != null && item.getQty() != null
-                                                                                ? item.getUnitPrice() * item.getQty()
-                                                                                : 0.0));
-                                                itemMap.put(menuItemId, tsi);
-                                        }
-                                }
-                        }
-                }
-
-                return itemMap.values().stream()
-                                .sorted((a, b) -> b.getQuantitySold().compareTo(a.getQuantitySold()))
-                                .limit(limit)
-                                .collect(Collectors.toList());
-        }
+        // Deprecated: top selling items now handled by findTopSellingItemsSummary in OrderRepository
+        // private List<com.example.backend.dto.report.SalesReportDTO.TopSellingItem> getTopSellingItemsForReport(List<OrderEntity> orders, int limit) { ... }
 
         // ========== INVENTORY REPORT ==========
 
@@ -628,31 +562,11 @@ public class ReportService {
                                 .stream().filter(a -> a.getStatus() == StockAdjustmentEntity.AdjustmentStatus.APPROVED)
                                 .collect(Collectors.groupingBy(a -> a.getIngredient().getIngredientId()));
 
-                // For stock out (sales), we need to aggregate orders in range
-                List<OrderEntity> ordersInRange = orderRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end)
-                                .stream().filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID)
-                                .collect(Collectors.toList());
-
-                // Optional: Branch filtering if branchId is provided
-                if (branchId != null) {
-                        ordersInRange = ordersInRange.stream()
-                                        .filter(o -> o.getBranch().getBranchId().equals(branchId))
-                                        .collect(Collectors.toList());
-                }
-
-                // Pre-calculate sales stock out per ingredient
+                // Pre-calculate sales stock out per ingredient using optimized SQL
+                List<Object[]> usageResults = orderRepository.calculateIngredientUsageForPeriod(start, end);
                 Map<Long, Double> salesStockOut = new HashMap<>();
-                for (OrderEntity order : ordersInRange) {
-                        for (OrderItemEntity orderItem : order.getItems()) {
-                                List<RecipeEntity> recipes = recipeRepository
-                                                .findByMenuItemMenuItemId(orderItem.getMenuItem().getMenuItemId());
-                                for (RecipeEntity recipe : recipes) {
-                                        Long ingId = recipe.getIngredient().getIngredientId();
-                                        double qty = (recipe.getQuantityNeeded() != null ? recipe.getQuantityNeeded()
-                                                        : 0.0) * (orderItem.getQty() != null ? orderItem.getQty() : 0);
-                                        salesStockOut.put(ingId, salesStockOut.getOrDefault(ingId, 0.0) + qty);
-                                }
-                        }
+                for (Object[] row : usageResults) {
+                        salesStockOut.put((Long) row[0], (Double) row[1]);
                 }
 
                 // Also need movements between end date and now to calculate "Closing Stock" as of endDate

@@ -61,32 +61,32 @@ export const useApi = () => {
     }
 
     /**
-     * POST request
+     * Download a file from the API
      */
-    const post = <T>(endpoint: string, body: Record<string, any>) => {
-        return fetchApi<T>(endpoint, {
-            method: 'POST',
-            body
-        })
-    }
-
-    /**
-     * PUT request
-     */
-    const put = <T>(endpoint: string, body: Record<string, any>) => {
-        return fetchApi<T>(endpoint, {
-            method: 'PUT',
-            body
-        })
-    }
-
-    /**
-     * DELETE request
-     */
-    const del = <T>(endpoint: string) => {
-        return fetchApi<T>(endpoint, {
-            method: 'DELETE'
-        })
+    const download = async (endpoint: string, filename: string) => {
+        try {
+            const { token } = useAuth()
+            const response = await $fetch(`${config.public.apiBase}${endpoint}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': token.value ? `Bearer ${token.value}` : ''
+                },
+                responseType: 'blob'
+            })
+            
+            const url = window.URL.createObjectURL(response as Blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', filename)
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error('Download failed:', error)
+            const toast = useToast()
+            toast.error('Failed to download file. Please try again.')
+        }
     }
 
     return {
@@ -94,6 +94,7 @@ export const useApi = () => {
         get,
         post,
         put,
-        del
+        del,
+        download
     }
 }

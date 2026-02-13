@@ -12,14 +12,16 @@ import com.example.backend.model.BranchEntity;
 import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.OrderRepository;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 public class BranchInsightService {
 
     private final BranchRepository branchRepository;
     private final OrderRepository orderRepository;
+
+    public BranchInsightService(BranchRepository branchRepository, OrderRepository orderRepository) {
+        this.branchRepository = branchRepository;
+        this.orderRepository = orderRepository;
+    }
 
     public List<BranchPerformanceDTO> getBranchComparison(String range) {
         LocalDateTime start;

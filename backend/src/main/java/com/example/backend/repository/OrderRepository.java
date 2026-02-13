@@ -30,6 +30,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         // Find by customer
         List<OrderEntity> findByCustomerCustomerIdAndDeletedAtIsNull(Long customerId);
 
+        // Find by customer (ordered, for mobile)
+        @Query("SELECT o FROM OrderEntity o WHERE o.customer.customerId = :customerId AND o.deletedAt IS NULL ORDER BY o.createdAt DESC")
+        List<OrderEntity> findByCustomerCustomerIdOrderByCreatedAtDesc(@Param("customerId") Long customerId);
+
         // Find by order type
         List<OrderEntity> findByOrderTypeAndDeletedAtIsNull(OrderEntity.OrderType orderType);
 
@@ -141,4 +145,34 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
         // Search by order number (paginated)
         Page<OrderEntity> findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(String orderNo, Pageable pageable);
+
+        @Query("SELECT mc.categoryId, mc.name, COALESCE(SUM(oi.unitPrice * oi.qty), 0.0), CAST(COALESCE(SUM(oi.qty), 0) AS Integer) " +
+                        "FROM OrderEntity o JOIN o.items oi JOIN oi.menuItem mi JOIN mi.category mc " +
+                        "WHERE o.status = 'PAID' AND o.createdAt >= :startDate AND o.createdAt <= :endDate AND o.deletedAt IS NULL " +
+                        "GROUP BY mc.categoryId, mc.name")
+        List<Object[]> findCategorySalesSummary(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        @Query("SELECT mi.menuItemId, mi.name, mc.name, CAST(COALESCE(SUM(oi.qty), 0) AS Integer), COALESCE(SUM(oi.unitPrice * oi.qty), 0.0) " +
+                        "FROM OrderEntity o JOIN o.items oi JOIN oi.menuItem mi LEFT JOIN mi.category mc " +
+                        "WHERE o.status = 'PAID' AND o.createdAt >= :startDate AND o.createdAt <= :endDate AND o.deletedAt IS NULL " +
+                        "GROUP BY mi.menuItemId, mi.name, mc.name " +
+                        "ORDER BY SUM(oi.qty) DESC")
+        List<Object[]> findTopSellingItemsSummary(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        @Query("SELECT r.ingredient.ingredientId, SUM(CAST(oi.qty AS Double) * r.quantityNeeded) " +
+                        "FROM OrderEntity o JOIN o.items oi JOIN RecipeEntity r ON r.menuItem.menuItemId = oi.menuItem.menuItemId " +
+                        "WHERE o.status = 'PAID' AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.deletedAt IS NULL " +
+                        "GROUP BY r.ingredient.ingredientId")
+        List<Object[]> calculateIngredientUsageForPeriod(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        @Query("SELECT TO_CHAR(o.createdAt, 'YYYY-MM-DD') as dateStr, SUM(o.totalAmount), COUNT(o) " +
+                        "FROM OrderEntity o WHERE o.status = 'PAID' AND o.createdAt >= :startDate " +
+                        "AND o.createdAt <= :endDate AND o.deletedAt IS NULL " +
+                        "GROUP BY dateStr ORDER BY dateStr ASC")
+        List<Object[]> findDailySalesSummary(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 }

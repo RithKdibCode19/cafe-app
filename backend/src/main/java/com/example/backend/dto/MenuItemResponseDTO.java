@@ -17,6 +17,7 @@ public class MenuItemResponseDTO {
     private Double basePrice;
     private String imageUrl;
     private Boolean isAvailable;
+    private Boolean lowStock;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private java.util.List<VariantResponseDTO> variants;

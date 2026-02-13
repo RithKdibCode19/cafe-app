@@ -48,7 +48,9 @@
               : 'bg-neutral-800/50 border-transparent text-neutral-400 hover:bg-neutral-800 hover:text-white',
           ]"
         >
-          <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-700/30 flex items-center justify-center mb-1 group-hover:bg-neutral-600/30 transition-colors">
+          <div
+            class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-700/30 flex items-center justify-center mb-1 group-hover:bg-neutral-600/30 transition-colors"
+          >
             <span class="text-sm md:text-base">{{ cat.name.charAt(0) }}</span>
           </div>
           <span class="text-center line-clamp-2">{{ cat.name }}</span>
@@ -58,17 +60,36 @@
       <!-- Right Column: Sub Categories, Search & Items -->
       <div class="flex-1 flex flex-col min-w-0 bg-neutral-900/50">
         <!-- Breadcrumbs & Search -->
-        <div class="flex items-center justify-between px-6 py-4 gap-6 bg-neutral-900 border-b border-neutral-800 shrink-0">
+        <div
+          class="flex items-center justify-between px-6 py-4 gap-6 bg-neutral-900 border-b border-neutral-800 shrink-0"
+        >
           <!-- Breadcrumbs -->
-          <nav class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+          <nav
+            class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1"
+          >
             <button
               @click="handleRootSelect('all')"
               class="text-neutral-500 hover:text-white transition-colors flex items-center gap-1 shrink-0"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
             </button>
 
-            <template v-for="(cat, index) in categoryPath" :key="cat.categoryId">
+            <template
+              v-for="(cat, index) in categoryPath"
+              :key="cat.categoryId"
+            >
               <span class="text-neutral-700 shrink-0">/</span>
               <button
                 @click="navigateToPathLevel(index)"
@@ -76,7 +97,7 @@
                   'text-sm font-medium transition-colors whitespace-nowrap px-2 py-1 rounded-lg',
                   index === categoryPath.length - 1
                     ? 'text-white bg-neutral-800'
-                    : 'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50'
+                    : 'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50',
                 ]"
               >
                 {{ cat.name }}
@@ -113,8 +134,15 @@
         </div>
 
         <!-- Sub Categories Row (Tabs) -->
-        <div v-if="currentChildCategories.length > 0" class="flex items-center px-6 py-4 gap-3 bg-neutral-900 border-b border-neutral-800/50 overflow-x-auto scrollbar-hide shrink-0">
-          <div class="text-[10px] font-bold text-neutral-600 uppercase tracking-widest mr-2 shrink-0">Explore</div>
+        <div
+          v-if="currentChildCategories.length > 0"
+          class="flex items-center px-6 py-4 gap-3 bg-neutral-900 border-b border-neutral-800/50 overflow-x-auto scrollbar-hide shrink-0"
+        >
+          <div
+            class="text-[10px] font-bold text-neutral-600 uppercase tracking-widest mr-2 shrink-0"
+          >
+            Explore
+          </div>
           <button
             v-for="sub in currentChildCategories"
             :key="sub.categoryId"
@@ -136,205 +164,226 @@
           </button>
         </div>
 
-      <!-- Current Selected Category Info -->
-      <div
-        class="flex items-center justify-between p-6 lg:px-8 pt-4 pb-2 gap-6 shrink-0"
-      >
-        <!-- Mobile Menu Button (visible only on small screens) -->
-        <button class="lg:hidden text-white">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-
-        <!-- Breadcrumbs / Title -->
-        <div class="flex-1">
-          <h1 class="text-2xl font-bold text-white">
-            {{ currentCategoryName }}
-          </h1>
-          <p class="text-sm text-neutral-500" v-if="!loading">
-            {{ filteredItems.length }} items available
-          </p>
-        </div>
-      </div>
-
-      <!-- Items Grid -->
-      <div class="flex-1 overflow-y-auto scrollbar-thin">
-        <!-- Loading State -->
+        <!-- Current Selected Category Info -->
         <div
-          v-if="loading"
-          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+          class="flex items-center justify-between p-6 lg:px-8 pt-4 pb-2 gap-6 shrink-0"
         >
-          <div
-            v-for="i in 10"
-            :key="i"
-            class="bg-neutral-800/30 rounded-3xl overflow-hidden border border-neutral-700/20"
-          >
-            <div class="aspect-square bg-neutral-700/30 animate-pulse"></div>
-            <div class="p-5 space-y-3">
-              <div
-                class="h-5 bg-neutral-700/30 rounded-xl animate-pulse w-3/4"
-              ></div>
-              <div
-                class="h-6 bg-neutral-700/30 rounded-xl animate-pulse w-1/2"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div
-          v-else-if="filteredItems.length === 0"
-          class="flex flex-col items-center justify-center h-96 text-neutral-500"
-        >
-          <div
-            class="w-28 h-28 rounded-3xl bg-gradient-to-br from-neutral-800/80 to-neutral-900/80 flex items-center justify-center mb-8 border border-neutral-700/30"
-          >
+          <!-- Mobile Menu Button (visible only on small screens) -->
+          <button class="lg:hidden text-white">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="w-14 h-14 opacity-20"
+              class="w-6 h-6"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.5"
+              stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-              <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-              <line x1="6" x2="6" y1="2" y2="4" />
-              <line x1="10" x2="10" y1="2" y2="4" />
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
+          </button>
+
+          <!-- Breadcrumbs / Title -->
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold text-white">
+              {{ currentCategoryName }}
+            </h1>
+            <p class="text-sm text-neutral-500" v-if="!loading">
+              {{ filteredItems.length }} items available
+            </p>
           </div>
-          <p class="text-xl font-bold text-neutral-300 mb-2">No items found</p>
-          <p class="text-sm text-neutral-500">
-            Try selecting a different category or search term
-          </p>
         </div>
 
         <!-- Items Grid -->
-        <div
-          v-else
-          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-8"
-        >
-          <button
-            v-for="(item, idx) in filteredItems"
-            :key="item.menuItemId"
-            @click="handleAddToCart(item)"
-            :disabled="!item.isAvailable"
-            class="group relative bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-700 hover:border-primary-500 text-left disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 reveal-item"
-            :style="{ '--delay': (idx % 10) * 50 + 'ms' }"
+        <div class="flex-1 overflow-y-auto scrollbar-thin">
+          <!-- Loading State -->
+          <div
+            v-if="loading"
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
           >
-            <!-- Image Container -->
-            <div class="aspect-square bg-neutral-800 relative overflow-hidden">
-              <img
-                v-if="item.imageUrl"
-                :src="item.imageUrl"
-                :alt="item.name"
-                loading="lazy"
-                decoding="async"
-                class="w-full h-full object-cover"
-              />
-              <div
-                v-else
-                class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-neutral-800 via-neutral-850 to-neutral-900 gap-3"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-12 h-12 text-neutral-700/50"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                  <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-                </svg>
-                <span
-                  class="text-xs text-neutral-600 font-medium px-3 text-center"
-                  >{{ item.name }}</span
-                >
-              </div>
-
-              <!-- Enhanced Gradient Overlay -->
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent"
-              ></div>
-
-              <!-- Price Badge -->
-              <div class="absolute bottom-4 left-4">
-                <span
-                  class="bg-primary-500 text-white px-3 py-1.5 rounded-xl text-sm font-bold"
-                >
-                  ${{ item.basePrice.toFixed(2) }}
-                </span>
-              </div>
-
-              <!-- Availability Badge -->
-              <div
-                v-if="!item.isAvailable"
-                class="absolute inset-0 bg-neutral-900/90 flex items-center justify-center"
-              >
-                <span
-                  class="bg-red-500/20 text-red-400 border border-red-500/40 px-4 py-2 rounded-xl text-xs font-bold uppercase"
-                >
-                  Sold Out
-                </span>
-              </div>
-
-            <!-- Add Button Overlay -->
             <div
-              v-if="item.isAvailable"
-              class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+              v-for="i in 10"
+              :key="i"
+              class="bg-neutral-800/30 rounded-3xl overflow-hidden border border-neutral-700/20"
             >
-              <div class="bg-white text-primary-600 p-2.5 rounded-xl shadow-lg">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
+              <div class="aspect-square bg-neutral-700/30 animate-pulse"></div>
+              <div class="p-5 space-y-3">
+                <div
+                  class="h-5 bg-neutral-700/30 rounded-xl animate-pulse w-3/4"
+                ></div>
+                <div
+                  class="h-6 bg-neutral-700/30 rounded-xl animate-pulse w-1/2"
+                ></div>
               </div>
             </div>
           </div>
 
-          <!-- Content -->
-          <div class="p-5 flex flex-col items-start gap-1">
-            <h3
-              class="font-bold text-neutral-100 text-base leading-snug line-clamp-2 h-12"
+          <!-- Empty State -->
+          <div
+            v-else-if="filteredItems.length === 0"
+            class="flex flex-col items-center justify-center h-96 text-neutral-500"
+          >
+            <div
+              class="w-28 h-28 rounded-3xl bg-gradient-to-br from-neutral-800/80 to-neutral-900/80 flex items-center justify-center mb-8 border border-neutral-700/30"
             >
-              {{ item.name }}
-            </h3>
-            <div class="flex items-center gap-2 mt-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
-              <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{{ item.category?.name || 'Item' }}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-14 h-14 opacity-20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                <line x1="6" x2="6" y1="2" y2="4" />
+                <line x1="10" x2="10" y1="2" y2="4" />
+              </svg>
             </div>
+            <p class="text-xl font-bold text-neutral-300 mb-2">
+              No items found
+            </p>
+            <p class="text-sm text-neutral-500">
+              Try selecting a different category or search term
+            </p>
           </div>
-        </button>
+
+          <!-- Items Grid -->
+          <div
+            v-else
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-8"
+          >
+            <button
+              v-for="(item, idx) in filteredItems"
+              :key="item.menuItemId"
+              @click="handleAddToCart(item)"
+              :disabled="!item.isAvailable"
+              class="group relative bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-700 hover:border-primary-500 text-left disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-500 reveal-item"
+              :style="{ '--delay': (idx % 10) * 50 + 'ms' }"
+            >
+              <!-- Image Container -->
+              <div
+                class="aspect-square bg-neutral-800 relative overflow-hidden"
+              >
+                <img
+                  v-if="item.imageUrl"
+                  :src="item.imageUrl"
+                  :alt="item.name"
+                  loading="lazy"
+                  decoding="async"
+                  class="w-full h-full object-cover"
+                />
+                <div
+                  v-else
+                  class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-neutral-800 via-neutral-850 to-neutral-900 gap-3"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-12 h-12 text-neutral-700/50"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                  </svg>
+                  <span
+                    class="text-xs text-neutral-600 font-medium px-3 text-center"
+                    >{{ item.name }}</span
+                  >
+                </div>
+
+                <!-- Enhanced Gradient Overlay -->
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent"
+                ></div>
+
+                <!-- Price Badge -->
+                <div class="absolute bottom-4 left-4">
+                  <span
+                    class="bg-primary-500 text-white px-3 py-1.5 rounded-xl text-sm font-bold"
+                  >
+                    ${{ item.basePrice.toFixed(2) }}
+                  </span>
+                </div>
+
+                <!-- Low Stock Badge -->
+                <div
+                  v-if="item.isAvailable && item.lowStock"
+                  class="absolute top-4 right-4"
+                >
+                  <span
+                    class="bg-warning-500/90 text-neutral-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter animate-pulse"
+                  >
+                    Low Stock
+                  </span>
+                </div>
+
+                <!-- Availability Badge -->
+                <div
+                  v-if="!item.isAvailable"
+                  class="absolute inset-0 bg-neutral-900/90 flex items-center justify-center"
+                >
+                  <span
+                    class="bg-red-500/20 text-red-400 border border-red-500/40 px-4 py-2 rounded-xl text-xs font-bold uppercase"
+                  >
+                    Sold Out
+                  </span>
+                </div>
+
+                <!-- Add Button Overlay -->
+                <div
+                  v-if="item.isAvailable"
+                  class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                >
+                  <div
+                    class="bg-white text-primary-600 p-2.5 rounded-xl shadow-lg"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-6 h-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M12 5v14" />
+                      <path d="M5 12h14" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="p-5 flex flex-col items-start gap-1">
+                <h3
+                  class="font-bold text-neutral-100 text-base leading-snug line-clamp-2 h-12"
+                >
+                  {{ item.name }}
+                </h3>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary-500"></span>
+                  <span
+                    class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest"
+                    >{{ item.category?.name || "Item" }}</span
+                  >
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
     <!-- Variant Selection Modal -->
     <div
@@ -494,14 +543,21 @@
             <div
               class="w-10 h-10 border-2 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"
             ></div>
-            <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Loading options...</span>
+            <span
+              class="text-xs font-bold text-neutral-500 uppercase tracking-widest"
+              >Loading options...</span
+            >
           </div>
 
           <div v-else-if="addOnList.length > 0" class="space-y-6">
             <div>
               <div class="flex items-center gap-2 mb-4">
                 <span class="w-1 h-4 bg-primary-500 rounded-full"></span>
-                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Customize Your Order</h4>
+                <h4
+                  class="text-sm font-bold text-white uppercase tracking-wider"
+                >
+                  Customize Your Order
+                </h4>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <button
@@ -516,17 +572,37 @@
                   ]"
                 >
                   <!-- Selection Badge -->
-                  <div 
+                  <div
                     v-if="isAddOnSelected(addOn.addonId)"
                     class="absolute -top-1 -right-1"
                   >
-                    <div class="bg-primary-500 text-white p-1 rounded-bl-xl shadow-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div
+                      class="bg-primary-500 text-white p-1 rounded-bl-xl shadow-lg"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3 h-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
                     </div>
                   </div>
 
                   <div class="flex flex-col gap-1">
-                    <span :class="['text-sm font-bold transition-colors', isAddOnSelected(addOn.addonId) ? 'text-white' : 'text-neutral-300 group-hover:text-white']">
+                    <span
+                      :class="[
+                        'text-sm font-bold transition-colors',
+                        isAddOnSelected(addOn.addonId)
+                          ? 'text-white'
+                          : 'text-neutral-300 group-hover:text-white',
+                      ]"
+                    >
                       {{ addOn.name }}
                     </span>
                     <span
@@ -547,7 +623,11 @@
             <div class="pt-2">
               <div class="flex items-center gap-2 mb-4">
                 <span class="w-1 h-4 bg-primary-500 rounded-full"></span>
-                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Special Instructions</h4>
+                <h4
+                  class="text-sm font-bold text-white uppercase tracking-wider"
+                >
+                  Special Instructions
+                </h4>
               </div>
               <textarea
                 v-model="itemNotes"
@@ -559,25 +639,61 @@
           </div>
 
           <div v-else class="text-center py-16">
-            <div class="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-800">
-               <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-neutral-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <div
+              class="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-800"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 text-neutral-700"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20h9" />
+                <path
+                  d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                />
+              </svg>
             </div>
-            <p class="text-neutral-500 text-sm font-bold uppercase tracking-widest">No add-ons available</p>
+            <p
+              class="text-neutral-500 text-sm font-bold uppercase tracking-widest"
+            >
+              No add-ons available
+            </p>
           </div>
         </div>
 
         <!-- Sticky Footer -->
-        <div class="p-6 border-t border-neutral-700/50 bg-neutral-900/80 backdrop-blur-md">
+        <div
+          class="p-6 border-t border-neutral-700/50 bg-neutral-900/80 backdrop-blur-md"
+        >
           <div class="flex items-center justify-between mb-6">
             <div class="flex flex-col">
-              <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest leading-none mb-1">Current Balance</span>
+              <span
+                class="text-[10px] font-black text-neutral-500 uppercase tracking-widest leading-none mb-1"
+                >Current Balance</span
+              >
               <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-black text-white">${{ ((selectedVariant?.price || selectedItem.basePrice) + addOnTotal).toFixed(2) }}</span>
-                <span v-if="selectedAddOns.length > 0" class="text-xs font-bold text-primary-400">+ {{ selectedAddOns.length }} items</span>
+                <span class="text-3xl font-black text-white"
+                  >${{
+                    (
+                      (selectedVariant?.price || selectedItem.basePrice) +
+                      addOnTotal
+                    ).toFixed(2)
+                  }}</span
+                >
+                <span
+                  v-if="selectedAddOns.length > 0"
+                  class="text-xs font-bold text-primary-400"
+                  >+ {{ selectedAddOns.length }} items</span
+                >
               </div>
             </div>
             <div class="flex gap-2">
-               <button
+              <button
                 @click="closeAddOnModal"
                 class="px-6 py-4 rounded-2xl border-2 border-neutral-700 text-sm font-bold text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all"
               >
@@ -635,6 +751,7 @@ interface MenuItem {
   basePrice: number;
   imageUrl: string;
   isAvailable: boolean;
+  lowStock?: boolean;
   categoryId: number;
   category?: Category;
   variants?: Variant[];
@@ -685,7 +802,8 @@ const currentCategory = computed(() => {
 });
 
 const currentChildCategories = computed(() => {
-  if (selectedRootId.value === "all" && categoryPath.value.length === 0) return [];
+  if (selectedRootId.value === "all" && categoryPath.value.length === 0)
+    return [];
   return currentCategory.value?.children || [];
 });
 

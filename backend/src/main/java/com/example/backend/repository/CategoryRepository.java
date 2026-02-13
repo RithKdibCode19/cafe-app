@@ -24,5 +24,5 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
 """)
     List<CategoryEntity> findRoots();
 
-
+    java.util.Optional<CategoryEntity> findByNameAndDeletedAtIsNull(String name);
 }

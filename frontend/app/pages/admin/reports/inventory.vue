@@ -36,6 +36,24 @@
           <button @click="fetchReport" class="btn-primary" :disabled="loading">
             Update
           </button>
+          <button
+            @click="downloadAudit"
+            class="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl text-sm font-bold transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export
+          </button>
         </div>
       </div>
 
@@ -390,9 +408,7 @@
                     Waste Reduction
                   </h4>
                   <p class="text-sm text-error-700 dark:text-error-500/80 mt-1">
-                    Total waste of ${{
-                      report.totalWasteCost?.toFixed(2)
-                    }}
+                    Total waste of ${{ report.totalWasteCost?.toFixed(2) }}
                     accounts for approx.
                     {{
                       (
@@ -424,7 +440,8 @@ definePageMeta({
   layout: false,
 });
 
-const { get } = useApi();
+const { get, download } = useApi();
+const config = useRuntimeConfig();
 
 const startDate = ref(
   new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
@@ -469,6 +486,14 @@ const fetchReport = async () => {
 onMounted(() => {
   fetchReport();
 });
+
+const downloadAudit = () => {
+  const endpoint = `/api/import-export/export/inventory?start=${startDate.value}&end=${endDate.value}`;
+  download(
+    endpoint,
+    `inventory_audit_${startDate.value}_to_${endDate.value}.xlsx`,
+  );
+};
 </script>
 
 <style scoped>

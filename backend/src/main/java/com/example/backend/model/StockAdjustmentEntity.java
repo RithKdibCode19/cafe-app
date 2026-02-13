@@ -54,7 +54,7 @@ public class StockAdjustmentEntity extends BaseEntity {
     private UserEntity createdBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "adjustment_status", nullable = false)
+    @Column(name = "adjustment_status", nullable = false, columnDefinition = "varchar(255) default 'PENDING'")
     private AdjustmentStatus status = AdjustmentStatus.PENDING;
 
     @Column(nullable = false)

@@ -33,8 +33,9 @@ public class MenuItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MenuItemResponseDTO>> getAllMenuItems() {
-        List<MenuItemResponseDTO> response = menuItemService.getAllMenuItems();
+    @com.example.backend.security.IsolateByBranch
+    public ResponseEntity<List<MenuItemResponseDTO>> getAllMenuItems(Long branchId) {
+        List<MenuItemResponseDTO> response = menuItemService.getAllMenuItems(branchId);
         return ResponseEntity.ok(response);
     }
 

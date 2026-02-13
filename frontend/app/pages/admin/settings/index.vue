@@ -903,36 +903,36 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       >
         <div
-          class="bg-neutral-800 border border-neutral-700 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+          class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in"
         >
           <div
-            class="p-6 border-b border-neutral-700 flex justify-between items-center shrink-0"
+            class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center shrink-0 bg-neutral-50/30 dark:bg-neutral-800/20"
           >
-            <h2 class="text-xl font-bold text-white">
-              {{ editingRole ? "Edit Role" : "Create New System Role" }}
+            <h2 class="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
+              {{ editingRole ? "Edit Role Profile" : "Create New System Role" }}
             </h2>
             <button
               @click="showRoleModal = false"
-              class="text-neutral-500 hover:text-white transition-colors"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white transition-all active:scale-90"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
+                class="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                stroke-width="2.5"
               >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  stroke-width="2"
                   d="M6 18L12 12M18 6L6 18"
                 />
               </svg>
             </button>
           </div>
 
-          <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+          <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Basic Info -->
               <div class="space-y-6">
@@ -944,7 +944,7 @@
                     v-model="roleForm.roleName"
                     type="text"
                     placeholder="e.g. Store Manager"
-                    class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all uppercase"
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-bold tracking-wide transition-all uppercase placeholder:font-normal placeholder:lowercase"
                   />
                 </div>
                 <div>
@@ -954,8 +954,8 @@
                   <textarea
                     v-model="roleForm.description"
                     rows="4"
-                    placeholder="What can users with this role do?"
-                    class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all resize-none"
+                    placeholder="Provide a brief summary of this role's purpose..."
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-all resize-none placeholder:font-normal text-sm"
                   ></textarea>
                 </div>
 
@@ -982,7 +982,7 @@
                   >Permissions Portfolio</label
                 >
                 <div
-                  class="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"
+                  class="space-y-6 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar"
                 >
                   <div
                     v-for="(perms, group) in groupedPermissions"
@@ -1000,7 +1000,7 @@
                       <label
                         v-for="perm in perms"
                         :key="perm.permissionId"
-                        class="flex items-center gap-3 p-3 rounded-xl bg-neutral-900/50 hover:bg-neutral-900 border border-neutral-700/50 hover:border-neutral-600 transition-all cursor-pointer group"
+                        class="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-neutral-100 dark:border-neutral-800 hover:border-primary-200 dark:hover:border-primary-900 transition-all cursor-pointer group hover:shadow-lg hover:shadow-primary-500/5 active:scale-[0.98]"
                       >
                         <input
                           type="checkbox"
@@ -1032,24 +1032,24 @@
           </div>
 
           <div
-            class="p-6 border-t border-neutral-700 flex justify-end gap-3 shrink-0 bg-neutral-800/50"
+            class="p-8 border-t border-neutral-100 dark:border-neutral-800 flex justify-end gap-4 shrink-0 bg-neutral-50/50 dark:bg-neutral-800/20"
           >
             <button
               @click="showRoleModal = false"
-              class="px-6 py-2.5 rounded-xl border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-all font-bold text-sm"
+              class="px-8 py-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all font-bold text-sm uppercase tracking-widest"
             >
               Cancel
             </button>
             <button
               @click="saveRole"
               :disabled="saving || !roleForm.roleName"
-              class="btn-primary px-8 py-2.5 rounded-xl flex items-center gap-2 disabled:opacity-50 text-sm shadow-xl shadow-primary-500/20"
+              class="btn-primary px-10 py-3.5 rounded-2xl flex items-center gap-3 disabled:opacity-50 text-sm uppercase tracking-widest font-black shadow-2xl shadow-primary-500/30"
             >
               <span
                 v-if="saving"
                 class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
               ></span>
-              {{ editingRole ? "Update Changes" : "Create Role" }}
+              {{ editingRole ? "Update Profile" : "Activate Role" }}
             </button>
           </div>
         </div>

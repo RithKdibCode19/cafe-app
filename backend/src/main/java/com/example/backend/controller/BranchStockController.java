@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.model.BranchStockEntity;
+import com.example.backend.dto.BranchStockResponseDTO;
 import com.example.backend.services.BranchStockService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class BranchStockController {
     private final BranchStockService branchStockService;
 
     @GetMapping("/{branchId}")
-    public ResponseEntity<List<BranchStockEntity>> getBranchInventory(@PathVariable Long branchId) {
+    public ResponseEntity<List<BranchStockResponseDTO>> getBranchInventory(@PathVariable Long branchId) {
         return ResponseEntity.ok(branchStockService.getBranchInventory(branchId));
     }
 

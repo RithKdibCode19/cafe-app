@@ -27,6 +27,9 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
         List<PaymentEntity> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 
+        List<PaymentEntity> findByPaymentStatusAndCreatedAtBetweenAndDeletedAtIsNull(
+                        PaymentEntity.PaymentStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
         // Calculate total payments for period
         @Query("SELECT COALESCE(SUM(p.paidAmount), 0.0) FROM PaymentEntity p " +
                         "WHERE p.paymentStatus = 'PAID' " +

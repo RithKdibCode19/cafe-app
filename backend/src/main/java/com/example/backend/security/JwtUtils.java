@@ -30,6 +30,38 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * Generate JWT for mobile customer (separate from staff tokens).
+     * Subject is prefixed with "CUSTOMER:" to distinguish.
+     */
+    public String generateCustomerToken(Long customerId, String phone) {
+        return Jwts.builder()
+                .setSubject("CUSTOMER:" + customerId)
+                .claim("phone", phone)
+                .claim("type", "customer")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isCustomerToken(String token) {
+        try {
+            String subject = getUserNameFromJwtToken(token);
+            return subject != null && subject.startsWith("CUSTOMER:");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Long getCustomerIdFromToken(String token) {
+        String subject = getUserNameFromJwtToken(token);
+        if (subject != null && subject.startsWith("CUSTOMER:")) {
+            return Long.parseLong(subject.substring("CUSTOMER:".length()));
+        }
+        return null;
+    }
+
     private Key key() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }

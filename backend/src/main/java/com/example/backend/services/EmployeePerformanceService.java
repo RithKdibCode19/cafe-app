@@ -21,13 +21,22 @@ import com.example.backend.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class EmployeePerformanceService {
 
     private final EmployeeRepository employeeRepository;
     private final OrderRepository orderRepository;
     private final AttendanceRepository attendanceRepository;
     private final DrawerActionRepository drawerActionRepository;
+
+    public EmployeePerformanceService(EmployeeRepository employeeRepository,
+                                     OrderRepository orderRepository,
+                                     AttendanceRepository attendanceRepository,
+                                     DrawerActionRepository drawerActionRepository) {
+        this.employeeRepository = employeeRepository;
+        this.orderRepository = orderRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.drawerActionRepository = drawerActionRepository;
+    }
 
     public List<EmployeePerformanceDTO> getPerformanceReport(LocalDateTime start, LocalDateTime end) {
         List<EmployeeEntity> employees = employeeRepository.findAllByDeletedAtIsNull();

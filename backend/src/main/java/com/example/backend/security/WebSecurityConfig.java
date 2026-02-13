@@ -56,6 +56,16 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Swagger UI
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        // Mobile public endpoints (no auth needed)
+                        .requestMatchers("/api/mobile/auth/**").permitAll()
+                        .requestMatchers("/api/mobile/branches/**").permitAll()
+                        .requestMatchers("/api/mobile/menu/**").permitAll()
+                        .requestMatchers("/api/mobile/categories/**").permitAll()
+                        // Mobile authenticated endpoints (auth handled at controller level via customer JWT)
+                        .requestMatchers("/api/mobile/orders/**").permitAll()
+                        .requestMatchers("/api/mobile/payments/**").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

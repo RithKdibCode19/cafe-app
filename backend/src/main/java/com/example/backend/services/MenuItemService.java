@@ -20,19 +20,59 @@ public class MenuItemService {
     private final MenuItemRepository menuItemRepository;
     private final CategoryRepository categoryRepository;
     private final MenuItemMapper menuItemMapper;
+    private final com.example.backend.repository.RecipeRepository recipeRepository;
+    private final BranchStockService branchStockService;
 
     public MenuItemService(MenuItemRepository menuItemRepository, CategoryRepository categoryRepository,
-            MenuItemMapper menuItemMapper) {
+            MenuItemMapper menuItemMapper, com.example.backend.repository.RecipeRepository recipeRepository,
+            BranchStockService branchStockService) {
         this.menuItemRepository = menuItemRepository;
         this.categoryRepository = categoryRepository;
         this.menuItemMapper = menuItemMapper;
+        this.recipeRepository = recipeRepository;
+        this.branchStockService = branchStockService;
     }
 
-    public List<MenuItemResponseDTO> getAllMenuItems() {
+    public List<MenuItemResponseDTO> getAllMenuItems(Long branchId) {
         List<MenuItemEntity> entities = menuItemRepository.findAllActive();
-        return entities.stream()
+        List<MenuItemResponseDTO> dtos = entities.stream()
                 .map(menuItemMapper::toResponseDTO)
-                .toList();
+                .collect(java.util.stream.Collectors.toList());
+
+        if (branchId != null) {
+            for (MenuItemResponseDTO dto : dtos) {
+                // If it's already manually unavailable, leave it
+                if (dto.getIsAvailable() == null || !dto.getIsAvailable()) continue;
+
+                // Check stock for all required ingredients in recipes
+                List<com.example.backend.model.RecipeEntity> recipes = recipeRepository
+                        .findByMenuItemMenuItemId(dto.getMenuItemId());
+                
+                boolean isSoldOut = false;
+                boolean isLow = false;
+
+                for (com.example.backend.model.RecipeEntity recipe : recipes) {
+                    Long ingredientId = recipe.getIngredient().getIngredientId();
+                    Double qtyNeeded = recipe.getQuantityNeeded();
+
+                    if (!branchStockService.isStockAvailable(branchId, ingredientId, qtyNeeded)) {
+                        isSoldOut = true;
+                        break;
+                    }
+
+                    if (branchStockService.isLowStock(branchId, ingredientId)) {
+                        isLow = true;
+                    }
+                }
+
+                if (isSoldOut) {
+                    dto.setIsAvailable(false);
+                } else if (isLow) {
+                    dto.setLowStock(true);
+                }
+            }
+        }
+        return dtos;
     }
 
     public MenuItemResponseDTO getMenuItemById(Long id) {

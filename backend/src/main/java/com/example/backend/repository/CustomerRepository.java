@@ -16,4 +16,8 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> 
     java.util.List<CustomerEntity> findTop10ByOrderByUpdatedAtDesc();
 
     java.util.Optional<CustomerEntity> findByEmail(String email);
+
+    java.util.Optional<CustomerEntity> findByPhone(String phone);
+
+    java.util.Optional<CustomerEntity> findByFirebaseUid(String firebaseUid);
 }

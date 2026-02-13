@@ -44,8 +44,8 @@ public class OrderEntity extends BaseEntity {
     private BranchEntity branch;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cashier_user_id", nullable = false)
-    private UserEntity cashierUser;
+    @JoinColumn(name = "cashier_user_id")
+    private UserEntity cashierUser; // nullable for mobile orders
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
@@ -83,6 +83,22 @@ public class OrderEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by_id")
     private UserEntity approvedBy;
+
+    // Delivery fields (for mobile DELIVERY orders)
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
+
+    @Column(name = "delivery_phone")
+    private String deliveryPhone;
+
+    @Column(name = "delivery_note")
+    private String deliveryNote;
+
+    @Column(name = "delivery_fee")
+    private Double deliveryFee;
+
+    @Column(name = "order_source")
+    private String orderSource; // "POS" or "MOBILE"
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
@@ -231,4 +247,19 @@ public class OrderEntity extends BaseEntity {
     public void setApprovedBy(UserEntity approvedBy) {
         this.approvedBy = approvedBy;
     }
+
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getDeliveryPhone() { return deliveryPhone; }
+    public void setDeliveryPhone(String deliveryPhone) { this.deliveryPhone = deliveryPhone; }
+
+    public String getDeliveryNote() { return deliveryNote; }
+    public void setDeliveryNote(String deliveryNote) { this.deliveryNote = deliveryNote; }
+
+    public Double getDeliveryFee() { return deliveryFee; }
+    public void setDeliveryFee(Double deliveryFee) { this.deliveryFee = deliveryFee; }
+
+    public String getOrderSource() { return orderSource; }
+    public void setOrderSource(String orderSource) { this.orderSource = orderSource; }
 }

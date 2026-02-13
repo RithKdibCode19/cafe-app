@@ -39,8 +39,77 @@
             </button>
           </div>
           <button
+            @click="openTransferModal"
+            class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 hover:bg-amber-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="m16 3 4 4-4 4" />
+              <path d="M20 7H9a4 4 0 1 0 0 8h1" />
+              <path d="m8 21-4-4 4-4" />
+              <path d="M4 17h11a4 4 0 1 0 0-8h-1" />
+            </svg>
+            Transfer
+          </button>
+
+          <div class="h-8 w-px bg-neutral-200 dark:bg-neutral-800 mx-1"></div>
+
+          <!-- Export/Import Actions -->
+          <div class="flex items-center gap-2">
+            <button
+              @click="downloadIngredients('excel')"
+              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
+              title="Export as Excel"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <button
+              @click="triggerFileInput"
+              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
+              title="Bulk Import Stock"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </button>
+            <input
+              type="file"
+              ref="fileInput"
+              class="hidden"
+              accept=".xlsx,.csv"
+              @change="onFileChange"
+            />
+          </div>
+
+          <button
             @click="openCreateModal"
-            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -86,6 +155,24 @@
               placeholder="Search ingredients..."
               class="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary-500 placeholder-neutral-500"
             />
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-black uppercase text-neutral-400"
+              >View Branch:</label
+            >
+            <select
+              v-model="selectedBranchId"
+              class="bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg text-sm px-4 py-2 focus:ring-2 focus:ring-primary-500 min-w-[150px]"
+            >
+              <option :value="null">Global Overview</option>
+              <option
+                v-for="b in branches"
+                :key="b.branchId"
+                :value="b.branchId"
+              >
+                {{ b.name }}
+              </option>
+            </select>
           </div>
           <div class="flex items-center gap-2">
             <select
@@ -814,6 +901,126 @@
         :loading="approving"
         @approve="confirmApproval"
       />
+
+      <!-- Transfer Modal -->
+      <div
+        v-if="showTransferModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      >
+        <div
+          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800"
+        >
+          <div
+            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
+          >
+            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
+              Inter-Branch Transfer
+            </h3>
+            <button
+              @click="showTransferModal = false"
+              class="text-neutral-400 hover:text-neutral-600"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >Ingredient</label
+              >
+              <select
+                v-model="transferForm.ingredientId"
+                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
+              >
+                <option
+                  v-for="item in ingredients"
+                  :key="item.ingredientId"
+                  :value="item.ingredientId"
+                >
+                  {{ item.name }}
+                </option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  >From Branch</label
+                >
+                <select
+                  v-model="transferForm.fromBranchId"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
+                >
+                  <option
+                    v-for="b in branches"
+                    :key="b.branchId"
+                    :value="b.branchId"
+                  >
+                    {{ b.name }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  >To Branch</label
+                >
+                <select
+                  v-model="transferForm.toBranchId"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
+                >
+                  <option
+                    v-for="b in branches"
+                    :key="b.branchId"
+                    :value="b.branchId"
+                  >
+                    {{ b.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >Quantity</label
+              >
+              <input
+                type="number"
+                v-model="transferForm.amount"
+                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
+              />
+            </div>
+          </div>
+          <div
+            class="p-6 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
+          >
+            <button
+              @click="showTransferModal = false"
+              class="px-4 py-2 text-sm font-medium text-neutral-600"
+            >
+              Cancel
+            </button>
+            <button
+              @click="executeTransfer"
+              :disabled="loading"
+              class="px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
+            >
+              Execute Transfer
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </NuxtLayout>
 </template>
@@ -825,7 +1032,8 @@ import ApprovalModal from "~/components/pos/ApprovalModal.vue";
 definePageMeta({
   layout: false,
 });
-const { get, post, put } = useApi();
+const config = useRuntimeConfig();
+const { get, post, put, download } = useApi();
 const toast = useToast();
 
 interface Ingredient {
@@ -869,8 +1077,18 @@ const approving = ref(false);
 const isEditing = ref(false);
 const editingId = ref<number | null>(null);
 const selectedAdjustment = ref<any | null>(null);
+const selectedBranchId = ref<number | null>(null);
 
 const selectedIngredient = ref<Ingredient | null>(null);
+const showTransferModal = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const transferForm = reactive({
+  ingredientId: null as number | null,
+  fromBranchId: null as number | null,
+  toBranchId: null as number | null,
+  amount: 0,
+});
 
 // Forms
 const newIngredient = reactive({
@@ -907,8 +1125,24 @@ const newAdjustment = reactive({
 const fetchIngredients = async () => {
   loading.value = true;
   try {
-    const data = await get<Ingredient[]>("/ingredients");
-    ingredients.value = data || [];
+    if (selectedBranchId.value) {
+      const data = await get<any[]>(
+        `/inventory/branch/${selectedBranchId.value}`,
+      );
+      ingredients.value = (data || []).map((d) => ({
+        ingredientId: d.ingredientId,
+        name: d.ingredientName,
+        sku: d.sku,
+        unit: d.unit,
+        currentStock: d.currentStock,
+        reorderLevel: d.reorderLevel,
+        costPerUnit: d.costPerUnit || 0,
+        updatedAt: "",
+      }));
+    } else {
+      const data = await get<Ingredient[]>("/ingredients");
+      ingredients.value = data || [];
+    }
   } catch (err) {
     console.error("Failed to fetch ingredients", err);
   } finally {
@@ -931,6 +1165,10 @@ const fetchAdjustments = async () => {
 watch(activeTab, (val) => {
   if (val === "adjustments") fetchAdjustments();
   else fetchIngredients();
+});
+
+watch(selectedBranchId, () => {
+  fetchIngredients();
 });
 
 const fetchSuppliers = async () => {
@@ -1065,11 +1303,97 @@ const openAdjustment = (item: Ingredient) => {
   selectedIngredient.value = item;
   newAdjustment.ingredientId = item.ingredientId;
   newAdjustment.branchId =
-    branches.value.length > 0 ? branches.value[0].branchId : null;
+    selectedBranchId.value ||
+    (branches.value.length > 0 ? branches.value[0].branchId : null);
   newAdjustment.qtyChange = 0;
   newAdjustment.note = "";
   newAdjustment.date = new Date().toISOString();
   showAdjustmentModal.value = true;
+};
+
+const openTransferModal = () => {
+  transferForm.fromBranchId =
+    selectedBranchId.value ||
+    (branches.value.length > 0 ? branches.value[0].branchId : null);
+  transferForm.toBranchId = null;
+  transferForm.amount = 0;
+  showTransferModal.value = true;
+};
+
+const executeTransfer = async () => {
+  if (
+    !transferForm.ingredientId ||
+    !transferForm.fromBranchId ||
+    !transferForm.toBranchId ||
+    transferForm.amount <= 0
+  ) {
+    toast.error("Please fill all transfer details correctly");
+    return;
+  }
+
+  loading.value = true;
+  try {
+    await post("/inventory/branch/transfer", null, {
+      fromBranchId: transferForm.fromBranchId,
+      toBranchId: transferForm.toBranchId,
+      ingredientId: transferForm.ingredientId,
+      amount: transferForm.amount,
+    });
+    toast.success("Stock transfer successful");
+    showTransferModal.value = false;
+    fetchIngredients();
+  } catch (e: any) {
+    toast.error(e.response?.data?.message || "Transfer failed");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const downloadIngredients = (format: "excel" | "csv") => {
+  const endpoint = `/api/import-export/export/ingredients/${format}`;
+  download(
+    endpoint,
+    `inventory_portfolio.${format === "excel" ? "xlsx" : "csv"}`,
+  );
+};
+
+const triggerFileInput = () => {
+  fileInput.value?.click();
+};
+
+const onFileChange = async (event: any) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!selectedBranchId.value) {
+    toast.error("Please select a branch first to update stock");
+    if (fileInput.value) fileInput.value.value = "";
+    return;
+  }
+
+  loading.value = true;
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("branchId", selectedBranchId.value.toString());
+
+  try {
+    await $fetch(config.public.apiBase + "/api/import-export/import/stock", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: "Bearer " + useCookie("auth_token").value,
+      },
+    });
+
+    toast.success("Stock updated successfully!");
+    fetchIngredients();
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.response?._data?.message || "Import failed");
+  } finally {
+    loading.value = false;
+    if (fileInput.value) fileInput.value.value = "";
+  }
 };
 
 const createAdjustment = async () => {

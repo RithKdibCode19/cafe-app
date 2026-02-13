@@ -16,25 +16,74 @@
             >
           </p>
         </div>
-        <button
-          @click="openCreateModal"
-          class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 active:scale-95"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+        <div class="flex items-center gap-3">
+          <!-- Export/Import Actions -->
+          <div class="flex items-center gap-2">
+            <button
+              @click="downloadMenu('excel')"
+              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
+              title="Export Menu as Excel"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <button
+              @click="triggerFileInput"
+              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
+              title="Bulk Import Menu Items"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </button>
+            <input
+              type="file"
+              ref="fileInput"
+              class="hidden"
+              accept=".xlsx,.csv"
+              @change="onFileChange"
+            />
+          </div>
+
+          <button
+            @click="openCreateModal"
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 active:scale-95"
           >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
-          Add Item
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Add Item
+          </button>
+        </div>
       </div>
 
       <!-- Filters with Quick Stats -->
@@ -762,10 +811,7 @@
               </div>
 
               <div>
-                <UiImageUpload
-                  v-model="form.imageUrl"
-                  label="Item Image"
-                />
+                <UiImageUpload v-model="form.imageUrl" label="Item Image" />
               </div>
 
               <div
@@ -1171,7 +1217,8 @@ definePageMeta({
   layout: false,
 });
 
-const { get, post, put, del } = useApi();
+const config = useRuntimeConfig();
+const { get, post, put, del, download } = useApi();
 const toast = useToast();
 
 interface Category {
@@ -1224,6 +1271,7 @@ const loading = ref(true);
 const searchQuery = ref("");
 const filterCategory = ref("");
 const viewMode = ref<"grid" | "list">("grid");
+const fileInput = ref<HTMLInputElement | null>(null);
 
 // Pagination
 const currentPage = ref(1);
@@ -1512,7 +1560,7 @@ const saveItem = async () => {
     }
 
     await fetchMenu();
-    
+
     // Invalidate POS cache so it re-fetches with the new image
     const posCache = useState<any[]>("pos-menu-items");
     const posCatCache = useState<any[]>("pos-categories");
@@ -1650,4 +1698,44 @@ watch(itemsPerPage, (newValue) => {
   localStorage.setItem("menuItemsPerPage", newValue.toString());
   currentPage.value = 1; // Reset to first page when changing items per page
 });
+
+const downloadMenu = (format: "excel" | "csv") => {
+  const endpoint = `/api/import-export/export/menu-items/${format}`;
+  download(endpoint, `menu_items.${format === "excel" ? "xlsx" : "csv"}`);
+};
+
+const triggerFileInput = () => {
+  fileInput.value?.click();
+};
+
+const onFileChange = async (event: any) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  loading.value = true;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    await $fetch(
+      config.public.apiBase + "/api/import-export/import/menu-items",
+      {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: "Bearer " + useCookie("auth_token").value,
+        },
+      },
+    );
+
+    toast.success("Menu items imported successfully!");
+    fetchMenu();
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.response?._data?.message || "Import failed");
+  } finally {
+    loading.value = false;
+    if (fileInput.value) fileInput.value.value = "";
+  }
+};
 </script>

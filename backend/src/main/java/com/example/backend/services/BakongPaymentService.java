@@ -1,7 +1,6 @@
 package com.example.backend.services;
 
 import com.example.backend.dto.payment.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,10 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@RequiredArgsConstructor
 public class BakongPaymentService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public BakongPaymentService() {
+        this.restTemplate = new RestTemplate();
+    }
 
     @Value("${bakong.api.url:https://horrorbringer.site/api/v1}")
     private String apiUrl;

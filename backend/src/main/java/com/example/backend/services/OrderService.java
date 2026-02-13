@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.example.backend.exception.InsufficientStockException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,8 +48,9 @@ public class OrderService {
     private final TelegramService telegramService;
     private final SystemSettingService systemSettingService;
     private final BranchStockService branchStockService;
+    private final FcmService fcmService;
 
-    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService, BranchStockService branchStockService) {
+    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService, BranchStockService branchStockService, FcmService fcmService) {
         this.orderRepository = orderRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
@@ -62,6 +65,7 @@ public class OrderService {
         this.telegramService = telegramService;
         this.systemSettingService = systemSettingService;
         this.branchStockService = branchStockService;
+        this.fcmService = fcmService;
     }
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
@@ -213,6 +217,9 @@ public class OrderService {
     @Transactional
     @com.example.backend.security.IsolateByBranch("request")
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
+        // 0. Validate stock before doing anything
+        validateStockForOrder(request);
+
         // 1. Generate order number if not provided
         if (request.getOrderNo() == null || request.getOrderNo().trim().isEmpty()) {
             request.setOrderNo(generateOrderNumber());
@@ -538,6 +545,20 @@ public class OrderService {
         }
 
         OrderEntity updatedOrder = orderRepository.save(order);
+
+        // 3. Send Push Notification to Customer
+        if (updatedOrder.getCustomer() != null && updatedOrder.getCustomer().getFcmToken() != null) {
+            String title = "Order Update: " + updatedOrder.getOrderNo();
+            String body = "Your order status has been updated to " + updatedOrder.getStatus();
+            
+            // Customize messages for better UX
+            if (updatedOrder.getStatus() == OrderEntity.OrderStatus.PAID) body = "Payment received! We're starting your order.";
+            if (updatedOrder.getStatus() == OrderEntity.OrderStatus.COMPLETED) body = "Your order is ready! Enjoy your coffee.";
+            if (updatedOrder.getStatus() == OrderEntity.OrderStatus.VOID) body = "Your order has been cancelled.";
+            
+            fcmService.sendNotification(updatedOrder.getCustomer().getFcmToken(), title, body);
+        }
+
         return orderMapper.toResponseDTO(updatedOrder);
     }
 
@@ -717,6 +738,38 @@ public class OrderService {
         return orders.stream()
                 .map(orderMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public void validateStockForOrder(OrderRequestDTO request) {
+        Long branchId = request.getBranchId();
+        Map<Long, Double> totalIngredientsNeeded = new java.util.HashMap<>();
+
+        for (OrderItemRequestDTO item : request.getItems()) {
+            List<com.example.backend.model.RecipeEntity> recipes = recipeRepository
+                    .findByMenuItemMenuItemId(item.getMenuItemId());
+
+            for (com.example.backend.model.RecipeEntity recipe : recipes) {
+                Long ingredientId = recipe.getIngredient().getIngredientId();
+                Double needed = recipe.getQuantityNeeded() * item.getQuantity();
+                totalIngredientsNeeded.merge(ingredientId, needed, Double::sum);
+            }
+        }
+
+        for (Map.Entry<Long, Double> entry : totalIngredientsNeeded.entrySet()) {
+            Long ingredientId = entry.getKey();
+            Double totalNeeded = entry.getValue();
+
+            if (!branchStockService.isStockAvailable(branchId, ingredientId, totalNeeded)) {
+                com.example.backend.model.IngredientEntity ingredient = ingredientRepository.findById(ingredientId)
+                        .orElseThrow(() -> new RuntimeException("Ingredient not found"));
+                
+                Double currentStock = branchStockService.getCurrentStock(branchId, ingredientId);
+                throw new InsufficientStockException(
+                    String.format("Insufficient stock for %s at this branch. Needed: %.2f %s, Available: %.2f %s", 
+                    ingredient.getName(), totalNeeded, ingredient.getUnit(), currentStock, ingredient.getUnit())
+                );
+            }
+        }
     }
 
     // Private helper methods

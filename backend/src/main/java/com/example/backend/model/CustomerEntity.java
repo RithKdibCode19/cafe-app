@@ -54,6 +54,15 @@ public class CustomerEntity extends BaseEntity {
     @Column(name = "membership_level")
     private String membershipLevel = "BRONZE";
 
+    @Column(name = "firebase_uid", unique = true)
+    private String firebaseUid;
+
+    @Column(name = "password_hash")
+    private String passwordHash;
+
+    @Column(name = "fcm_token")
+    private String fcmToken;
+
     public enum Status {
         ACTIVE,
         INACTIVE
@@ -153,4 +162,13 @@ public class CustomerEntity extends BaseEntity {
     public void setMembershipLevel(String membershipLevel) {
         this.membershipLevel = membershipLevel;
     }
+
+    public String getFirebaseUid() { return firebaseUid; }
+    public void setFirebaseUid(String firebaseUid) { this.firebaseUid = firebaseUid; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public String getFcmToken() { return fcmToken; }
+    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 }
