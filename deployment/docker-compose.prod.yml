@@ -38,10 +38,15 @@ services:
     networks:
       - cafe-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     # Resource limit: 256MB is tight but doable for small loads.
     # Performance tuning via command flags is recommended for strict limits.
     command: postgres -c shared_buffers=64MB -c max_connections=50
@@ -63,10 +68,10 @@ services:
         condition: service_healthy
     environment:
       # Database
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/cafe_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update # or validate in strict prod
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SPRING_PROFILES_ACTIVE: prod
 
       # Bakong Payment API
@@ -95,7 +100,8 @@ services:
         ]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
     deploy:
       resources:
         limits:
