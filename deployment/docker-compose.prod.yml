@@ -119,7 +119,7 @@ services:
       - backend
     environment:
       # Internal Docker Network URL for SSR
-      NUXT_API_BASE_INTERNAL: http://backend:8081
+      NUXT_API_BASE_INTERNAL: http://backend:8081/api
       # Public URL (Client-side) - mapped via Nginx
       NUXT_PUBLIC_API_BASE: /api
       NODE_ENV: production
