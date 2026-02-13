@@ -64,6 +64,38 @@ export const useApi = () => {
     }
 
     /**
+     * POST request
+     */
+    const post = <T>(endpoint: string, body?: any, options?: Parameters<typeof fetchApi>[1]) => {
+        return fetchApi<T>(endpoint, {
+            method: 'POST',
+            body,
+            ...options
+        })
+    }
+
+    /**
+     * PUT request
+     */
+    const put = <T>(endpoint: string, body?: any, options?: Parameters<typeof fetchApi>[1]) => {
+        return fetchApi<T>(endpoint, {
+            method: 'PUT',
+            body,
+            ...options
+        })
+    }
+
+    /**
+     * DELETE request
+     */
+    const del = <T>(endpoint: string, options?: Parameters<typeof fetchApi>[1]) => {
+        return fetchApi<T>(endpoint, {
+            method: 'DELETE',
+            ...options
+        })
+    }
+
+    /**
      * Download a file from the API
      */
     const download = async (endpoint: string, filename: string) => {
