@@ -39,6 +39,9 @@ public class StockInRequestDTO {
     @NotNull(message = "Received by is required")
     private Long receivedBy;
 
+    @NotNull(message = "Branch ID is required")
+    private Long branchId;
+
     // Manual Getters/Setters
     public Long getSupplierId() { return supplierId; }
     public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
@@ -63,4 +66,7 @@ public class StockInRequestDTO {
 
     public Long getReceivedBy() { return receivedBy; }
     public void setReceivedBy(Long receivedBy) { this.receivedBy = receivedBy; }
+
+    public Long getBranchId() { return branchId; }
+    public void setBranchId(Long branchId) { this.branchId = branchId; }
 }

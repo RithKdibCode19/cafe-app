@@ -669,23 +669,43 @@
             </button>
           </div>
           <div class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Supplier</label
-              >
-              <select
-                v-model="newStockIn.supplierId"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              >
-                <option
-                  v-for="sup in suppliers"
-                  :key="sup.supplierId"
-                  :value="sup.supplierId"
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  >Branch</label
                 >
-                  {{ sup.name }}
-                </option>
-              </select>
+                <select
+                  v-model="newStockIn.branchId"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                >
+                  <option
+                    v-for="branch in branches"
+                    :key="branch.branchId"
+                    :value="branch.branchId"
+                  >
+                    {{ branch.name }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  >Supplier</label
+                >
+                <select
+                  v-model="newStockIn.supplierId"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                >
+                  <option
+                    v-for="sup in suppliers"
+                    :key="sup.supplierId"
+                    :value="sup.supplierId"
+                  >
+                    {{ sup.name }}
+                  </option>
+                </select>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -1103,6 +1123,7 @@ const newIngredient = reactive({
 const newStockIn = reactive({
   supplierId: null as number | null,
   ingredientId: null as number | null,
+  branchId: null as number | null,
   qtyIn: 0,
   unitCost: 0,
   totalCost: 0,
@@ -1278,6 +1299,9 @@ const editIngredient = (item: Ingredient) => {
 const openStockIn = (item: Ingredient) => {
   selectedIngredient.value = item;
   newStockIn.ingredientId = item.ingredientId;
+  newStockIn.branchId =
+    selectedBranchId.value ||
+    (branches.value.length > 0 ? branches.value[0].branchId : null);
   newStockIn.unitCost = item.costPerUnit || 0;
   newStockIn.qtyIn = 0;
   newStockIn.receivedDate = new Date().toISOString();
@@ -1334,10 +1358,12 @@ const executeTransfer = async () => {
   loading.value = true;
   try {
     await post("/inventory/branch/transfer", null, {
-      fromBranchId: transferForm.fromBranchId,
-      toBranchId: transferForm.toBranchId,
-      ingredientId: transferForm.ingredientId,
-      amount: transferForm.amount,
+      params: {
+        fromBranchId: transferForm.fromBranchId,
+        toBranchId: transferForm.toBranchId,
+        ingredientId: transferForm.ingredientId,
+        amount: transferForm.amount,
+      },
     });
     toast.success("Stock transfer successful");
     showTransferModal.value = false;
@@ -1424,7 +1450,9 @@ const confirmApproval = async (data: { pin: string }) => {
       `/stock-adjustments/${selectedAdjustment.value.adjustmentId}/approve`,
       null,
       {
-        pinCode: data.pin,
+        params: {
+          pinCode: data.pin,
+        },
       },
     );
     toast.success("Adjustment approved");

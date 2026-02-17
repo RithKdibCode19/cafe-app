@@ -106,7 +106,9 @@ export default <Config>{
             boxShadow: {
                 'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
                 'glow': '0 0 20px rgba(212, 128, 94, 0.3)',
-                'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)'
+                'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+                'macos': 'var(--shadow-macos)',
+                'macos-lg': 'var(--shadow-macos-lg)'
             },
             borderRadius: {
                 '4xl': '2rem',

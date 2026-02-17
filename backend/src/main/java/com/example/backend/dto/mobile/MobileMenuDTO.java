@@ -30,7 +30,9 @@ public class MobileMenuDTO {
     public static class CategoryInfo {
         private Long categoryId;
         private String name;
+        private String nameKh;
         private String description;
+        private String descriptionKh;
         private Long parentId;
         private List<CategoryInfo> children;
     }
@@ -42,6 +44,7 @@ public class MobileMenuDTO {
     public static class MenuItemInfo {
         private Long menuItemId;
         private String name;
+        private String nameKh;
         private Double basePrice;
         private String imageUrl;
         private Boolean isAvailable;
@@ -67,6 +70,7 @@ public class MobileMenuDTO {
     public static class AddOnInfo {
         private Long addOnId;
         private String name;
+        private String nameKh;
         private Double price;
     }
 
@@ -77,7 +81,9 @@ public class MobileMenuDTO {
     public static class MenuItemDetail {
         private Long menuItemId;
         private String name;
+        private String nameKh;
         private String description;
+        private String descriptionKh;
         private Double basePrice;
         private String imageUrl;
         private Boolean isAvailable;
@@ -102,6 +108,7 @@ public class MobileMenuDTO {
     public static class CategoryWithItems {
         private Long categoryId;
         private String name;
+        private String nameKh;
         private List<MenuItemInfo> items;
     }
 }

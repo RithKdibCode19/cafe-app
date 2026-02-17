@@ -18,6 +18,8 @@ public interface StockInMapper {
 
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "ingredient", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "receiver", ignore = true)
     @Mapping(target = "stockId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -27,6 +29,8 @@ public interface StockInMapper {
 
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "ingredient", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "receiver", ignore = true)
     @Mapping(target = "stockId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

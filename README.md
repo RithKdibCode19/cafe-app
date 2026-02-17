@@ -44,6 +44,14 @@ Open a new terminal:
 ```bash
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./mvnw clean spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Cleaning
+
+```bash
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./mvnw clean compile -DskipTests
 ```
 
 - API will be at: `http://localhost:8081`

@@ -130,33 +130,65 @@
           </div>
 
           <form @submit.prevent="saveCategory" class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-              >
-                Category Name <span class="text-error-500">*</span>
-              </label>
-              <input
-                v-model="form.name"
-                type="text"
-                required
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-                placeholder="e.g. Beverages"
-              />
+            <!-- Bilingual Name Section -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >
+                  🇺🇸 Category Name <span class="text-error-500">*</span>
+                </label>
+                <input
+                  v-model="form.name"
+                  type="text"
+                  required
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
+                  placeholder="e.g. Beverages"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >
+                  🇰🇭 Khmer Name (Optional)
+                </label>
+                <input
+                  v-model="form.nameKh"
+                  type="text"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
+                  placeholder="ឧទាហរណ៍៖ ភេសជ្ជៈ"
+                />
+              </div>
             </div>
 
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-              >
-                Description
-              </label>
-              <textarea
-                v-model="form.description"
-                rows="3"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-                placeholder="Optional description..."
-              ></textarea>
+            <!-- Bilingual Description Section -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >
+                  🇺🇸 Description
+                </label>
+                <textarea
+                  v-model="form.description"
+                  rows="2"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
+                  placeholder="Optional description..."
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                >
+                  🇰🇭 Khmer Description
+                </label>
+                <textarea
+                  v-model="form.descriptionKh"
+                  rows="2"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
+                  placeholder="ព័ត៌មានលម្អិត..."
+                ></textarea>
+              </div>
             </div>
 
             <div>
@@ -224,7 +256,9 @@ const toast = useToast();
 interface Category {
   categoryId: number;
   name: string;
+  nameKh?: string;
   description?: string;
+  descriptionKh?: string;
   parentId?: number;
   children?: Category[];
 }
@@ -238,7 +272,9 @@ const currentId = ref<number | null>(null);
 
 const form = reactive({
   name: "",
+  nameKh: "",
   description: "",
+  descriptionKh: "",
   parentId: null as number | null,
 });
 
@@ -326,7 +362,9 @@ const openCreateModal = () => {
   isEditing.value = false;
   currentId.value = null;
   form.name = "";
+  form.nameKh = "";
   form.description = "";
+  form.descriptionKh = "";
   form.parentId = null;
   showModal.value = true;
 };
@@ -335,7 +373,9 @@ const openEditModal = (category: Category) => {
   isEditing.value = true;
   currentId.value = category.categoryId;
   form.name = category.name;
+  form.nameKh = category.nameKh || "";
   form.description = category.description || "";
+  form.descriptionKh = category.descriptionKh || "";
   form.parentId = category.parentId || null; // This might be undefined in the object if not populated, but DTO should have it. Keep in mind backend response DTO.
   showModal.value = true;
 };

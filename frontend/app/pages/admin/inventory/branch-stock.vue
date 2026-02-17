@@ -376,10 +376,12 @@ const submitTransfer = async () => {
   submitting.value = true;
   try {
     await post("/inventory/branch/transfer", null, {
-      fromBranchId: transferForm.value.fromBranchId,
-      toBranchId: transferForm.value.toBranchId,
-      ingredientId: transferForm.value.ingredientId,
-      amount: transferForm.value.amount,
+      params: {
+        fromBranchId: transferForm.value.fromBranchId,
+        toBranchId: transferForm.value.toBranchId,
+        ingredientId: transferForm.value.ingredientId,
+        amount: transferForm.value.amount,
+      },
     });
     toast.success("Stock transfer successful");
     showTransferModal.value = false;

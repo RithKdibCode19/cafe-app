@@ -36,6 +36,12 @@ public class MenuItemEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "name_kh")
+    private String nameKh;
+
+    @Column(name = "description_kh", columnDefinition = "TEXT")
+    private String descriptionKh;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
@@ -61,6 +67,12 @@ public class MenuItemEntity extends BaseEntity {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getNameKh() { return nameKh; }
+    public void setNameKh(String nameKh) { this.nameKh = nameKh; }
+
+    public String getDescriptionKh() { return descriptionKh; }
+    public void setDescriptionKh(String descriptionKh) { this.descriptionKh = descriptionKh; }
 
     public CategoryEntity getCategory() { return category; }
     public void setCategory(CategoryEntity category) { this.category = category; }

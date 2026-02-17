@@ -760,18 +760,61 @@
 
             <!-- Tab: Details -->
             <div v-if="activeModalTab === 'details'" class="space-y-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Item Name <span class="text-error-500">*</span></label
-                >
-                <input
-                  type="text"
-                  v-model="form.name"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-                  placeholder="e.g. Latte"
-                  required
-                />
+              <!-- Bilingual Name Section -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >🇺🇸 Item Name <span class="text-error-500">*</span></label
+                  >
+                  <input
+                    type="text"
+                    v-model="form.name"
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
+                    placeholder="e.g. Latte"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >🇰🇭 Khmer Name (Optional)</label
+                  >
+                  <input
+                    type="text"
+                    v-model="form.nameKh"
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
+                    placeholder="ឧទាហរណ៍៖ ឡាតេ"
+                  />
+                </div>
+              </div>
+
+              <!-- Bilingual Description Section -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >🇺🇸 Description</label
+                  >
+                  <textarea
+                    v-model="form.description"
+                    rows="2"
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
+                    placeholder="Optional details..."
+                  ></textarea>
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >🇰🇭 Khmer Description</label
+                  >
+                  <textarea
+                    v-model="form.descriptionKh"
+                    rows="2"
+                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
+                    placeholder="ព័ត៌មានលម្អិត..."
+                  ></textarea>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
@@ -1230,7 +1273,9 @@ interface Category {
 interface MenuItem {
   menuItemId: number;
   name: string;
+  nameKh?: string;
   description: string;
+  descriptionKh?: string;
   basePrice: number;
   imageUrl: string;
   isAvailable: boolean;
@@ -1285,7 +1330,11 @@ const imageLoadError = ref(false);
 
 // Form Data
 const form = reactive({
+  menuItemId: null as number | null,
   name: "",
+  nameKh: "",
+  description: "",
+  descriptionKh: "",
   categoryId: null as number | null,
   basePrice: 0,
   imageUrl: "",
@@ -1503,6 +1552,9 @@ const openCreateModal = () => {
   imageLoadError.value = false;
   // Reset form
   form.name = "";
+  form.nameKh = "";
+  form.description = "";
+  form.descriptionKh = "";
 
   // Smart default: Select first category from flattened list if available
   form.categoryId =
@@ -1525,6 +1577,9 @@ const openEditModal = async (item: MenuItem) => {
 
   // Fill form
   form.name = item.name;
+  form.nameKh = item.nameKh || "";
+  form.description = item.description || "";
+  form.descriptionKh = item.descriptionKh || "";
   form.categoryId = item.category?.categoryId || null;
   form.basePrice = item.basePrice;
   form.imageUrl = item.imageUrl;

@@ -13,6 +13,8 @@ public class MenuItemResponseDTO {
 
     private Long menuItemId;
     private String name;
+    private String nameKh;
+    private String descriptionKh;
     private CategoryResponseDTO category;
     private Double basePrice;
     private String imageUrl;

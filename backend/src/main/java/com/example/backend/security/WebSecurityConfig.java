@@ -66,6 +66,8 @@ public class WebSecurityConfig {
                         // Mobile authenticated endpoints (auth handled at controller level via customer JWT)
                         .requestMatchers("/api/mobile/orders/**").permitAll()
                         .requestMatchers("/api/mobile/payments/**").permitAll()
+                        // Public QR menu endpoints (no auth needed)
+                        .requestMatchers("/api/public/**").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

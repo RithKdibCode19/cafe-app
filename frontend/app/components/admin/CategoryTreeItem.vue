@@ -26,9 +26,10 @@
         <div v-else class="w-4"></div>
         <!-- Spacer -->
 
-        <span class="font-medium text-neutral-900 dark:text-white">{{
-          category.name
-        }}</span>
+        <span class="font-medium text-neutral-900 dark:text-white">
+          {{ category.name }}
+          <span v-if="category.nameKh" class="text-neutral-400 dark:text-neutral-500 font-khmer text-sm ml-2">({{ category.nameKh }})</span>
+        </span>
         <span
           v-if="category.description"
           class="text-xs text-neutral-500 truncate max-w-[200px]"
@@ -96,7 +97,9 @@ import { ref } from "vue";
 interface Category {
   categoryId: number;
   name: string;
+  nameKh?: string;
   description?: string;
+  descriptionKh?: string;
   parentId?: number;
   children?: Category[];
 }

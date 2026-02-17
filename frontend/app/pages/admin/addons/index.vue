@@ -106,9 +106,15 @@
 
           <!-- Modal Body -->
           <div class="p-6 space-y-4">
-              <div>
-                   <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Name</label>
-                   <input type="text" v-model="form.name" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500" placeholder="e.g. Extra Shot">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">🇺🇸 Name</label>
+                    <input type="text" v-model="form.name" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500" placeholder="e.g. Extra Shot">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">🇰🇭 Khmer Name</label>
+                    <input type="text" v-model="form.nameKh" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-khmer" placeholder="ឧទាហរណ៍៖ បន្ថែមឈុត">
+                </div>
               </div>
               
               <div>
@@ -144,6 +150,7 @@ const toast = useToast()
 interface AddOn {
     id: number
     name: string
+    nameKh?: string
     price: number
 }
 
@@ -159,6 +166,7 @@ const currentAddOnId = ref<number | null>(null)
 // Form Data
 const form = reactive({
     name: '',
+    nameKh: '',
     price: 0
 })
 
@@ -189,6 +197,7 @@ const openCreateModal = () => {
     isEditing.value = false
     currentAddOnId.value = null
     form.name = ''
+    form.nameKh = ''
     form.price = 0
     showModal.value = true
 }
@@ -197,6 +206,7 @@ const openEditModal = (addon: AddOn) => {
     isEditing.value = true
     currentAddOnId.value = addon.id
     form.name = addon.name
+    form.nameKh = addon.nameKh || ''
     form.price = addon.price
     showModal.value = true
 }
@@ -212,7 +222,7 @@ const saveAddOn = async () => {
     }
     
     try {
-        const payload = { name: form.name, price: form.price }
+        const payload = { name: form.name, nameKh: form.nameKh, price: form.price }
         
         if (isEditing.value && currentAddOnId.value) {
             await put(`/addons/${currentAddOnId.value}`, payload)

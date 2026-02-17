@@ -76,6 +76,11 @@
                         >{{ order.orderType }} •
                         {{ formatTime(order.createdAt) }}</span
                       >
+                      <!-- QR Order Badge -->
+                      <div v-if="order.orderSource === 'QR_WEB'" class="flex items-center gap-1.5 mt-1">
+                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">📱 QR ORDER</span>
+                        <span v-if="order.tableNo" class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30">TABLE {{ order.tableNo }}</span>
+                      </div>
                     </div>
                     <div class="text-right">
                       <div
@@ -225,6 +230,11 @@
                       class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest"
                       >{{ order.orderType }}</span
                     >
+                    <!-- QR Order Badge -->
+                    <div v-if="order.orderSource === 'QR_WEB'" class="flex items-center gap-1.5 mt-1">
+                      <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">📱 QR</span>
+                      <span v-if="order.tableNo" class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30">T{{ order.tableNo }}</span>
+                    </div>
                   </div>
                   <div
                     :class="[
@@ -342,6 +352,8 @@
                 <p class="text-xs text-neutral-400 mb-4">
                   {{ order.items.length }} Items •
                   {{ formatTime(order.updatedAt || order.createdAt) }}
+                  <span v-if="order.orderSource === 'QR_WEB'" class="ml-1 text-fuchsia-400 font-bold">📱 QR</span>
+                  <span v-if="order.tableNo" class="ml-1 text-primary-400 font-bold">Table {{ order.tableNo }}</span>
                 </p>
 
                 <button
@@ -413,14 +425,17 @@ const totalPendingItems = computed(() => {
 
 const fetchOrders = async () => {
   try {
-    const [pendingRes, preparingRes, readyRes] = await Promise.all([
+    const [pendingRes, paidRes, preparingRes, readyRes] = await Promise.all([
       get<any[]>("/orders/status/PENDING"),
+      get<any[]>("/orders/status/PAID"),
       get<any[]>("/orders/status/PREPARING"),
       get<any[]>("/orders/status/READY"),
     ]);
 
     const oldPendingIds = new Set(pendingOrders.value.map((o) => o.orderId));
-    const newPending = pendingRes || [];
+    // Combine PENDING and PAID. Sort by ID or CreatedAt implicitly?
+    // Usually lists are returned sorted by DB. We might want to sort them manually if needed.
+    const newPending = [...(pendingRes || []), ...(paidRes || [])].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     // Check for new orders to play sound
     if (

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-neutral-900 flex">
+  <div class="h-screen w-screen bg-neutral-900 flex overflow-hidden">
     <!-- Left panel - Categories & Menu Items -->
     <div class="flex-1 flex flex-col">
       <!-- Header -->
@@ -140,10 +140,66 @@
       </div>
     </div>
 
-    <!-- Right panel - Order Summary (fixed width) -->
-    <aside
-      class="w-96 bg-neutral-800 border-l border-neutral-700 flex flex-col h-screen sticky top-0"
+    <!-- Mobile "View Order" FAB -->
+    <button
+      v-if="cartItems.length > 0"
+      @click="showMobileOrderPanel = true"
+      class="lg:hidden fixed bottom-6 right-6 z-40 bg-primary-600 text-white p-4 rounded-full shadow-2xl flex items-center gap-3 animate-bounce-slow"
     >
+      <span class="font-bold text-lg">${{ total.toFixed(2) }}</span>
+      <div class="bg-white/20 p-2 rounded-full">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="m5 11 4-7" />
+          <path d="m19 11-4-7" />
+          <path d="M2 11h20" />
+          <path
+            d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8c.9 0 1.8-.7 2-1.6l1.7-7.4"
+          />
+          <path d="m9 11 1 9" />
+        </svg>
+      </div>
+    </button>
+
+    <!-- Right panel - Order Summary (Responsive Drawer) -->
+    <!-- On Desktop (lg): visible, w-96. On Mobile: fixed inset-0, z-50, transform based on state -->
+    <aside
+      :class="[
+        'bg-neutral-800 border-l border-neutral-700 flex flex-col h-screen transition-transform duration-300 ease-in-out',
+        'fixed inset-0 z-50 lg:static lg:z-auto lg:translate-x-0 lg:w-96',
+        showMobileOrderPanel
+          ? 'translate-x-0'
+          : 'translate-x-full lg:translate-x-0',
+      ]"
+    >
+      <!-- Mobile Header for Drawer -->
+      <div
+        class="lg:hidden p-4 border-b border-neutral-700 bg-neutral-900 flex items-center justify-between"
+      >
+        <h2 class="text-xl font-bold text-white">Current Order</h2>
+        <button
+          @click="showMobileOrderPanel = false"
+          class="p-2 text-neutral-400 hover:text-white"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
       <!-- Order header -->
       <div class="p-4 border-b border-neutral-700">
         <div class="flex items-center justify-between">
@@ -210,6 +266,69 @@
           <span v-else-if="pointsDiscount > 0" class="text-success-400"
             >Discount Applied!</span
           >
+        </div>
+      </div>
+
+      <!-- Online/QR Orders Panel -->
+      <div
+        v-if="qrOrders.length > 0"
+        class="px-4 py-2 border-b border-neutral-700 bg-neutral-900/50"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <span
+            class="text-xs font-bold text-fuchsia-400 uppercase tracking-wider"
+            >Online / QR</span
+          >
+          <span
+            class="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full font-bold"
+            >{{ qrOrders.length }}</span
+          >
+        </div>
+        <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+          <div
+            v-for="order in qrOrders"
+            :key="order.orderId"
+            class="p-2.5 rounded-lg bg-neutral-800 border border-neutral-700 hover:border-fuchsia-500/50 transition-colors group"
+          >
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xs font-black text-white"
+                >#{{ order.orderNo.slice(-4) }}</span
+              >
+              <span class="text-[10px] font-bold text-neutral-500">{{
+                new Date(order.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              }}</span>
+            </div>
+            <div class="flex justify-between items-center mb-1">
+              <div
+                v-if="order.tableNo"
+                class="text-xs font-bold text-primary-400"
+              >
+                Table {{ order.tableNo }}
+              </div>
+              <div v-else class="text-xs font-bold text-neutral-400">
+                Takeaway
+              </div>
+              <span class="text-sm font-black text-white"
+                >${{ order.totalAmount.toFixed(2) }}</span
+              >
+            </div>
+            <div
+              class="flex justify-between items-start mt-2 border-t border-neutral-700/50 pt-2 gap-2"
+            >
+              <div class="text-[10px] text-neutral-400 line-clamp-1 flex-1">
+                {{ order.items.length }} items
+              </div>
+              <button
+                @click="initiateQrPayment(order)"
+                class="px-2 py-1 rounded bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-[10px] font-bold uppercase tracking-wide transition-colors"
+              >
+                Process
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1604,7 +1723,9 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed, watch, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
+const showMobileOrderPanel = ref(false);
 const {
   cartItems,
   heldOrders,
@@ -1622,10 +1743,63 @@ const {
   resumeOrder,
   removeHeldOrder,
 } = useCart();
-const { post, get } = useApi();
+const { post, get, put } = useApi();
 const { user: authUser, logout: authLogout } = useAuth();
 const { isSuperAdmin } = usePermissions();
 const toast = useToast();
+
+// --- QR Orders State ---
+const qrOrders = ref<any[]>([]);
+let qrPollingInterval: any = null;
+
+const fetchQrOrders = async () => {
+  try {
+    const data = await get<any[]>("/orders?status=PENDING"); // backend filters by branch if not superadmin via AOP or manual
+    if (data && data.content) {
+      // Filter for QR_WEB orders only (assuming backend returns all pending)
+      // Note: Backend might need specific filter if volume is high
+      qrOrders.value = data.content.filter(
+        (o: any) =>
+          o.tableNo ||
+          o.orderSource === "QR_WEB" ||
+          o.orderNo.startsWith("QR-"),
+      );
+    }
+  } catch (e) {
+    console.error("Failed to fetch QR orders", e);
+  }
+};
+
+const initiateQrPayment = (order: any) => {
+  // Load order into cart or open direct payment modal
+  // For now, simpler approach: Confirm and Mark Paid
+  if (
+    confirm(
+      `Confirm payment of $${order.totalAmount.toFixed(2)} for QR Order #${order.orderNo}?`,
+    )
+  ) {
+    processQrOrder(order);
+  }
+};
+
+const processQrOrder = async (order: any) => {
+  try {
+    await put(`/orders/${order.orderId}/pay`);
+    toast.success(`Order #${order.orderNo} marked as PAiD`);
+    fetchQrOrders(); // Refresh list
+  } catch (e) {
+    toast.error("Failed to process order");
+  }
+};
+
+onMounted(() => {
+  fetchQrOrders();
+  qrPollingInterval = setInterval(fetchQrOrders, 10000); // Poll every 10s
+});
+
+onUnmounted(() => {
+  if (qrPollingInterval) clearInterval(qrPollingInterval);
+});
 
 const lastAddedItem = ref<{ id: number; name: string } | null>(null);
 

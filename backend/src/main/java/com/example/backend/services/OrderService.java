@@ -493,9 +493,9 @@ public class OrderService {
             UserEntity approver = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode)
                     .orElseThrow(() -> new RuntimeException("Invalid Authorization PIN"));
 
-            // Check permission: ORDER_VOID
+            // Check permission: POS_VOID or SYS_ALL
             boolean hasPermission = approver.getRole().getPermissions().stream()
-                    .anyMatch(p -> "ORDER_VOID".equals(p.getCode()));
+                    .anyMatch(p -> "POS_VOID".equals(p.getCode()) || "SYS_ALL".equals(p.getCode()));
             
             if (!hasPermission) {
                 throw new RuntimeException("User [" + approver.getEmployee().getFullName() + "] is not authorized to approve " + newStatus);

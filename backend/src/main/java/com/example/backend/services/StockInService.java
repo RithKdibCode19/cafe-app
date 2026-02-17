@@ -10,9 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.dto.StockInRequestDTO;
 import com.example.backend.dto.StockInResponseDTO;
 import com.example.backend.mapper.StockInMapper;
+import com.example.backend.model.BranchEntity;
 import com.example.backend.model.IngredientEntity;
 import com.example.backend.model.StockInEntity;
 import com.example.backend.model.SupplierEntity;
+import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.IngredientRepository;
 import com.example.backend.repository.StockInRepository;
 import com.example.backend.repository.SupplierRepository;
@@ -24,12 +26,21 @@ public class StockInService {
     private final StockInRepository stockInRepository;
     private final SupplierRepository supplierRepository;
     private final IngredientRepository ingredientRepository;
+    private final BranchRepository branchRepository;
+    private final BranchStockService branchStockService;
     private final StockInMapper stockInMapper;
 
-    public StockInService(StockInRepository stockInRepository, SupplierRepository supplierRepository, IngredientRepository ingredientRepository, StockInMapper stockInMapper) {
+    public StockInService(StockInRepository stockInRepository,
+                         SupplierRepository supplierRepository,
+                         IngredientRepository ingredientRepository,
+                         BranchRepository branchRepository,
+                         BranchStockService branchStockService,
+                         StockInMapper stockInMapper) {
         this.stockInRepository = stockInRepository;
         this.supplierRepository = supplierRepository;
         this.ingredientRepository = ingredientRepository;
+        this.branchRepository = branchRepository;
+        this.branchStockService = branchStockService;
         this.stockInMapper = stockInMapper;
     }
 
@@ -46,10 +57,15 @@ public class StockInService {
         IngredientEntity ingredient = ingredientRepository.findById(request.getIngredientId())
                 .orElseThrow(() -> new RuntimeException("Ingredient not found with ID: " + request.getIngredientId()));
 
+        // 2.5 Validate branch exists
+        BranchEntity branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new RuntimeException("Branch not found with ID: " + request.getBranchId()));
+
         // 3. Map Request DTO → Entity
         StockInEntity stockIn = stockInMapper.toEntity(request);
         stockIn.setSupplier(supplier);
         stockIn.setIngredient(ingredient);
+        stockIn.setBranch(branch);
         stockIn.setReceivedDate(request.getReceivedDate() != null ? request.getReceivedDate() : LocalDateTime.now());
         stockIn.setCreatedAt(LocalDateTime.now());
         stockIn.setUpdatedAt(LocalDateTime.now());
@@ -74,6 +90,9 @@ public class StockInService {
         ingredient.setCostPerUnit(weightedAvgCost);
         ingredient.setUpdatedAt(LocalDateTime.now());
         ingredientRepository.save(ingredient);
+
+        // 5.5 Update Branch Stock
+        branchStockService.adjustStock(branch.getBranchId(), ingredient.getIngredientId(), newQty);
 
         // 6. Save stock in record
         StockInEntity savedStockIn = stockInRepository.save(stockIn);

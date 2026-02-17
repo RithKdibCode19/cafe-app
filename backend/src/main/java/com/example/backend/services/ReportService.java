@@ -130,8 +130,8 @@ public class ReportService {
                         String dateStr = (String) row[0];
                         if (dailyMap.containsKey(dateStr)) {
                                 DashboardStatsDTO.DailySales ds = dailyMap.get(dateStr);
-                                ds.setRevenue((Double) row[1]);
-                                ds.setOrderCount(((Long) row[2]).intValue());
+                                ds.setRevenue(row[1] != null ? ((Number) row[1]).doubleValue() : 0.0);
+                                ds.setOrderCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
                         }
                 }
 
@@ -260,14 +260,20 @@ public class ReportService {
                 // Category sales
                 report.setCategorySales(orderRepository.findCategorySalesSummary(start, end).stream()
                                 .map(row -> new com.example.backend.dto.report.SalesReportDTO.CategorySales(
-                                                (Long) row[0], (String) row[1], (Double) row[2], (Integer) row[3]))
+                                                row[0] != null ? ((Number) row[0]).longValue() : null,
+                                                (String) row[1],
+                                                row[2] != null ? ((Number) row[2]).doubleValue() : 0.0,
+                                                row[3] != null ? ((Number) row[3]).intValue() : 0))
                                 .collect(Collectors.toList()));
 
                 // Top selling items
                 report.setTopSellingItems(orderRepository.findTopSellingItemsSummary(start, end).stream()
                                 .map(row -> new com.example.backend.dto.report.SalesReportDTO.TopSellingItem(
-                                                (Long) row[0], (String) row[1], (String) row[2], (Integer) row[3],
-                                                (Double) row[4]))
+                                                row[0] != null ? ((Number) row[0]).longValue() : null,
+                                                (String) row[1],
+                                                (String) row[2],
+                                                row[3] != null ? ((Number) row[3]).intValue() : 0,
+                                                row[4] != null ? ((Number) row[4]).doubleValue() : 0.0))
                                 .collect(Collectors.toList()));
 
                 return report;
@@ -566,7 +572,11 @@ public class ReportService {
                 List<Object[]> usageResults = orderRepository.calculateIngredientUsageForPeriod(start, end);
                 Map<Long, Double> salesStockOut = new HashMap<>();
                 for (Object[] row : usageResults) {
-                        salesStockOut.put((Long) row[0], (Double) row[1]);
+                        Long ingId = row[0] != null ? ((Number) row[0]).longValue() : null;
+                        Double qty = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+                        if (ingId != null) {
+                                salesStockOut.put(ingId, qty);
+                        }
                 }
 
                 // Also need movements between end date and now to calculate "Closing Stock" as of endDate

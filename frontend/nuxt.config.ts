@@ -27,7 +27,8 @@ export default defineNuxtConfig({
   // Google Fonts configuration
   googleFonts: {
     families: {
-      Inter: [300, 400, 500, 600, 700, 800],
+      'Plus Jakarta Sans': [300, 400, 500, 600, 700, 800],
+      Outfit: [300, 400, 500, 600, 700, 800],
       'JetBrains Mono': [400, 500, 600]
     },
     display: 'swap',

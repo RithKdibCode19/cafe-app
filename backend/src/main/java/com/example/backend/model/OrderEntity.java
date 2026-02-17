@@ -97,8 +97,17 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "delivery_fee")
     private Double deliveryFee;
 
+    @Column(name = "table_no")
+    private String tableNo; // For QR dine-in orders
+
+    @Column(name = "customer_name")
+    private String customerName; // For guest QR orders (no login)
+
+    @Column(name = "customer_phone")
+    private String customerPhone; // For guest QR orders (no login)
+
     @Column(name = "order_source")
-    private String orderSource; // "POS" or "MOBILE"
+    private String orderSource; // "POS", "MOBILE", or "QR_WEB"
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
@@ -262,4 +271,13 @@ public class OrderEntity extends BaseEntity {
 
     public String getOrderSource() { return orderSource; }
     public void setOrderSource(String orderSource) { this.orderSource = orderSource; }
+
+    public String getTableNo() { return tableNo; }
+    public void setTableNo(String tableNo) { this.tableNo = tableNo; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getCustomerPhone() { return customerPhone; }
+    public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
 }

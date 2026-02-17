@@ -1,124 +1,208 @@
-End of Shift (Clock Out & Cash Up):<template>
-  <div class="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex flex-col">
+End of Shift (Clock Out & Cash Up):
+<template>
+  <div
+    class="min-h-screen bg-[#0D0D0D] text-white selection:bg-primary-500/30 overflow-hidden font-sans"
+  >
     <!-- Hero Section -->
-    <header class="relative overflow-hidden">
-      <!-- Background pattern -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23ffffff&quot; fill-opacity=&quot;0.4&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    <header
+      class="relative min-h-screen flex flex-col justify-center items-center overflow-hidden"
+    >
+      <!-- Premium Background Effects -->
+      <div class="absolute inset-0 pointer-events-none">
+        <!-- Main Gradient Mesh -->
+        <div
+          class="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-primary-600/20 rounded-full blur-[120px] animate-pulse-soft"
+        ></div>
+        <div
+          class="absolute bottom-[-10%] right-[-5%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse-soft"
+          style="animation-delay: 1s"
+        ></div>
+
+        <!-- Grid Pattern Overlay -->
+        <div
+          class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"
+        ></div>
       </div>
 
-      <div class="relative max-w-7xl mx-auto px-4 py-20 text-center">
-        <!-- Logo -->
-        <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl overflow-hidden mb-8 animate-fade-in shadow-2xl shadow-primary-900/50">
-           <img src="~/assets/images/cofeoshop.jpg" alt="Cofeoshop Logo" class="w-full h-full object-cover" />
+      <div class="relative z-10 max-w-7xl mx-auto px-6 text-center -mt-20">
+        <!-- Logo Container -->
+        <div
+          class="inline-flex items-center justify-center p-3 rounded-[28px] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-macos-lg mb-10 animate-fade-in ring-1 ring-white/20"
+        >
+          <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-inner">
+            <img
+              src="~/assets/images/cofeoshop.jpg"
+              alt="Cofeoshop Logo"
+              class="w-full h-full object-cover scale-105"
+            />
+          </div>
         </div>
 
-        <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 animate-slide-up">
-          Welcome to <span class="text-gradient">Cofeoshop</span>
+        <!-- Typography -->
+        <h1
+          class="text-6xl md:text-8xl font-bold tracking-tight mb-8 animate-slide-up bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/50 drop-shadow-sm"
+        >
+          Cofeoshop
         </h1>
-        <p class="text-xl text-neutral-400 max-w-2xl mx-auto mb-10 animate-slide-up" style="animation-delay: 0.1s;">
-          Modern point of sale system designed for cafes and restaurants. Fast, intuitive, and beautiful.
+
+        <p
+          class="text-xl md:text-2xl text-neutral-400 max-w-2xl mx-auto mb-12 animate-slide-up leading-relaxed"
+          style="animation-delay: 0.1s"
+        >
+          The premium point of sale experience. <br />
+          <span class="text-neutral-500"
+            >Designed for modern cafes. Perfected for speed.</span
+          >
         </p>
 
-        <!-- Action buttons -->
-        <div class="flex flex-wrap justify-center gap-4 animate-slide-up" style="animation-delay: 0.2s;">
-          <NuxtLink to="/pos" class="btn-primary btn-lg group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-            </svg>
-            Open POS Terminal
+        <!-- Premium Actions -->
+        <div
+          class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up"
+          style="animation-delay: 0.2s"
+        >
+          <NuxtLink
+            to="/pos"
+            class="group relative px-8 py-4 bg-white text-black rounded-2xl font-bold text-lg hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] hover:-translate-y-1"
+          >
+            <span class="relative z-10 flex items-center gap-2">
+              Launch POS
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 transition-transform group-hover:translate-x-1"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </span>
           </NuxtLink>
-          <NuxtLink to="/admin" class="btn bg-white/10 text-white hover:bg-white/20 btn-lg backdrop-blur-sm border border-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="7" height="9" x="3" y="3" rx="1" />
-              <rect width="7" height="5" x="14" y="3" rx="1" />
-              <rect width="7" height="9" x="14" y="12" rx="1" />
-              <rect width="7" height="5" x="3" y="16" rx="1" />
-            </svg>
-            Admin Dashboard
-          </NuxtLink>
-          <NuxtLink to="/staff/terminal" class="btn bg-neutral-800/50 text-neutral-400 hover:text-white hover:bg-neutral-800 btn-lg border border-neutral-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Staff Terminal
+
+          <NuxtLink
+            to="/admin"
+            class="group px-8 py-4 bg-white/5 text-white rounded-2xl font-medium text-lg backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all duration-300 hover:-translate-y-1"
+          >
+            Dashboard
           </NuxtLink>
         </div>
       </div>
     </header>
 
-    <!-- Features Section -->
-    <section class="py-20 px-4">
-      <div class="max-w-6xl mx-auto">
-        <h2 class="text-3xl font-bold text-white text-center mb-12">
-          Everything you need to run your cafe
-        </h2>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Feature 1 -->
-          <div class="card-hover bg-neutral-800/50 border-neutral-700 p-6">
-            <div class="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+    <!-- Essential Features Grid -->
+    <section class="py-32 relative">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Card 1 -->
+          <div
+            class="group p-8 rounded-[32px] bg-neutral-900/50 border border-white/5 hover:border-white/10 transition-all duration-500 hover:bg-neutral-800/50 cursor-default relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            ></div>
+            <div
+              class="w-14 h-14 rounded-2xl bg-primary-500/10 flex items-center justify-center mb-6 text-primary-400 group-hover:scale-110 transition-transform duration-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
-            <p class="text-neutral-400">Process orders in seconds with our intuitive touch-friendly interface designed for speed.</p>
+            <h3 class="text-2xl font-semibold text-white mb-3">
+              Lightning Fast
+            </h3>
+            <p class="text-neutral-400 leading-relaxed">
+              Built for high-volume environments. Process transactions instantly
+              with zero lag.
+            </p>
           </div>
 
-          <!-- Feature 2 -->
-          <div class="card-hover bg-neutral-800/50 border-neutral-700 p-6">
-            <div class="w-12 h-12 rounded-xl bg-success-500/20 flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-success-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
+          <!-- Card 2 -->
+          <div
+            class="group p-8 rounded-[32px] bg-neutral-900/50 border border-white/5 hover:border-white/10 transition-all duration-500 hover:bg-neutral-800/50 cursor-default relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            ></div>
+            <div
+              class="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 text-indigo-400 group-hover:scale-110 transition-transform duration-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+                <line x1="3.27" y1="6.96" x2="12" y2="12.01" />
+                <line x1="20.73" y1="6.96" x2="12" y2="12.01" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-white mb-2">Real-time Analytics</h3>
-            <p class="text-neutral-400">Track sales, inventory, and performance with beautiful dashboards and reports.</p>
+            <h3 class="text-2xl font-semibold text-white mb-3">
+              Inventory Sync
+            </h3>
+            <p class="text-neutral-400 leading-relaxed">
+              Real-time stock tracking across all branches. Never run out of
+              your best-sellers.
+            </p>
           </div>
 
-          <!-- Feature 3 -->
-          <div class="card-hover bg-neutral-800/50 border-neutral-700 p-6">
-            <div class="w-12 h-12 rounded-xl bg-warning-500/20 flex items-center justify-center mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-warning-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+          <!-- Card 3 -->
+          <div
+            class="group p-8 rounded-[32px] bg-neutral-900/50 border border-white/5 hover:border-white/10 transition-all duration-500 hover:bg-neutral-800/50 cursor-default relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            ></div>
+            <div
+              class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 text-emerald-400 group-hover:scale-110 transition-transform duration-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-7 h-7"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 20h9" />
+                <path
+                  d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-white mb-2">Menu Management</h3>
-            <p class="text-neutral-400">Easily manage your menu items, categories, variants, and pricing all in one place.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Stats -->
-    <section class="py-16 px-4 border-t border-neutral-800">
-      <div class="max-w-4xl mx-auto">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div class="text-3xl font-bold text-primary-400 mb-1">500+</div>
-            <div class="text-sm text-neutral-500">Daily Orders</div>
-          </div>
-          <div>
-            <div class="text-3xl font-bold text-success-400 mb-1">98%</div>
-            <div class="text-sm text-neutral-500">Uptime</div>
-          </div>
-          <div>
-            <div class="text-3xl font-bold text-warning-400 mb-1">2s</div>
-            <div class="text-sm text-neutral-500">Avg. Order Time</div>
-          </div>
-          <div>
-            <div class="text-3xl font-bold text-accent-400 mb-1">24/7</div>
-            <div class="text-sm text-neutral-500">Support</div>
+            <h3 class="text-2xl font-semibold text-white mb-3">
+              Beautiful Reports
+            </h3>
+            <p class="text-neutral-400 leading-relaxed">
+              Visualize your venue's performance with stunning, interactive
+              charts and insights.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="mt-auto py-6 px-4 border-t border-neutral-800 text-center">
-      <p class="text-sm text-neutral-500">
-        &copy; 2026 Cafe POS. Built using Nuxt & Spring Boot
+    <footer class="py-12 text-center border-t border-white/5">
+      <p class="text-neutral-500 text-sm">
+        &copy; 2026 Cofeoshop. Crafted with
+        <span class="text-red-500">♥</span> for coffee lovers.
       </p>
     </footer>
   </div>
@@ -126,6 +210,6 @@ End of Shift (Clock Out & Cash Up):<template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'default'
-})
+  layout: "default",
+});
 </script>

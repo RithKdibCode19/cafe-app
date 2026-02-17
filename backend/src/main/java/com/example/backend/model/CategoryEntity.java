@@ -37,6 +37,12 @@ public class CategoryEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "name_kh")
+    private String nameKh;
+
+    @Column(name = "description_kh", columnDefinition = "TEXT")
+    private String descriptionKh;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     @JsonIgnore
@@ -54,6 +60,12 @@ public class CategoryEntity extends BaseEntity {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getNameKh() { return nameKh; }
+    public void setNameKh(String nameKh) { this.nameKh = nameKh; }
+
+    public String getDescriptionKh() { return descriptionKh; }
+    public void setDescriptionKh(String descriptionKh) { this.descriptionKh = descriptionKh; }
 
     public CategoryEntity getParent() { return parent; }
     public void setParent(CategoryEntity parent) { this.parent = parent; }

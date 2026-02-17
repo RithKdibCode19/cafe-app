@@ -45,6 +45,7 @@ public class AddOnController {
         return addOnRepository.findById(id)
                 .map(existing -> {
                     existing.setName(addOn.getName());
+                    existing.setNameKh(addOn.getNameKh());
                     existing.setPrice(addOn.getPrice());
                     return ResponseEntity.ok(addOnRepository.save(existing));
                 })

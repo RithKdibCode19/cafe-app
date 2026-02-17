@@ -2,15 +2,15 @@
   <div :class="cardClasses">
     <div
       v-if="$slots.header || title"
-      class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800"
+      class="px-6 py-5 border-b border-black/5 dark:border-white/5"
     >
       <slot name="header">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+            <h3 class="text-[17px] font-black text-neutral-900 dark:text-white tracking-tight">
               {{ title }}
             </h3>
-            <p v-if="subtitle" class="text-sm text-neutral-500 mt-0.5">
+            <p v-if="subtitle" class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-0.5">
               {{ subtitle }}
             </p>
           </div>
@@ -25,7 +25,7 @@
 
     <div
       v-if="$slots.footer"
-      class="px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/50 rounded-b-2xl"
+      class="px-6 py-4 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] rounded-b-[18px]"
     >
       <slot name="footer" />
     </div>
@@ -48,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const cardClasses = computed(() => [
-  props.hoverable ? 'card-hover' : 'card'
+  'card-premium',
+  props.hoverable ? 'hover:-translate-y-1' : ''
 ])
 </script>

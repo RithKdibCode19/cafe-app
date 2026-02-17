@@ -1,200 +1,199 @@
 <template>
   <NuxtLayout name="admin">
-      <UiBreadcrumb :items="[{ label: 'Dashboard' }]" class="mb-6" />
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- Loading State with Shimmer Skeletons -->
-      <template v-if="loading">
-        <div v-for="i in 4" :key="i" class="card p-6 h-32">
-          <div class="flex items-start justify-between">
-            <div class="space-y-3 flex-1">
-              <div class="h-4 w-24 skeleton-shimmer rounded-full"></div>
-              <div class="h-8 w-20 skeleton-shimmer rounded-xl"></div>
-              <div class="h-3 w-32 skeleton-shimmer rounded-full"></div>
-            </div>
-            <div class="w-12 h-12 skeleton-shimmer rounded-xl"></div>
-          </div>
+    <div class="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      <!-- Welcome Header -->
+      <div class="flex items-end justify-between">
+        <div>
+          <h2 class="text-[28px] font-black text-neutral-900 dark:text-white tracking-tight leading-none mb-2">
+            Good Morning, {{ authUser?.employeeName?.split(' ')[0] || 'Admin' }}
+          </h2>
+          <p class="text-neutral-500 dark:text-neutral-400 font-medium">Here's what's happening at your cafe today.</p>
         </div>
-      </template>
-      <!-- Data State with Stagger Animation -->
-      <template v-else>
-        <div 
-          v-for="(stat, index) in stats" 
-          :key="stat.label" 
-          :class="[
-            'card card-hover p-6 animate-hidden animate-slide-up',
-            `stagger-${index + 1}`
-          ]"
-        >
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{{ stat.label }}</p>
-              <p class="text-2xl font-bold text-neutral-900 dark:text-white">{{ stat.value }}</p>
-              <p :class="[
-                'text-sm mt-1 flex items-center gap-1',
-                stat.trend > 0 ? 'text-success-600' : 'text-error-600'
-              ]">
-                <svg v-if="stat.trend > 0" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m18 15-6-6-6 6" />
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-                {{ Math.abs(stat.trend) }}% from yesterday
-              </p>
-            </div>
-            <div :class="['p-3 rounded-xl transition-transform group-hover:scale-110', stat.iconBg]">
-              <component :is="stat.icon" :class="['w-6 h-6', stat.iconColor]" />
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-
-
-    <!-- Charts Row -->
-    <div class="grid lg:grid-cols-3 gap-6 mb-8">
-      <!-- Sales Chart -->
-      <div class="lg:col-span-2 card p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">Sales Overview</h3>
-          <select class="input w-36 text-sm py-1.5 h-auto">
-            <option>Last 7 Days</option>
-            <option>Last 30 Days</option>
-          </select>
-        </div>
-        
-        <!-- Interactive Chart -->
-        <div v-if="loading" class="h-64 skeleton-shimmer rounded-2xl"></div>
-        <div v-else class="h-64">
-           <AdminDashboardChart :data="dailySales" />
+        <div class="hidden md:block">
+           <UiBreadcrumb :items="[{ label: 'Dashboard' }]" />
         </div>
       </div>
 
-      <!-- Top Products & Low Stock Alerts -->
-      <div class="space-y-6">
-        <!-- Top Products -->
-        <div class="card p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">Top Products</h3>
-            <span v-if="!loading && topProducts.length > 0" class="text-xs text-neutral-500 font-medium">Today</span>
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div 
+          v-for="(card, index) in stats" 
+          :key="card.label"
+          :class="[
+            'card-premium group p-6 transition-all duration-500 hover:scale-[1.02]',
+            `stagger-${index + 1}`
+          ]"
+        >
+          <div class="flex items-start justify-between mb-4">
+            <div :class="['w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-6', card.iconBg, card.iconColor]">
+              <component :is="card.icon" class="w-6 h-6" />
+            </div>
+            <div :class="['flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold tracking-tight', card.trend >= 0 ? 'bg-success-500/10 text-success-600' : 'bg-error-500/10 text-error-600']">
+              {{ card.trend >= 0 ? '↑' : '↓' }} {{ Math.abs(card.trend) }}%
+            </div>
           </div>
-          <div class="space-y-3">
-            <template v-if="loading">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl skeleton-shimmer"></div>
-                <div class="flex-1 space-y-2">
-                  <div class="h-3 w-24 skeleton-shimmer rounded-full"></div>
-                  <div class="h-2 w-12 skeleton-shimmer rounded-full"></div>
-                </div>
-                <div class="h-4 w-12 skeleton-shimmer rounded-full"></div>
-              </div>
-            </template>
-            <template v-else>
-              <div 
-                v-for="(product, index) in topProducts" 
-                :key="product.name" 
-                class="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
-              >
-                <!-- Rank Badge -->
-                <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                  <span 
-                    class="text-xs font-bold"
-                    :class="{
-                      'text-yellow-500': index === 0,
-                      'text-neutral-400': index === 1,
-                      'text-orange-600': index === 2,
-                      'text-neutral-500': index > 2
-                    }"
-                  >
-                    {{ index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}` }}
-                  </span>
-                </div>
-                
-                <!-- Product Icon -->
-                <div 
-                  class="w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105"
-                  :class="{
-                    'bg-yellow-100 dark:bg-yellow-900/30': index === 0,
-                    'bg-neutral-100 dark:bg-neutral-700': index === 1,
-                    'bg-orange-100 dark:bg-orange-900/30': index === 2,
-                    'bg-primary-100 dark:bg-primary-900/30': index > 2
-                  }"
-                >
-                  <span 
-                    class="text-sm font-bold"
-                    :class="{
-                      'text-yellow-700 dark:text-yellow-400': index === 0,
-                      'text-neutral-700 dark:text-neutral-300': index === 1,
-                      'text-orange-700 dark:text-orange-400': index === 2,
-                      'text-primary-600 dark:text-primary-400': index > 2
-                    }"
-                  >
-                    {{ product.initial }}
-                  </span>
-                </div>
-                
-                <!-- Product Info -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <p class="text-sm font-semibold text-neutral-900 dark:text-white truncate">
-                      {{ product.name }}
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-xs text-neutral-500">{{ product.sold }} sold</span>
-                    <span v-if="product.category" class="text-xs text-neutral-400">•</span>
-                    <span v-if="product.category" class="text-xs text-neutral-400 truncate">{{ product.category }}</span>
-                  </div>
-                </div>
-                
-                <!-- Revenue -->
-                <div class="flex-shrink-0 text-right">
-                  <p class="text-sm font-bold text-neutral-900 dark:text-white font-mono">
-                    ${{ product.revenue }}
-                  </p>
-                  <p v-if="product.sold > 0" class="text-[10px] text-neutral-400 font-medium">
-                    ${{ (parseFloat(product.revenue) / product.sold).toFixed(2) }}/ea
-                  </p>
-                </div>
-              </div>
-              <div v-if="topProducts.length === 0" class="text-center py-8">
-                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="9" cy="9" r="7"/>
-                    <path d="m13 13 8 8"/>
-                  </svg>
-                </div>
-                <p class="text-neutral-400 text-sm font-medium">No products sold today</p>
-                <p class="text-neutral-500 text-xs mt-1">Sales data will appear here</p>
-              </div>
-            </template>
+          <div class="space-y-1">
+            <p class="text-neutral-500 dark:text-neutral-400 text-sm font-bold uppercase tracking-widest">{{ card.label }}</p>
+            <h3 class="text-3xl font-black text-neutral-900 dark:text-white tracking-tighter">{{ card.value }}</h3>
           </div>
         </div>
+      </div>
 
-        <!-- Low Stock Alerts -->
-        <div class="card p-6 border-l-4 border-l-error-500">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">Low Stock</h3>
-            <span class="px-2 py-0.5 rounded-full bg-error-100 text-error-700 text-[10px] font-bold uppercase">{{ lowStockIngredients.length }} Items</span>
+      <!-- Quick Actions (Mac-style Widgets) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <NuxtLink 
+          to="/admin/qr-codes" 
+          class="card-premium group relative overflow-hidden p-6 bg-gradient-to-br from-primary-600/90 to-primary-800/90 dark:from-primary-600/20 dark:to-primary-900/40 border-none shadow-macos-lg hover:scale-[1.03] transition-all duration-500"
+        >
+          <div class="relative z-10 flex flex-col h-full justify-between gap-8">
+            <div class="w-14 h-14 bg-white/20 rounded-[20px] backdrop-blur-md flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+               <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect width="5" height="5" x="3" y="3" rx="1.5"/><rect width="5" height="5" x="16" y="3" rx="1.5"/><rect width="5" height="5" x="3" y="16" rx="1.5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 12h.01"/><path d="M12 21h.01"/><path d="M21 12h.01"/><path d="M7 21h.01"/>
+               </svg>
+            </div>
+            <div>
+              <h4 class="text-[19px] font-black text-white tracking-tight mb-1">QR Setup</h4>
+              <p class="text-white/70 text-sm font-medium">Create and print table menus</p>
+            </div>
           </div>
-          <div class="space-y-4">
-            <div v-for="item in lowStockIngredients.slice(0, 5)" :key="item.ingredientId" class="flex items-center justify-between">
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ item.name }}</p>
-                <p class="text-[10px] text-error-600 font-bold">Stock: {{ item.currentStock }} {{ item.unit }}</p>
+          <!-- Ambient lighting -->
+          <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/20 rounded-full blur-[60px] group-hover:blur-[80px] transition-all"></div>
+        </NuxtLink>
+
+        <NuxtLink 
+          to="/admin/menu" 
+          class="card-premium group p-6 hover:scale-[1.03] transition-all duration-500 border-primary-500/10"
+        >
+          <div class="flex flex-col h-full justify-between gap-8">
+            <div class="w-14 h-14 bg-primary-500/10 rounded-[20px] flex items-center justify-center text-primary-600 group-hover:shadow-lg group-hover:shadow-primary-500/20 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-[19px] font-black text-neutral-900 dark:text-white tracking-tight mb-1">Catalogue</h4>
+              <p class="text-neutral-500 dark:text-neutral-400 text-sm font-medium">Update products and pricing</p>
+            </div>
+          </div>
+        </NuxtLink>
+
+        <NuxtLink 
+          to="/admin/reports" 
+          class="card-premium group p-6 hover:scale-[1.03] transition-all duration-500 border-accent-500/10"
+        >
+          <div class="flex flex-col h-full justify-between gap-8">
+            <div class="w-14 h-14 bg-accent-500/10 rounded-[20px] flex items-center justify-center text-accent-600 group-hover:shadow-lg group-hover:shadow-accent-500/20 transition-all duration-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-[19px] font-black text-neutral-900 dark:text-white tracking-tight mb-1">Analytics</h4>
+              <p class="text-neutral-500 dark:text-neutral-400 text-sm font-medium">Monitor store performance</p>
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+
+      <!-- Charts & Content Row -->
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Sales Overview -->
+        <div class="lg:col-span-2 card-premium p-8 relative overflow-hidden group">
+          <div class="flex items-center justify-between mb-8 relative z-10">
+            <div>
+              <h3 class="text-[20px] font-black text-neutral-900 dark:text-white tracking-tight">Sales Overview</h3>
+              <p class="text-sm text-neutral-500 font-medium">Daily revenue track record</p>
+            </div>
+            <div class="flex items-center gap-2 p-1 bg-black/5 dark:bg-white/5 rounded-xl">
+              <button class="px-3 py-1.5 text-xs font-bold bg-white dark:bg-neutral-800 rounded-lg shadow-sm">Weekly</button>
+              <button class="px-3 py-1.5 text-xs font-bold text-neutral-500 hover:text-neutral-900 transition-colors">Monthly</button>
+            </div>
+          </div>
+          
+          <div class="relative z-10">
+            <div v-if="loading" class="h-72 skeleton-shimmer !bg-neutral-200/50 dark:!bg-white/5"></div>
+            <div v-else class="h-72">
+               <AdminDashboardChart :data="dailySales" />
+            </div>
+          </div>
+
+          <!-- Glass light leak -->
+          <div class="absolute -top-20 -left-20 w-64 h-64 bg-primary-500/5 rounded-full blur-[80px] group-hover:bg-primary-500/10 transition-colors"></div>
+        </div>
+
+        <!-- Sidebar Widgets -->
+        <div class="space-y-6">
+          <!-- Top Products Widget -->
+          <div class="card-premium p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-[17px] font-bold text-neutral-900 dark:text-white tracking-tight">Hottest Items</h3>
+              <div v-if="!loading && topProducts.length > 0" class="w-8 h-8 rounded-full bg-success-500/10 flex items-center justify-center text-success-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
               </div>
-              <NuxtLink to="/admin/inventory" class="p-1.5 text-neutral-400 hover:text-primary-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              </NuxtLink>
             </div>
-            <div v-if="lowStockIngredients.length === 0" class="text-center py-4 text-success-600 text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mx-auto mb-2 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <p class="font-medium text-xs">All items in stock!</p>
+
+            <div class="space-y-4">
+              <template v-if="loading">
+                <div v-for="i in 3" :key="i" class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl skeleton-shimmer"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-4 w-3/4 skeleton-shimmer rounded-full"></div>
+                    <div class="h-3 w-1/2 skeleton-shimmer rounded-full"></div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div 
+                  v-for="(product, index) in topProducts.slice(0, 4)" 
+                  :key="product.name" 
+                  class="flex items-center gap-4 group cursor-default"
+                >
+                  <div class="relative">
+                    <div class="w-12 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-white/5 flex items-center justify-center font-black text-neutral-900 dark:text-white transition-all group-hover:scale-110 group-hover:rotate-3 shadow-sm border border-black/5 dark:border-white/5">
+                      {{ product.initial }}
+                    </div>
+                    <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow-sm border border-black/5 dark:border-white/5 flex items-center justify-center text-[10px] font-black">
+                      {{ index + 1 }}
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h5 class="text-sm font-bold text-neutral-900 dark:text-white truncate">{{ product.name }}</h5>
+                    <p class="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">{{ product.category }} • {{ product.sold }} sold</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-black text-neutral-900 dark:text-white">${{ product.revenue }}</p>
+                  </div>
+                </div>
+              </template>
             </div>
-            <NuxtLink v-if="lowStockIngredients.length > 5" to="/admin/inventory" class="block text-center text-xs text-primary-600 hover:underline pt-2">
-                View all {{ lowStockIngredients.length }} alerts
-            </NuxtLink>
+          </div>
+
+          <!-- Inventory Health -->
+          <div class="card-premium p-6 border-l-4 border-l-primary-500 overflow-hidden relative">
+            <h3 class="text-[17px] font-bold text-neutral-900 dark:text-white tracking-tight mb-4">Inventory Health</h3>
+            
+            <div v-if="loading" class="space-y-3">
+              <div class="h-10 w-full skeleton-shimmer"></div>
+              <div class="h-4 w-3/4 skeleton-shimmer"></div>
+            </div>
+            <div v-else-if="lowStockIngredients.length > 0" class="space-y-4">
+              <div class="flex items-center gap-3 p-3 bg-primary-500/5 rounded-xl border border-primary-500/10">
+                <div class="w-8 h-8 rounded-lg bg-primary-500 text-white flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-xs font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest leading-none mb-1">Attention Required</p>
+                  <p class="text-sm font-bold text-neutral-900 dark:text-white leading-none">{{ lowStockIngredients.length }} items running low</p>
+                </div>
+              </div>
+              <NuxtLink to="/admin/inventory" class="block w-full text-center py-2 text-xs font-black text-primary-600 dark:text-primary-400 hover:underline uppercase tracking-widest">Manage Stock</NuxtLink>
+            </div>
+            <div v-else class="text-center py-4">
+               <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-success-500/10 flex items-center justify-center text-success-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+               </div>
+               <p class="text-sm font-bold text-neutral-900 dark:text-white">All levels optimal</p>
+            </div>
           </div>
         </div>
       </div>

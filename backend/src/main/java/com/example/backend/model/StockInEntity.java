@@ -55,6 +55,14 @@ public class StockInEntity extends BaseEntity {
     @Column(name = "received_by", nullable = false)
     private Long receivedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "received_by", insertable = false, updatable = false)
+    private UserEntity receiver;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private BranchEntity branch;
+
     // Manual Getters/Setters
     public Long getStockId() { return stockId; }
     public void setStockId(Long stockId) { this.stockId = stockId; }
@@ -82,5 +90,8 @@ public class StockInEntity extends BaseEntity {
 
     public Long getReceivedBy() { return receivedBy; }
     public void setReceivedBy(Long receivedBy) { this.receivedBy = receivedBy; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
 }
 

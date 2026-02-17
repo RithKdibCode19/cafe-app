@@ -1,9 +1,22 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-    <!-- Decorative background -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 dark:bg-primary-900/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-200/30 dark:bg-accent-900/20 rounded-full blur-3xl"></div>
+  <div
+    class="min-h-screen flex items-center justify-center bg-[#0D0D0D] relative overflow-hidden font-sans selection:bg-primary-500/30"
+  >
+    <!-- Premium Background Effects -->
+    <div class="absolute inset-0 pointer-events-none">
+      <!-- Main Gradient Mesh -->
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary-900/10 rounded-full blur-[120px] animate-pulse-soft"
+      ></div>
+      <div
+        class="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-indigo-900/10 rounded-full blur-[100px] animate-pulse-soft"
+        style="animation-delay: 1s"
+      ></div>
+
+      <!-- Grid Pattern Overlay -->
+      <div
+        class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"
+      ></div>
     </div>
 
     <!-- Content -->

@@ -1,32 +1,30 @@
 <template>
-  <div class="min-h-screen bg-neutral-100 dark:bg-neutral-950">
+  <div
+    class="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] font-main selection:bg-primary-500/30"
+  >
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-out',
-        'bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800',
-        sidebarOpen ? 'w-64' : 'w-20',
+        'fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        'glass-sidebar',
+        sidebarOpen ? 'w-[260px]' : 'w-[80px]',
       ]"
     >
-      <!-- Logo -->
-      <div
-        class="flex items-center h-16 px-4 border-b border-neutral-200 dark:border-neutral-800"
-      >
+      <!-- Logo Section -->
+      <div class="flex items-center h-[72px] px-6">
         <div class="flex items-center gap-3">
           <div
-            class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center"
+            class="w-9 h-9 rounded-xl overflow-hidden shadow-macos bg-white flex items-center justify-center"
           >
             <img
               src="~/assets/images/cofeoshop.jpg"
-              alt="Cafe POS"
+              alt="Logo"
               class="w-full h-full object-cover"
             />
           </div>
           <span
-            :class="[
-              'font-bold text-lg text-neutral-900 dark:text-white transition-opacity duration-200',
-              sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-            ]"
+            v-if="sidebarOpen"
+            class="font-bold text-[17px] text-neutral-900 dark:text-white tracking-tight animate-in fade-in duration-500"
           >
             Cofeoshop
           </span>
@@ -34,50 +32,66 @@
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto scrollbar-thin">
+      <nav
+        class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar"
+      >
         <div
           v-for="category in navigation"
           :key="category.name"
           class="space-y-1"
         >
-          <!-- Category Header (Toggle) -->
+          <!-- Category Item -->
           <button
             @click="toggleCategory(category.name)"
             :class="[
-              'w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group',
+              'w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-300 group relative',
               isCategoryActive(category)
-                ? 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/5'
-                : 'text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800',
+                ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold'
+                : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5',
             ]"
           >
             <div class="flex items-center gap-3">
-              <component :is="category.icon" class="w-5 h-5 flex-shrink-0" />
-              <span
+              <div
                 :class="[
-                  'text-sm transition-opacity duration-200 whitespace-nowrap',
-                  sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
+                  'p-1.5 rounded-lg transition-colors',
+                  isCategoryActive(category)
+                    ? 'text-primary-600'
+                    : 'text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white',
                 ]"
+              >
+                <component :is="category.icon" class="w-[20px] h-[20px]" />
+              </div>
+              <span
+                v-if="sidebarOpen"
+                class="text-[14px] font-medium tracking-tight whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300"
               >
                 {{ category.name }}
               </span>
             </div>
+
             <svg
               v-if="sidebarOpen"
               xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 transition-transform duration-300 opacity-60 group-hover:opacity-100"
+              class="w-3.5 h-3.5 transition-transform duration-300"
               :class="{
                 'rotate-180': expandedCategories.includes(category.name),
               }"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
+              stroke-width="2.5"
             >
               <path d="m6 9 6 6 6-6" />
             </svg>
+
+            <!-- Active Indicator Pill -->
+            <div
+              v-if="isActive(category.href) && !sidebarOpen"
+              class="absolute left-0 w-1 h-5 bg-primary-500 rounded-r-full"
+            ></div>
           </button>
 
-          <!-- Sub-items -->
+          <!-- Sub-menu Items -->
           <div
             v-if="sidebarOpen && expandedCategories.includes(category.name)"
             class="pl-11 pr-2 space-y-1 animate-in slide-in-from-top-2 duration-300"
@@ -87,10 +101,10 @@
               :key="child.name"
               :to="child.href"
               :class="[
-                'block px-3 py-2 rounded-lg text-xs transition-all duration-200',
+                'block px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200',
                 isActive(child.href)
-                  ? 'text-primary-600 dark:text-primary-400 font-bold bg-primary-500/10'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
+                  ? 'text-primary-600 dark:text-primary-400 bg-primary-500/5'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
               ]"
             >
               {{ child.name }}
@@ -99,22 +113,20 @@
         </div>
       </nav>
 
-      <!-- Toggle button -->
-      <div class="p-3 border-t border-neutral-200 dark:border-neutral-800">
+      <!-- Sidebar Toggle -->
+      <div class="p-4 border-t border-black/5 dark:border-white/5">
         <button
           @click="sidebarOpen = !sidebarOpen"
-          class="w-full flex items-center justify-center p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          class="w-full h-10 flex items-center justify-center rounded-xl text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 transition-transform duration-300"
+            class="w-5 h-5 transition-transform duration-500 ease-out-back"
             :class="{ 'rotate-180': sidebarOpen }"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
             <path d="m9 18 6-6-6-6" />
           </svg>
@@ -122,123 +134,113 @@
       </div>
     </aside>
 
-    <!-- Main content -->
+    <!-- Main Content Wrapper -->
     <main
       :class="[
-        'min-h-screen transition-all duration-300 ease-out',
-        sidebarOpen ? 'ml-64' : 'ml-20',
+        'min-h-screen transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        sidebarOpen ? 'ml-[260px]' : 'ml-[80px]',
       ]"
     >
-      <!-- Top bar -->
+      <!-- Top Navigation Bar -->
       <header
-        class="sticky top-0 z-40 h-16 px-6 flex items-center justify-between bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg border-b border-neutral-200 dark:border-neutral-800"
+        class="sticky top-0 z-40 h-[72px] px-8 flex items-center justify-between glass-topbar transition-all duration-300"
       >
-        <div>
-          <h1 class="text-lg font-semibold text-neutral-900 dark:text-white">
+        <div class="flex items-center gap-4">
+          <h1
+            class="text-[19px] font-bold text-neutral-900 dark:text-white tracking-tight"
+          >
             {{ pageTitle }}
           </h1>
         </div>
 
         <div class="flex items-center gap-4">
-          <LanguageSwitcher />
-
-          <!-- Notifications -->
-          <button
-            class="hidden lg:flex w-10 h-10 items-center justify-center rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors relative"
+          <div
+            class="flex items-center bg-black/5 dark:bg-white/5 rounded-2xl p-1 gap-1"
           >
-            <BellIcon class="w-5 h-5" />
-            <span
-              class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-neutral-900"
-            ></span>
-          </button>
+            <LanguageSwitcher />
+          </div>
 
-          <!-- Low Stock Alert -->
-          <NuxtLink
-            to="/admin/inventory"
-            class="relative p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            title="Low Stock Alerts"
+          <!-- Utility Icons Group -->
+          <div
+            class="flex items-center gap-1.5 px-2 border-x border-black/5 dark:border-white/5"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <NuxtLink
+              to="/admin/inventory"
+              class="w-9 h-9 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all relative group"
+              title="Inventory Alerts"
             >
-              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-            </svg>
-            <span
-              v-if="lowStockCount > 0"
-              class="absolute top-1.5 right-1.5 w-4 h-4 bg-error-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-900"
-            >
-              {{ lowStockCount }}
-            </span>
-          </NuxtLink>
-
-          <!-- Dark mode toggle -->
-          <button
-            @click="toggleDarkMode"
-            class="p-2 rounded-xl text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
-            <svg
-              v-if="isDark"
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2" />
-              <path d="M12 20v2" />
-              <path d="m4.93 4.93 1.41 1.41" />
-              <path d="m17.66 17.66 1.41 1.41" />
-              <path d="M2 12h2" />
-              <path d="M20 12h2" />
-              <path d="m6.34 17.66-1.41 1.41" />
-              <path d="m19.07 4.93-1.41 1.41" />
-            </svg>
-            <svg
-              v-else
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-            </svg>
-          </button>
-
-          <!-- User menu -->
-          <div class="flex items-center gap-3">
-            <div class="flex flex-col items-end mr-1">
-              <span
-                class="text-xs font-bold text-neutral-900 dark:text-white"
-                >{{ authUser?.employeeName || authUser?.username }}</span
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 group-hover:scale-110 transition-transform"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
               >
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+              </svg>
               <span
-                class="text-[10px] text-neutral-500 uppercase tracking-wider"
-                >{{ authUser?.roleName }}</span
+                v-if="lowStockCount > 0"
+                class="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-black"
               >
+                {{ lowStockCount }}
+              </span>
+            </NuxtLink>
+
+            <button
+              @click="toggleDarkMode"
+              class="w-9 h-9 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all group"
+            >
+              <svg
+                v-if="isDark"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 group-hover:rotate-45 transition-transform"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 group-hover:-rotate-12 transition-transform"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Profile / Account -->
+          <div class="flex items-center gap-3 pl-2">
+            <div class="hidden sm:flex flex-col items-end">
+              <span
+                class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5"
+              >
+                {{ authUser?.employeeName || authUser?.username }}
+              </span>
+              <span
+                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none"
+              >
+                {{ authUser?.roleName }}
+              </span>
             </div>
+
             <button
               @click="logout"
-              class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center hover:bg-error-100 dark:hover:bg-error-900/30 transition-colors group"
-              title="Logout"
+              class="w-10 h-10 rounded-2xl bg-primary-500 text-white shadow-macos-lg flex items-center justify-center hover:bg-error-500 transition-all duration-300 active:scale-90 group relative"
             >
               <span
-                class="text-sm font-semibold text-primary-700 dark:text-primary-400 group-hover:hidden"
+                class="text-[14px] font-bold tracking-tighter group-hover:hidden"
               >
                 {{
                   (authUser?.username?.substring(0, 2) || "AD").toUpperCase()
@@ -246,13 +248,11 @@
               </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-red-500 hidden group-hover:block"
+                class="w-5 h-5 hidden group-hover:block"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                stroke-width="2.5"
               >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
@@ -263,8 +263,10 @@
         </div>
       </header>
 
-      <!-- Page content -->
-      <div class="p-6">
+      <!-- Main Dynamic Content Area -->
+      <div
+        class="p-8 max-w-[1600px] mx-auto animate-in slide-in-from-bottom-4 fade-in duration-700"
+      >
         <slot />
       </div>
     </main>
@@ -315,6 +317,7 @@ const pageTitle = computed(() => {
     "/admin/staff": "Employee List",
     "/admin/staff/performance": "Staff Performance",
     "/admin/staff/roles": "Security Roles",
+    "/admin/qr-codes": "QR Table Codes",
   };
   return titles[route.path] || "Dashboard";
 });
@@ -546,6 +549,27 @@ const BranchIcon = () =>
     ],
   );
 
+const DigitalIcon = () =>
+  h(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+    },
+    [
+      h("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
+      h("path", { d: "M7 7h.01" }),
+      h("path", { d: "M17 7h.01" }),
+      h("path", { d: "M7 17h.01" }),
+      h("path", { d: "M17 17h.01" }),
+    ],
+  );
+
 const {
   canAccessPOS,
   canAccessInventory,
@@ -584,6 +608,12 @@ const rawNavigation = [
       { name: "Customers", href: "/admin/customers", show: canAccessPOS.value },
       { name: "Kitchen", href: "/kitchen", show: true },
     ],
+  },
+  {
+    name: "Digital Menu",
+    icon: DigitalIcon,
+    show: isSuperAdmin.value || canAccessMenu.value,
+    children: [{ name: "QR Table Codes", href: "/admin/qr-codes", show: true }],
   },
   {
     name: "Catalog",
@@ -675,6 +705,7 @@ watch(
 );
 
 const isActive = (href: string) => {
+  if (!href) return false;
   if (href === "/admin") {
     return route.path === "/admin";
   }
