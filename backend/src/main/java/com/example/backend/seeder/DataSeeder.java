@@ -90,7 +90,6 @@ public class DataSeeder implements CommandLineRunner {
         seedSettings();
         seedAddOns();
         seedVariants();
-        seedBranchStock();
 
         // 2. Check data state BEFORE ensureUserPasswords (which may create a SYSTEM branch)
         long branchCount = branchRepository.count();
@@ -108,6 +107,7 @@ public class DataSeeder implements CommandLineRunner {
              System.out.println("Basic data exists. SEEDING HEAVY DATA (PRO MODE)...");
              try {
                  seedHeavyData();
+                 seedBranchStock();
                  System.out.println("Heavy data seeding completed successfully!");
              } catch (Exception e) {
                  System.err.println("ERROR during heavy data seeding: " + e.getMessage());

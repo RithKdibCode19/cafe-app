@@ -36,9 +36,11 @@ public class BranchStockEntity extends BaseEntity {
     @JoinColumn(name = "ingredient_id", nullable = false)
     private IngredientEntity ingredient;
 
+    @Builder.Default
     @Column(name = "current_stock", nullable = false)
     private Double currentStock = 0.0;
 
+    @Builder.Default
     @Column(name = "reorder_level", nullable = false)
     private Double reorderLevel = 0.0;
 
