@@ -177,7 +177,7 @@ const placeOrder = async () => {
       items: orderItems
     }
 
-    const response = await post<any>('/api/public/orders', request)
+    const response = await post<any>('/public/orders', request)
 
     if (response?.orderNo) {
       clearCart()

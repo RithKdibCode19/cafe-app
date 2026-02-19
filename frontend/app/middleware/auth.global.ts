@@ -1,8 +1,11 @@
 export default defineNuxtRouteMiddleware((to, from) => {
     const { isLoggedIn } = useAuth()
 
-    // If not logged in and not on login page, redirect to login
-    if (!isLoggedIn.value && to.path !== '/login') {
+    // List of public paths that don't require login
+    const isPublicPath = to.path === '/login' || to.path.startsWith('/menu/')
+
+    // If not logged in and not on a public path, redirect to login
+    if (!isLoggedIn.value && !isPublicPath) {
         return navigateTo('/login')
     }
 

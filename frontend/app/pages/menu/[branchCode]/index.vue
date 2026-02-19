@@ -362,8 +362,8 @@ const fetchMenu = async () => {
     error.value = false
 
     const [menuData, addOnsData] = await Promise.all([
-      get<any>(`/api/public/branches/${branchCode}/menu`),
-      get<any[]>('/api/public/addons')
+      get<any>(`/public/branches/${branchCode}/menu`),
+      get<any[]>('/public/addons')
     ])
 
     branchInfo.value = menuData.branch

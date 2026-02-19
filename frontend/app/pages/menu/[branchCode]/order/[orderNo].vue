@@ -181,7 +181,7 @@ const statusColor = computed(() => {
 const fetchOrder = async () => {
   try {
     loading.value = true
-    const data = await get<any>(`/api/public/orders/${orderNo}`)
+    const data = await get<any>(`/public/orders/${orderNo}`)
     if (data) {
       orderData.value = data
       currentStatus.value = data.status
@@ -202,7 +202,7 @@ let pollInterval: ReturnType<typeof setInterval> | null = null
 
 const pollStatus = async () => {
   try {
-    const data = await get<any>(`/api/public/orders/${orderNo}/status`)
+    const data = await get<any>(`/public/orders/${orderNo}/status`)
     if (data) {
       currentStatus.value = data.status
       // Stop polling if order is complete or void
