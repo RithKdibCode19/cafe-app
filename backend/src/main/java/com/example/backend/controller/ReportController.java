@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.dto.common.ApiResponse;
 import com.example.backend.dto.report.DashboardStatsDTO;
 import com.example.backend.dto.report.SalesReportDTO;
+import com.example.backend.dto.report.StockTransferResponseDTO;
 import com.example.backend.services.ReportService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -99,5 +101,18 @@ public class ReportController {
         com.example.backend.dto.report.StockMovementReportDTO report = reportService.getStockMovementReport(startDate,
                 endDate, branchId, ingredientId);
         return ResponseEntity.ok(ApiResponse.success(report, "Stock movement report generated successfully"));
+    }
+
+    @GetMapping("/transfers")
+    public ResponseEntity<ApiResponse<List<StockTransferResponseDTO>>> getStockTransfers(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long branchId) {
+
+        if (endDate == null) endDate = LocalDate.now();
+        if (startDate == null) startDate = endDate.minusDays(30);
+
+        List<StockTransferResponseDTO> transfers = reportService.getStockTransfers(startDate, endDate, branchId);
+        return ResponseEntity.ok(ApiResponse.success(transfers, "Stock transfer history retrieved successfully"));
     }
 }

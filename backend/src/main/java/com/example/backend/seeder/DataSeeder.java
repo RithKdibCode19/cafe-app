@@ -39,6 +39,7 @@ public class DataSeeder implements CommandLineRunner {
     private final SystemSettingRepository systemSettingRepository;
     private final AddOnRepository addOnRepository;
     private final VariantRepository variantRepository;
+    private final BranchStockRepository branchStockRepository;
     private final java.util.Random random = new java.util.Random();
 
     public DataSeeder(BranchRepository branchRepository,
@@ -58,6 +59,7 @@ public class DataSeeder implements CommandLineRunner {
             SystemSettingRepository systemSettingRepository,
             AddOnRepository addOnRepository,
             VariantRepository variantRepository,
+            BranchStockRepository branchStockRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.branchRepository = branchRepository;
         this.roleRepository = roleRepository;
@@ -76,6 +78,7 @@ public class DataSeeder implements CommandLineRunner {
         this.stockAdjustmentRepository = stockAdjustmentRepository;
         this.addOnRepository = addOnRepository;
         this.variantRepository = variantRepository;
+        this.branchStockRepository = branchStockRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -87,6 +90,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSettings();
         seedAddOns();
         seedVariants();
+        seedBranchStock();
 
         // 2. Check data state BEFORE ensureUserPasswords (which may create a SYSTEM branch)
         long branchCount = branchRepository.count();
@@ -862,5 +866,32 @@ public class DataSeeder implements CommandLineRunner {
              item.setImageUrl(img);
              menuItemRepository.save(item);
          }
+    }
+
+    private void seedBranchStock() {
+        System.out.println("Seeding branch stock...");
+        List<BranchEntity> branches = branchRepository.findAll();
+        List<IngredientEntity> ingredients = ingredientRepository.findAll();
+
+        for (BranchEntity branch : branches) {
+            if ("SYSTEM".equals(branch.getCode())) continue;
+            
+            for (IngredientEntity ingredient : ingredients) {
+                Optional<BranchStockEntity> existing = branchStockRepository
+                    .findByBranchBranchIdAndIngredientIngredientIdAndDeletedAtIsNull(
+                        branch.getBranchId(), ingredient.getIngredientId());
+                
+                if (existing.isEmpty()) {
+                    BranchStockEntity stock = new BranchStockEntity();
+                    stock.setBranch(branch);
+                    stock.setIngredient(ingredient);
+                    // Random stock between 100 and 500
+                    stock.setCurrentStock(100.0 + random.nextDouble() * 400.0);
+                    stock.setReorderLevel(ingredient.getReorderLevel());
+                    branchStockRepository.save(stock);
+                }
+            }
+        }
+        System.out.println("Branch stock seeding complete.");
     }
 }

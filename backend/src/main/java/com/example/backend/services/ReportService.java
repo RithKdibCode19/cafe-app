@@ -22,6 +22,8 @@ import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 import com.example.backend.repository.StockAdjustmentRepository;
 import com.example.backend.repository.EmployeeRepository;
+import com.example.backend.repository.StockTransferRepository;
+import com.example.backend.dto.report.StockTransferResponseDTO;
 import com.example.backend.model.*;
 
 @Service
@@ -36,6 +38,7 @@ public class ReportService {
         private final EmployeeRepository employeeRepository;
         private final com.example.backend.repository.StockInRepository stockInRepository;
         private final com.example.backend.repository.RecipeRepository recipeRepository;
+        private final StockTransferRepository stockTransferRepository;
 
         public ReportService(OrderRepository orderRepository,
                         PaymentRepository paymentRepository,
@@ -45,7 +48,8 @@ public class ReportService {
                         com.example.backend.repository.ExpenseRepository expenseRepository,
                         EmployeeRepository employeeRepository,
                         com.example.backend.repository.StockInRepository stockInRepository,
-                        com.example.backend.repository.RecipeRepository recipeRepository) {
+                        com.example.backend.repository.RecipeRepository recipeRepository,
+                        StockTransferRepository stockTransferRepository) {
                 this.orderRepository = orderRepository;
                 this.paymentRepository = paymentRepository;
                 this.ingredientRepository = ingredientRepository;
@@ -55,6 +59,7 @@ public class ReportService {
                 this.employeeRepository = employeeRepository;
                 this.stockInRepository = stockInRepository;
                 this.recipeRepository = recipeRepository;
+                this.stockTransferRepository = stockTransferRepository;
         }
 
         public DashboardStatsDTO getDashboardStats() {
@@ -641,5 +646,31 @@ public class ReportService {
                 report.setMovements(items);
                 report.setRecommendations(recommendations);
                 return report;
+        }
+
+        public List<StockTransferResponseDTO> getStockTransfers(LocalDate startDate, LocalDate endDate, Long branchId) {
+                LocalDateTime start = startDate.atStartOfDay();
+                LocalDateTime end = endDate.plusDays(1).atStartOfDay();
+
+                // Simple implementation: Fetch all and filter in memory or add repo method
+                // For now, let's assume we want all in date range and filter by branch if provided
+                return stockTransferRepository.findAll().stream()
+                                .filter(t -> t.getTransferDate().isAfter(start) && t.getTransferDate().isBefore(end))
+                                .filter(t -> branchId == null || t.getFromBranch().getBranchId().equals(branchId)
+                                                || t.getToBranch().getBranchId().equals(branchId))
+                                .map(t -> StockTransferResponseDTO.builder()
+                                                .transferId(t.getTransferId())
+                                                .fromBranchName(t.getFromBranch().getName())
+                                                .toBranchName(t.getToBranch().getName())
+                                                .ingredientName(t.getIngredient().getName())
+                                                .unit(t.getIngredient().getUnit() != null ? t.getIngredient().getUnit().name() : "UNIT")
+                                                .quantity(t.getQuantity())
+                                                .transferredByName(t.getTransferredBy().getEmployee() != null 
+                                                    ? t.getTransferredBy().getEmployee().getFullName() 
+                                                    : t.getTransferredBy().getUserName())
+                                                .transferDate(t.getTransferDate())
+                                                .build())
+                                .sorted((a, b) -> b.getTransferDate().compareTo(a.getTransferDate()))
+                                .collect(Collectors.toList());
         }
 }

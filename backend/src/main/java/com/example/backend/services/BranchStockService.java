@@ -9,11 +9,18 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.model.BranchEntity;
 import com.example.backend.model.BranchStockEntity;
 import com.example.backend.model.IngredientEntity;
+import com.example.backend.model.StockTransferEntity;
+import com.example.backend.model.UserEntity;
 import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.BranchStockRepository;
 import com.example.backend.repository.IngredientRepository;
+import com.example.backend.repository.StockTransferRepository;
+import com.example.backend.repository.UserRepository;
+import com.example.backend.security.UserDetailsImpl;
 import com.example.backend.mapper.BranchStockMapper;
 import com.example.backend.dto.BranchStockResponseDTO;
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.time.LocalDateTime;
 
 @Service
 public class BranchStockService {
@@ -22,15 +29,21 @@ public class BranchStockService {
     private final BranchRepository branchRepository;
     private final IngredientRepository ingredientRepository;
     private final BranchStockMapper branchStockMapper;
+    private final StockTransferRepository stockTransferRepository;
+    private final UserRepository userRepository;
 
     public BranchStockService(BranchStockRepository branchStockRepository,
                              BranchRepository branchRepository,
                              IngredientRepository ingredientRepository,
-                             BranchStockMapper branchStockMapper) {
+                             BranchStockMapper branchStockMapper,
+                             StockTransferRepository stockTransferRepository,
+                             UserRepository userRepository) {
         this.branchStockRepository = branchStockRepository;
         this.branchRepository = branchRepository;
         this.ingredientRepository = ingredientRepository;
         this.branchStockMapper = branchStockMapper;
+        this.stockTransferRepository = stockTransferRepository;
+        this.userRepository = userRepository;
     }
 
     public boolean isStockAvailable(Long branchId, Long ingredientId, Double requiredAmount) {
@@ -83,7 +96,38 @@ public class BranchStockService {
         destStock.setCurrentStock(destStock.getCurrentStock() + amount);
         branchStockRepository.save(destStock);
 
+        // Record the transfer transaction
+        recordTransferLog(fromBranchId, toBranchId, ingredientId, amount);
+
         // Note: Global stock doesn't change during internal transfers
+    }
+
+    private void recordTransferLog(Long fromBranchId, Long toBranchId, Long ingredientId, Double amount) {
+        try {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal instanceof UserDetailsImpl) {
+                UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+                UserEntity user = userRepository.findById(userDetails.getId()).orElse(null);
+                BranchEntity fromBranch = branchRepository.findById(fromBranchId).orElse(null);
+                BranchEntity toBranch = branchRepository.findById(toBranchId).orElse(null);
+                IngredientEntity ingredient = ingredientRepository.findById(ingredientId).orElse(null);
+
+                if (user != null && fromBranch != null && toBranch != null && ingredient != null) {
+                    StockTransferEntity transfer = StockTransferEntity.builder()
+                            .fromBranch(fromBranch)
+                            .toBranch(toBranch)
+                            .ingredient(ingredient)
+                            .quantity(amount)
+                            .transferredBy(user)
+                            .transferDate(LocalDateTime.now())
+                            .build();
+                    stockTransferRepository.save(transfer);
+                }
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the transfer if logging fails
+            System.err.println("Failed to record stock transfer log: " + e.getMessage());
+        }
     }
 
     private BranchStockEntity findOrCreateStock(Long branchId, Long ingredientId) {

@@ -13,12 +13,14 @@
         >Frequently bought with {{ lastItemName }}</span
       >
     </div>
-    <div class="grid grid-cols-2 gap-2">
+    <div
+      class="flex gap-2 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+    >
       <button
         v-for="item in suggestions"
         :key="item.menuItemId"
         @click="$emit('add', item)"
-        class="group relative flex flex-col bg-neutral-800/50 hover:bg-primary-500/10 border border-neutral-700 hover:border-primary-500/30 rounded-xl overflow-hidden transition-all text-left"
+        class="flex-none w-36 group relative flex flex-col bg-neutral-800/50 hover:bg-primary-500/10 border border-neutral-700 hover:border-primary-500/30 rounded-xl overflow-hidden transition-all text-left"
       >
         <div class="aspect-video w-full relative overflow-hidden">
           <img
