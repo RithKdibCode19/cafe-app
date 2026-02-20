@@ -12,12 +12,18 @@ import lombok.NoArgsConstructor;
 public class StockAdjustmentResponseDTO {
 
     private Long adjustmentId;
+
+    public void setAdjustmentId(Long adjustmentId) {
+        this.adjustmentId = adjustmentId;
+    }
     private IngredientResponseDTO ingredient;
     private Double qtyChange;
     private String reasonType;
     private String note;
-    private Long approvedBy;
-    private Long createdBy;
+    private String approvedByName;
+    private String createdByName;
+    private String status;
+    private String branchName;
     private LocalDateTime date;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

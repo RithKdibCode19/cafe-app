@@ -14,6 +14,7 @@ public interface PosOrderAdjustmentMapper {
 
     PosOrderAdjustmentMapper INSTANCE = Mappers.getMapper(PosOrderAdjustmentMapper.class);
 
+    @Mapping(target = "orderId", source = "order.orderId")
     PosOrderAdjustmentResponseDTO toResponseDTO(PosOrderAdjustmentEntity entity);
 
     @Mapping(target = "order", ignore = true)

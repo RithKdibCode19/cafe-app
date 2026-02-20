@@ -16,7 +16,11 @@ public interface CategoryMapper {
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
 
+    @Mapping(target = "parent", ignore = true)
+    @Mapping(target = "children", ignore = true)
     CategoryEntity toEntity(CategoryRequestDTO requestDTO);
+
+    @Mapping(source = "parent.categoryId", target = "parentId")
     CategoryResponseDTO toResponseDTO(CategoryEntity entity);
     @Mapping(target = "categoryId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

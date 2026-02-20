@@ -1,0 +1,9 @@
+# SSL Certificates - NEVER commit!
+certs/
+*.pem
+*.key
+*.crt
+
+# Environment files with secrets
+.env
+!.env.prod.example

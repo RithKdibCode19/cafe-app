@@ -13,14 +13,17 @@ import com.example.backend.mapper.SupplierMapper;
 import com.example.backend.model.SupplierEntity;
 import com.example.backend.repository.SupplierRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class SupplierService {
 
     private final SupplierRepository supplierRepository;
     private final SupplierMapper supplierMapper;
+
+    public SupplierService(SupplierRepository supplierRepository, SupplierMapper supplierMapper) {
+        this.supplierRepository = supplierRepository;
+        this.supplierMapper = supplierMapper;
+    }
 
     /**
      * Create a new supplier

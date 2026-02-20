@@ -1,0 +1,30 @@
+# Build output
+target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Maven
+# .mvn/wrapper/maven-wrapper.jar should NOT be ignored as it's needed for mvnw to work in Docker
+
+# Documentation
+*.md
+!README.md

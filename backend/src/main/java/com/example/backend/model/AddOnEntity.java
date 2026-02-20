@@ -27,6 +27,22 @@ public class AddOnEntity extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "name_kh")
+    private String nameKh;
+
     @Column(nullable = false)
     private Double price;
+
+    // Manual Getters/Setters
+    public Long getAddonId() { return addonId; }
+    public void setAddonId(Long addonId) { this.addonId = addonId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getNameKh() { return nameKh; }
+    public void setNameKh(String nameKh) { this.nameKh = nameKh; }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 }

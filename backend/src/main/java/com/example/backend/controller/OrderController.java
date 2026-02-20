@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,16 +20,25 @@ import com.example.backend.dto.OrderRequestDTO;
 import com.example.backend.dto.OrderResponseDTO;
 import com.example.backend.services.OrderService;
 
+import com.example.backend.dto.VariantResponseDTO;
+import com.example.backend.services.VariantService;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/orders")
-@CrossOrigin(origins = "http://localhost:8082")
-@RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     /**
      * Create a new order
@@ -53,12 +61,17 @@ public class OrderController {
     }
 
     /**
-     * Get all orders
-     * GET /api/orders
+     * Get all orders (paginated)
+     * GET /api/orders?page=0&size=20&status=PENDING&search=ORD-123
      */
     @GetMapping
-    public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
-        List<OrderResponseDTO> orders = orderService.getAllOrders();
+    public ResponseEntity<Page<OrderResponseDTO>> getAllOrders(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long branchId) {
+        
+        Page<OrderResponseDTO> orders = orderService.getAllOrdersPaginated(pageable, status, search, branchId);
         return ResponseEntity.ok(orders);
     }
 
@@ -91,9 +104,11 @@ public class OrderController {
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(response);
+            @RequestParam String status,
+            @RequestParam(required = false) String pinCode,
+            @RequestParam(required = false) String reason) {
+
+        return ResponseEntity.ok(orderService.updateOrderStatus(id, status, pinCode, reason));
     }
 
     /**
@@ -211,7 +226,7 @@ public class OrderController {
      */
     @PutMapping("/{id}/pay")
     public ResponseEntity<OrderResponseDTO> markOrderAsPaid(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID");
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID", null, "Payment Received");
         return ResponseEntity.ok(response);
     }
 
@@ -220,8 +235,12 @@ public class OrderController {
      * PUT /api/orders/{id}/void
      */
     @PutMapping("/{id}/void")
-    public ResponseEntity<OrderResponseDTO> voidOrder(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID");
+    public ResponseEntity<OrderResponseDTO> voidOrder(
+            @PathVariable Long id,
+            @RequestParam(required = false) String pinCode,
+            @RequestParam(required = false) String reason) {
+
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID", pinCode, reason);
         return ResponseEntity.ok(response);
     }
 
@@ -230,8 +249,12 @@ public class OrderController {
      * PUT /api/orders/{id}/refund
      */
     @PutMapping("/{id}/refund")
-    public ResponseEntity<OrderResponseDTO> refundOrder(@PathVariable Long id) {
-        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND");
+    public ResponseEntity<OrderResponseDTO> refundOrder(
+            @PathVariable Long id,
+            @RequestParam(required = false) String pinCode,
+            @RequestParam(required = false) String reason) {
+
+        OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND", pinCode, reason);
         return ResponseEntity.ok(response);
     }
 }

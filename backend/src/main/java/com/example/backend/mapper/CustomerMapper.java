@@ -14,8 +14,10 @@ public interface CustomerMapper {
 
     CustomerMapper INSTANCE = Mappers.getMapper(CustomerMapper.class);
 
+    @Mapping(source = "name", target = "fullName")
     CustomerResponseDTO toResponseDTO(CustomerEntity entity);
 
+    @Mapping(source = "fullName", target = "name")
     CustomerEntity toEntity(CustomerRequestDTO requestDTO);
 
     @Mapping(target = "customerId", ignore = true)
@@ -23,5 +25,6 @@ public interface CustomerMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(source = "fullName", target = "name")
     void updateEntityFromDTO(CustomerRequestDTO requestDTO, @MappingTarget CustomerEntity entity);
 }

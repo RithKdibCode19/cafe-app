@@ -11,20 +11,30 @@ import com.example.backend.mapper.CustomerMapper;
 import com.example.backend.model.CustomerEntity;
 import com.example.backend.repository.CustomerRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+        this.customerRepository = customerRepository;
+        this.customerMapper = customerMapper;
+    }
 
     /**
      * Create a new customer
      */
     public CustomerResponseDTO createCustomer(CustomerRequestDTO request) {
         CustomerEntity customerEntity = customerMapper.toEntity(request);
+        // Manual fallback in case Mapper fails
+        if (customerEntity.getName() == null) {
+            customerEntity.setName(request.getFullName());
+        }
+        // Secure against Mass Assignment
+        customerEntity.setMembershipLevel("BRONZE");
+        
         CustomerEntity savedCustomer = customerRepository.save(customerEntity);
         return customerMapper.toResponseDTO(savedCustomer);
     }
@@ -68,5 +78,23 @@ public class CustomerService {
                 .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + id));
         customerEntity.setDeletedAt(LocalDateTime.now());
         customerRepository.save(customerEntity);
+    }
+    /**
+     * Search customers
+     */
+    public List<CustomerResponseDTO> searchCustomers(String query) {
+        List<CustomerEntity> customers = customerRepository.searchCustomers(query);
+         return customers.stream()
+                .map(customerMapper::toResponseDTO)
+                .toList();
+    }
+    /**
+     * Get recent customers
+     */
+    public List<CustomerResponseDTO> getRecentCustomers() {
+        List<CustomerEntity> customers = customerRepository.findTop10ByOrderByUpdatedAtDesc();
+        return customers.stream()
+                .map(customerMapper::toResponseDTO)
+                .toList();
     }
 }

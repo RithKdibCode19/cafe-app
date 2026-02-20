@@ -17,16 +17,21 @@ import com.example.backend.repository.PermissionRepository;
 import com.example.backend.repository.RolePermissionRepository;
 import com.example.backend.repository.RoleRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class RolePermissionService {
 
     private final RolePermissionRepository rolePermissionRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
     private final RolePermissionMapper rolePermissionMapper;
+
+    public RolePermissionService(RolePermissionRepository rolePermissionRepository, RoleRepository roleRepository, PermissionRepository permissionRepository, RolePermissionMapper rolePermissionMapper) {
+        this.rolePermissionRepository = rolePermissionRepository;
+        this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+        this.rolePermissionMapper = rolePermissionMapper;
+    }
 
     /**
      * Assign permission to role

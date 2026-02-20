@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class PermissionResponseDTO {
 
     private Long permissionId;
+    private String code;
     private String permissionName;
     private String description;
     private LocalDateTime createdAt;

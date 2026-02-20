@@ -13,6 +13,16 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     @Query("""
     SELECT c FROM CategoryEntity c WHERE c.deletedAt IS NULL
 """)
-List<CategoryEntity> findAllActive();
+    List<CategoryEntity> findAllActive();
 
+    java.util.Optional<CategoryEntity> findByName(String name);
+
+    @Query("""
+    SELECT DISTINCT c FROM CategoryEntity c
+    LEFT JOIN FETCH c.children
+    WHERE c.parent IS NULL AND c.deletedAt IS NULL
+""")
+    List<CategoryEntity> findRoots();
+
+    java.util.Optional<CategoryEntity> findByNameAndDeletedAtIsNull(String name);
 }

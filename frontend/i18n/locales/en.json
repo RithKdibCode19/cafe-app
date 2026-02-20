@@ -1,0 +1,25 @@
+{
+  "welcome": "Welcome",
+  "menu": {
+    "title": "Menu",
+    "all_items": "All Items",
+    "search_placeholder": "Search menu..."
+  },
+  "pos": {
+    "current_order": "Current Order",
+    "add_discount": "Add Discount",
+    "checkout": "Checkout",
+    "hold_order": "Hold Order",
+    "clear_cart": "Clear Cart",
+    "dine_in": "Dine In",
+    "takeaway": "Takeaway"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "products": "Products",
+    "categories": "Categories",
+    "settings": "Settings",
+    "users": "Users"
+  }
+}

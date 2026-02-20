@@ -17,6 +17,10 @@ public class EmployeeResponseDTO {
     private BranchResponseDTO branch;
     private String position;
     private String status;
+    private Double baseSalary;
+    private Double hourlyRate;
+    private Long roleId;
+    private String roleName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -52,4 +52,25 @@ public class IngredientEntity extends BaseEntity {
         PCS
     }
 
+    // Manual Getters/Setters
+    public Long getIngredientId() { return ingredientId; }
+    public void setIngredientId(Long ingredientId) { this.ingredientId = ingredientId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
+
+    public IngredientUnit getUnit() { return unit; }
+    public void setUnit(IngredientUnit unit) { this.unit = unit; }
+
+    public Double getReorderLevel() { return reorderLevel; }
+    public void setReorderLevel(Double reorderLevel) { this.reorderLevel = reorderLevel; }
+
+    public Double getCurrentStock() { return currentStock; }
+    public void setCurrentStock(Double currentStock) { this.currentStock = currentStock; }
+
+    public Double getCostPerUnit() { return costPerUnit; }
+    public void setCostPerUnit(Double costPerUnit) { this.costPerUnit = costPerUnit; }
 }

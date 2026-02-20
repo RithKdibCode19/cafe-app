@@ -13,11 +13,18 @@ import com.example.backend.model.StockAdjustmentEntity;
 public interface StockAdjustmentMapper {
 
     StockAdjustmentMapper INSTANCE = Mappers.getMapper(StockAdjustmentMapper.class);
-
+    
+    @Mapping(source = "approvedBy.employee.fullName", target = "approvedByName")
+    @Mapping(source = "createdBy.employee.fullName", target = "createdByName")
+    @Mapping(source = "branch.name", target = "branchName")
     StockAdjustmentResponseDTO toResponseDTO(StockAdjustmentEntity entity);
 
     @Mapping(target = "ingredient", ignore = true)
     @Mapping(target = "adjustmentId", ignore = true)
+    @Mapping(target = "approvedBy", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "reasonType", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
@@ -26,6 +33,10 @@ public interface StockAdjustmentMapper {
 
     @Mapping(target = "ingredient", ignore = true)
     @Mapping(target = "adjustmentId", ignore = true)
+    @Mapping(target = "approvedBy", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "reasonType", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)

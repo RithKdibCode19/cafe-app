@@ -3,7 +3,6 @@ package com.example.backend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,15 +16,16 @@ import com.example.backend.dto.BranchResponseDTO;
 import com.example.backend.services.BranchService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/branches")
-@CrossOrigin(origins = "http://localhost:8082")
-@RequiredArgsConstructor
 public class BranchController {
 
     private final BranchService branchService;
+
+    public BranchController(BranchService branchService) {
+        this.branchService = branchService;
+    }
 
     @GetMapping
     public ResponseEntity<List<BranchResponseDTO>> getAllBranches() {

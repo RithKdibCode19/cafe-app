@@ -1,0 +1,146 @@
+version: "3.8"
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cafe-nginx
+    restart: always
+    ports:
+      - "${APP_PORT:-8082}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cafe-network
+    # Resource limit: Nginx is lightweight
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: cafe-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    networks:
+      - cafe-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Resource limit: 256MB is tight but doable for small loads.
+    # Performance tuning via command flags is recommended for strict limits.
+    command: postgres -c shared_buffers=64MB -c max_connections=50
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 300M
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: cafe-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/cafe_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Bakong Payment API
+      BAKONG_API_URL: ${BAKONG_API_URL}
+      BAKONG_API_KEY: ${BAKONG_API_KEY}
+
+      # JWT Security
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      # Cloudinary
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+      # JVM Options for 2GB VPS:
+      # Max Heap 512m should fit comfortably alongside Postgres(300m) + Nuxt(300m) + OS overhead
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -XX:+UseSerialGC"
+    networks:
+      - cafe-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 700M
+
+  # Nuxt Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: cafe-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      # Internal Docker Network URL for SSR
+      NUXT_API_BASE_INTERNAL: http://backend:8081/api
+      # Public URL (Client-side) - mapped via Nginx
+      NUXT_PUBLIC_API_BASE: /api
+      NODE_ENV: production
+    networks:
+      - cafe-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+networks:
+  cafe-network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:

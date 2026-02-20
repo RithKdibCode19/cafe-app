@@ -15,15 +15,21 @@ import com.example.backend.model.PosOrderAdjustmentEntity;
 import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PosOrderAdjustmentRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class PosOrderAdjustmentService {
 
     private final PosOrderAdjustmentRepository posOrderAdjustmentRepository;
     private final OrderRepository orderRepository;
     private final PosOrderAdjustmentMapper posOrderAdjustmentMapper;
+    private final OrderService orderService;
+
+    public PosOrderAdjustmentService(PosOrderAdjustmentRepository posOrderAdjustmentRepository, OrderRepository orderRepository, PosOrderAdjustmentMapper posOrderAdjustmentMapper, OrderService orderService) {
+        this.posOrderAdjustmentRepository = posOrderAdjustmentRepository;
+        this.orderRepository = orderRepository;
+        this.posOrderAdjustmentMapper = posOrderAdjustmentMapper;
+        this.orderService = orderService;
+    }
 
     /**
      * Create new order adjustment
@@ -169,5 +175,8 @@ public class PosOrderAdjustmentService {
         }
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
+
+        // Restore inventory when order is voided or refunded
+        orderService.restoreInventoryForOrder(order);
     }
 }

@@ -55,5 +55,43 @@ public class StockInEntity extends BaseEntity {
     @Column(name = "received_by", nullable = false)
     private Long receivedBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "received_by", insertable = false, updatable = false)
+    private UserEntity receiver;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private BranchEntity branch;
+
+    // Manual Getters/Setters
+    public Long getStockId() { return stockId; }
+    public void setStockId(Long stockId) { this.stockId = stockId; }
+
+    public SupplierEntity getSupplier() { return supplier; }
+    public void setSupplier(SupplierEntity supplier) { this.supplier = supplier; }
+
+    public IngredientEntity getIngredient() { return ingredient; }
+    public void setIngredient(IngredientEntity ingredient) { this.ingredient = ingredient; }
+
+    public Double getQtyIn() { return qtyIn; }
+    public void setQtyIn(Double qtyIn) { this.qtyIn = qtyIn; }
+
+    public Double getUnitCost() { return unitCost; }
+    public void setUnitCost(Double unitCost) { this.unitCost = unitCost; }
+
+    public Double getTotalCost() { return totalCost; }
+    public void setTotalCost(Double totalCost) { this.totalCost = totalCost; }
+
+    public String getInvoiceNo() { return invoiceNo; }
+    public void setInvoiceNo(String invoiceNo) { this.invoiceNo = invoiceNo; }
+
+    public LocalDateTime getReceivedDate() { return receivedDate; }
+    public void setReceivedDate(LocalDateTime receivedDate) { this.receivedDate = receivedDate; }
+
+    public Long getReceivedBy() { return receivedBy; }
+    public void setReceivedBy(Long receivedBy) { this.receivedBy = receivedBy; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
 }
 

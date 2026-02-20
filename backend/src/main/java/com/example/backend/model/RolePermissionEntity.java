@@ -38,4 +38,14 @@ public class RolePermissionEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", nullable = false)
     private PermissionEntity permission;
+
+    // Manual Getters/Setters
+    public Long getRolePermissionId() { return rolePermissionId; }
+    public void setRolePermissionId(Long rolePermissionId) { this.rolePermissionId = rolePermissionId; }
+
+    public RoleEntity getRole() { return role; }
+    public void setRole(RoleEntity role) { this.role = role; }
+
+    public PermissionEntity getPermission() { return permission; }
+    public void setPermission(PermissionEntity permission) { this.permission = permission; }
 }

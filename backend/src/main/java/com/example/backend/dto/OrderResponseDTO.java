@@ -20,6 +20,13 @@ public class OrderResponseDTO {
     private String orderType;
     private String status;
     private String note;
+    private Double subTotal;
+    private Double discountAmount;
+    private Double taxAmount;
+    private Double totalAmount;
+    private Integer pointsRedeemed;
+    private String statusReason;
+    private String approvedByName;
     private List<OrderItemResponseDTO> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

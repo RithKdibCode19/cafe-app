@@ -45,14 +45,24 @@ public class StockAdjustmentEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    @Column(name = "approved_by")
-    private Long approvedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private UserEntity approvedBy;
 
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private UserEntity createdBy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "adjustment_status", nullable = false, columnDefinition = "varchar(255) default 'PENDING'")
+    private AdjustmentStatus status = AdjustmentStatus.PENDING;
 
     @Column(nullable = false)
     private LocalDateTime date;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private BranchEntity branch;
 
     public enum StockAdjustmentReason {
         WASTAGE,
@@ -61,4 +71,40 @@ public class StockAdjustmentEntity extends BaseEntity {
         COUNT_CORRECTION
     }
 
+    public enum AdjustmentStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
+
+    // Manual Getters/Setters
+    public Long getAdjustmentId() { return adjustmentId; }
+    public void setAdjustmentId(Long adjustmentId) { this.adjustmentId = adjustmentId; }
+
+    public IngredientEntity getIngredient() { return ingredient; }
+    public void setIngredient(IngredientEntity ingredient) { this.ingredient = ingredient; }
+
+    public Double getQtyChange() { return qtyChange; }
+    public void setQtyChange(Double qtyChange) { this.qtyChange = qtyChange; }
+
+    public StockAdjustmentReason getReasonType() { return reasonType; }
+    public void setReasonType(StockAdjustmentReason reasonType) { this.reasonType = reasonType; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public UserEntity getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(UserEntity approvedBy) { this.approvedBy = approvedBy; }
+
+    public UserEntity getCreatedBy() { return createdBy; }
+    public void setCreatedBy(UserEntity createdBy) { this.createdBy = createdBy; }
+
+    public AdjustmentStatus getStatus() { return status; }
+    public void setStatus(AdjustmentStatus status) { this.status = status; }
+
+    public LocalDateTime getDate() { return date; }
+    public void setDate(LocalDateTime date) { this.date = date; }
+
+    public BranchEntity getBranch() { return branch; }
+    public void setBranch(BranchEntity branch) { this.branch = branch; }
 }

@@ -3,7 +3,6 @@ package com.example.backend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,14 +16,15 @@ import com.example.backend.dto.MenuItemRequestDTO;
 import com.example.backend.dto.MenuItemResponseDTO;
 import com.example.backend.services.MenuItemService;
 
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/menu-items")
-@CrossOrigin(origins = "http://localhost:8082")
-@RequiredArgsConstructor
 public class MenuItemController {
     private final MenuItemService menuItemService;
+
+    public MenuItemController(MenuItemService menuItemService) {
+        this.menuItemService = menuItemService;
+    }
 
     @PostMapping("/add")
     public ResponseEntity<MenuItemResponseDTO> createMenuItem(@RequestBody MenuItemRequestDTO request) {
@@ -33,8 +33,9 @@ public class MenuItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MenuItemResponseDTO>> getAllMenuItems() {
-        List<MenuItemResponseDTO> response = menuItemService.getAllMenuItems();
+    @com.example.backend.security.IsolateByBranch
+    public ResponseEntity<List<MenuItemResponseDTO>> getAllMenuItems(Long branchId) {
+        List<MenuItemResponseDTO> response = menuItemService.getAllMenuItems(branchId);
         return ResponseEntity.ok(response);
     }
 

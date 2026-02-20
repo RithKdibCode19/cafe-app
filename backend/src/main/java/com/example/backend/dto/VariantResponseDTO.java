@@ -1,20 +1,17 @@
 package com.example.backend.dto;
 
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.example.backend.model.VariantEntity.Size;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class VariantResponseDTO {
-
     private Long variantId;
-    private Long menuItemId;
-    private String name;
-    private Double priceAdjustment;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Size size;
+    private String name; // Mapped from size
+    private Double price;
+    private Double priceAdjustment; // Calculated
 }

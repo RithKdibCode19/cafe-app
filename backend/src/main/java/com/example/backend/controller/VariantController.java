@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,15 +18,16 @@ import com.example.backend.dto.VariantResponseDTO;
 import com.example.backend.services.VariantService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/variants")
-@CrossOrigin(origins = "http://localhost:8082")
-@RequiredArgsConstructor
 public class VariantController {
 
     private final VariantService variantService;
+
+    public VariantController(VariantService variantService) {
+        this.variantService = variantService;
+    }
 
     @PostMapping
     public ResponseEntity<VariantResponseDTO> createVariant(@Valid @RequestBody VariantRequestDTO request) {

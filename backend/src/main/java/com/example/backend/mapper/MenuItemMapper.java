@@ -8,7 +8,7 @@ import com.example.backend.dto.MenuItemRequestDTO;
 import com.example.backend.dto.MenuItemResponseDTO;
 import com.example.backend.model.MenuItemEntity;
 
-@Mapper(componentModel = "spring", uses = { CategoryMapper.class })
+@Mapper(componentModel = "spring", uses = { CategoryMapper.class, VariantMapper.class })
 public interface MenuItemMapper {
 
     MenuItemResponseDTO toResponseDTO(MenuItemEntity entity);

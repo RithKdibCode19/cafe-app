@@ -13,14 +13,17 @@ import com.example.backend.mapper.PermissionMapper;
 import com.example.backend.model.PermissionEntity;
 import com.example.backend.repository.PermissionRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class PermissionService {
 
     private final PermissionRepository permissionRepository;
     private final PermissionMapper permissionMapper;
+
+    public PermissionService(PermissionRepository permissionRepository, PermissionMapper permissionMapper) {
+        this.permissionRepository = permissionRepository;
+        this.permissionMapper = permissionMapper;
+    }
 
     /**
      * Create a new permission

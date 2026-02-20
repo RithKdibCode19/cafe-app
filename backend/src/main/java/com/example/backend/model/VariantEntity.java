@@ -48,4 +48,17 @@ public class VariantEntity extends BaseEntity {
         M,
         L
     }
+
+    // Manual Getters/Setters
+    public Long getVariantId() { return variantId; }
+    public void setVariantId(Long variantId) { this.variantId = variantId; }
+
+    public MenuItemEntity getMenuItem() { return menuItem; }
+    public void setMenuItem(MenuItemEntity menuItem) { this.menuItem = menuItem; }
+
+    public Size getSize() { return size; }
+    public void setSize(Size size) { this.size = size; }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 }

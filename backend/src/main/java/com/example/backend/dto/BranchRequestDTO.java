@@ -18,4 +18,9 @@ public class BranchRequestDTO {
     private String location;
 
     private String phone;
+
+    // Geolocation for mobile check-in
+    private Double latitude;
+    private Double longitude;
+    private Integer radiusMeters;
 }

@@ -10,23 +10,39 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.dto.StockInRequestDTO;
 import com.example.backend.dto.StockInResponseDTO;
 import com.example.backend.mapper.StockInMapper;
+import com.example.backend.model.BranchEntity;
 import com.example.backend.model.IngredientEntity;
 import com.example.backend.model.StockInEntity;
 import com.example.backend.model.SupplierEntity;
+import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.IngredientRepository;
 import com.example.backend.repository.StockInRepository;
 import com.example.backend.repository.SupplierRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class StockInService {
 
     private final StockInRepository stockInRepository;
     private final SupplierRepository supplierRepository;
     private final IngredientRepository ingredientRepository;
+    private final BranchRepository branchRepository;
+    private final BranchStockService branchStockService;
     private final StockInMapper stockInMapper;
+
+    public StockInService(StockInRepository stockInRepository,
+                         SupplierRepository supplierRepository,
+                         IngredientRepository ingredientRepository,
+                         BranchRepository branchRepository,
+                         BranchStockService branchStockService,
+                         StockInMapper stockInMapper) {
+        this.stockInRepository = stockInRepository;
+        this.supplierRepository = supplierRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.branchRepository = branchRepository;
+        this.branchStockService = branchStockService;
+        this.stockInMapper = stockInMapper;
+    }
 
     /**
      * Record new stock receipt
@@ -41,10 +57,15 @@ public class StockInService {
         IngredientEntity ingredient = ingredientRepository.findById(request.getIngredientId())
                 .orElseThrow(() -> new RuntimeException("Ingredient not found with ID: " + request.getIngredientId()));
 
+        // 2.5 Validate branch exists
+        BranchEntity branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new RuntimeException("Branch not found with ID: " + request.getBranchId()));
+
         // 3. Map Request DTO → Entity
         StockInEntity stockIn = stockInMapper.toEntity(request);
         stockIn.setSupplier(supplier);
         stockIn.setIngredient(ingredient);
+        stockIn.setBranch(branch);
         stockIn.setReceivedDate(request.getReceivedDate() != null ? request.getReceivedDate() : LocalDateTime.now());
         stockIn.setCreatedAt(LocalDateTime.now());
         stockIn.setUpdatedAt(LocalDateTime.now());
@@ -54,10 +75,29 @@ public class StockInService {
             stockIn.setTotalCost(stockIn.getQtyIn() * stockIn.getUnitCost());
         }
 
-        // 5. Save stock in record
+        // 5. Update Ingredient Stock & Cost (Weighted Average)
+        double oldStock = ingredient.getCurrentStock();
+        double oldCost = ingredient.getCostPerUnit();
+        double newQty = stockIn.getQtyIn();
+        double newUnitCost = stockIn.getUnitCost();
+
+        double totalValue = (oldStock * oldCost) + (newQty * newUnitCost);
+        double totalQty = oldStock + newQty;
+
+        double weightedAvgCost = (totalQty > 0) ? (totalValue / totalQty) : newUnitCost;
+
+        ingredient.setCurrentStock(totalQty);
+        ingredient.setCostPerUnit(weightedAvgCost);
+        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredientRepository.save(ingredient);
+
+        // 5.5 Update Branch Stock
+        branchStockService.adjustStock(branch.getBranchId(), ingredient.getIngredientId(), newQty);
+
+        // 6. Save stock in record
         StockInEntity savedStockIn = stockInRepository.save(stockIn);
 
-        // 6. Map Entity → Response DTO
+        // 7. Map Entity → Response DTO
         return stockInMapper.toResponseDTO(savedStockIn);
     }
 

@@ -15,20 +15,25 @@ import com.example.backend.model.VariantEntity;
 import com.example.backend.repository.MenuItemRepository;
 import com.example.backend.repository.VariantRepository;
 
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class VariantService {
 
     private final VariantRepository variantRepository;
     private final MenuItemRepository menuItemRepository;
     private final VariantMapper variantMapper;
 
+    public VariantService(VariantRepository variantRepository, MenuItemRepository menuItemRepository, VariantMapper variantMapper) {
+        this.variantRepository = variantRepository;
+        this.menuItemRepository = menuItemRepository;
+        this.variantMapper = variantMapper;
+    }
+
     /**
      * Create a new variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public VariantResponseDTO createVariant(VariantRequestDTO request) {
         // 1. Validate menu item exists
         MenuItemEntity menuItem = menuItemRepository.findById(request.getMenuItemId())
@@ -89,6 +94,7 @@ public class VariantService {
      * Update variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public VariantResponseDTO updateVariant(Long id, VariantRequestDTO request) {
         VariantEntity existingVariant = variantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Variant not found with ID: " + id));
@@ -118,6 +124,7 @@ public class VariantService {
      * Soft delete variant
      */
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "menu-items", allEntries = true)
     public void deleteVariant(Long id) {
         VariantEntity variant = variantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Variant not found with ID: " + id));

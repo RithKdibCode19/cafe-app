@@ -25,7 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "tblattendance", indexes = {
-        @Index(name = "idx_employee_id", columnList = "employee_id"),
+        @Index(name = "idx_attendance_employee_id", columnList = "employee_id"),
         @Index(name = "idx_check_in", columnList = "check_in")
 })
 public class AttendanceEntity extends BaseEntity {
@@ -60,4 +60,26 @@ public class AttendanceEntity extends BaseEntity {
         LATE,
         ABSENT
     }
+
+    // Manual Getters/Setters
+    public Long getAttendanceId() { return attendanceId; }
+    public void setAttendanceId(Long attendanceId) { this.attendanceId = attendanceId; }
+
+    public EmployeeEntity getEmployee() { return employee; }
+    public void setEmployee(EmployeeEntity employee) { this.employee = employee; }
+
+    public LocalDateTime getCheckIn() { return checkIn; }
+    public void setCheckIn(LocalDateTime checkIn) { this.checkIn = checkIn; }
+
+    public LocalDateTime getCheckOut() { return checkOut; }
+    public void setCheckOut(LocalDateTime checkOut) { this.checkOut = checkOut; }
+
+    public Integer getLateMinute() { return lateMinute; }
+    public void setLateMinute(Integer lateMinute) { this.lateMinute = lateMinute; }
+
+    public AttendanceStatus getStatus() { return status; }
+    public void setStatus(AttendanceStatus status) { this.status = status; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 }
