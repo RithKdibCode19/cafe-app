@@ -9,36 +9,72 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.dto.user.UserRequest;
 import com.example.backend.dto.user.UserResponse;
 import com.example.backend.mapper.UserMap;
+import com.example.backend.model.EmployeeEntity;
+import com.example.backend.model.RoleEntity;
 import com.example.backend.model.UserEntity;
+import com.example.backend.repository.EmployeeRepository;
+import com.example.backend.repository.RoleRepository;
 import com.example.backend.repository.UserRepository;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
+    private final RoleRepository roleRepository;
     private final UserMap userMap;
 
-    public UserService(UserRepository userRepository, UserMap userMap) {
+    public UserService(UserRepository userRepository, EmployeeRepository employeeRepository,
+            RoleRepository roleRepository, UserMap userMap) {
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
+        this.roleRepository = roleRepository;
         this.userMap = userMap;
     }
 
     @Transactional
     public UserResponse createUser(UserRequest request) {
+        // Validate input
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new RuntimeException("Username is required");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Password is required");
+        }
+        if (request.getEmployee() == null) {
+            throw new RuntimeException("Employee ID is required");
+        }
+        if (request.getRole() == null) {
+            throw new RuntimeException("Role ID is required");
+        }
+
         // Check if username already exists
         if (userRepository.existsByUserNameAndDeletedAtIsNull(request.getUsername())) {
             throw new RuntimeException("Username '" + request.getUsername() + "' already exists");
         }
 
-        // Convert DTO to Entity
-        UserEntity userEntity = userMap.toEntity(request);
-        userEntity.setCreatedAt(LocalDateTime.now());
-        userEntity.setUpdatedAt(LocalDateTime.now());
+        try {
+            // Fetch Employee and Role entities by their IDs
+            EmployeeEntity employee = employeeRepository.findById(request.getEmployee())
+                    .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + request.getEmployee()));
 
-        // Save Entity to DB
-        UserEntity savedEntity = userRepository.save(userEntity);
+            RoleEntity role = roleRepository.findById(request.getRole())
+                    .orElseThrow(() -> new RuntimeException("Role not found with ID: " + request.getRole()));
 
-        // Convert Entity to Response DTO
-        return userMap.toResponse(savedEntity);
+            // Convert DTO to Entity
+            UserEntity userEntity = userMap.toEntity(request);
+            userEntity.setEmployee(employee);
+            userEntity.setRole(role);
+            userEntity.setCreatedAt(LocalDateTime.now());
+            userEntity.setUpdatedAt(LocalDateTime.now());
+
+            // Save Entity to DB
+            UserEntity savedEntity = userRepository.save(userEntity);
+
+            // Convert Entity to Response DTO
+            return userMap.toResponse(savedEntity);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create user: " + e.getMessage(), e);
+        }
     }
 
     public List<UserResponse> getAllUsers() {
