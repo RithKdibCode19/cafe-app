@@ -147,6 +147,7 @@ const router = useRouter()
 const branchCode = route.params.branchCode as string
 const { items, tableNo, subtotal, total, removeItem, updateQty, clearCart } = useMenuCart()
 const { post } = usePublicApi()
+const toast = useToast()
 
 const orderNote = ref('')
 const customerName = ref('')
@@ -181,10 +182,25 @@ const placeOrder = async () => {
 
     if (response?.orderNo) {
       clearCart()
+      toast.success('Check out success!', 2000)
       router.push(`/menu/${branchCode}/order/${response.orderNo}`)
     }
   } catch (e: any) {
-    alert(e?.data?.error || e?.message || 'Failed to place order. Please try again.')
+    console.error('Order placement error:', e)
+    
+    // Handle validation errors (400 Bad Request)
+    if (e.data && e.data.details) {
+      // If we have a map of field errors, show them
+      const errorMap = e.data.details
+      const firstError = Object.values(errorMap)[0] as string
+      toast.error(firstError || 'Validation failed. Please check your order.')
+    } else if (e.data && e.data.message) {
+      // General error message from backend
+      toast.error(e.data.message)
+    } else {
+      // Network or unknown error
+      toast.error('Failed to place order. Please try again.')
+    }
   } finally {
     submitting.value = false
   }

@@ -14,6 +14,7 @@ public class MenuItemResponseDTO {
     private Long menuItemId;
     private String name;
     private String nameKh;
+    private String description;
     private String descriptionKh;
     private CategoryResponseDTO category;
     private Double basePrice;

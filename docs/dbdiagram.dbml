@@ -1,0 +1,459 @@
+// Cofeoshop — Cafe POS System
+// Full Database Schema for dbdiagram.io
+// Generated from Spring Boot JPA Entities
+
+// =============================================
+// AUTH & ACCESS CONTROL
+// =============================================
+
+Table tblroles {
+  role_id bigint [pk, increment]
+  role_name varchar [not null, unique]
+  description text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblpermissions {
+  permission_id bigint [pk, increment]
+  code varchar [not null, unique]
+  description text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblrole_permissions {
+  role_permission_id bigint [pk, increment]
+  role_id bigint [not null, ref: > tblroles.role_id]
+  permission_id bigint [not null, ref: > tblpermissions.permission_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// BRANCH
+// =============================================
+
+Table tblbranches {
+  branch_id bigint [pk, increment]
+  code varchar [not null, unique]
+  name varchar [not null]
+  phone varchar
+  location varchar
+  latitude double
+  longitude double
+  radius_meters int [default: 100]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// EMPLOYEES & USERS
+// =============================================
+
+Table tblemployees {
+  employee_id bigint [pk, increment]
+  full_name varchar [not null]
+  phone varchar
+  branch_id bigint [not null, ref: > tblbranches.branch_id]
+  position varchar [not null]
+  status varchar [note: 'ACTIVE, INACTIVE']
+  base_salary double
+  hourly_rate double
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblusers {
+  user_id bigint [pk, increment]
+  employee_id bigint [not null, unique, ref: - tblemployees.employee_id]
+  userName varchar [not null, unique]
+  password varchar [not null]
+  pin_code varchar(4)
+  role_id bigint [not null, ref: > tblroles.role_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// MENU & PRODUCTS
+// =============================================
+
+Table tblcategories {
+  category_id bigint [pk, increment]
+  name varchar [not null]
+  name_kh varchar
+  description text
+  description_kh text
+  parent_id bigint [ref: > tblcategories.category_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblmenu_items {
+  menu_item_id bigint [pk, increment]
+  name varchar [not null]
+  name_kh varchar
+  description text
+  description_kh text
+  category_id bigint [not null, ref: > tblcategories.category_id]
+  base_price double [not null]
+  image_url text
+  is_available boolean [not null, default: true]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblvariants {
+  variant_id bigint [pk, increment]
+  menu_item_id bigint [not null, ref: > tblmenu_items.menu_item_id]
+  size varchar [not null, note: 'S, M, L']
+  price double [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbladdons {
+  addon_id bigint [pk, increment]
+  name varchar [not null]
+  name_kh varchar
+  price double [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// INVENTORY & STOCK
+// =============================================
+
+Table tblingredients {
+  ingredient_id bigint [pk, increment]
+  name varchar [not null]
+  sku varchar [not null, unique]
+  unit varchar [not null, note: 'G, ML, PCS']
+  reorder_level double [not null]
+  current_stock double [not null]
+  cost_per_unit double [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblrecipes {
+  recipe_id bigint [pk, increment]
+  menu_item_id bigint [not null, ref: > tblmenu_items.menu_item_id]
+  ingredient_id bigint [not null, ref: > tblingredients.ingredient_id]
+  quantity_needed double [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_branch_stock {
+  branch_stock_id bigint [pk, increment]
+  branch_id bigint [not null, ref: > tblbranches.branch_id]
+  ingredient_id bigint [not null, ref: > tblingredients.ingredient_id]
+  current_stock double [not null, default: 0]
+  reorder_level double [not null, default: 0]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblsuppliers {
+  supplier_id bigint [pk, increment]
+  name varchar [not null]
+  phone varchar
+  email varchar
+  gender varchar [note: 'MALE, FEMALE, OTHER']
+  address text
+  notes text
+  status varchar [note: 'ACTIVE, INACTIVE']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tblstock {
+  stock_id bigint [pk, increment]
+  supplier_id bigint [not null, ref: > tblsuppliers.supplier_id]
+  ingredient_id bigint [not null, ref: > tblingredients.ingredient_id]
+  qty_in double [not null]
+  unit_cost double [not null]
+  total_cost double [not null]
+  invoice_no varchar
+  received_date timestamp [not null]
+  received_by bigint [not null, ref: > tblusers.user_id]
+  branch_id bigint [not null, ref: > tblbranches.branch_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_stock_adjustments {
+  adjustment_id bigint [pk, increment]
+  ingredient_id bigint [not null, ref: > tblingredients.ingredient_id]
+  qty_change double [not null]
+  reason_type varchar [not null, note: 'WASTAGE, DAMAGE, EXPIRED, COUNT_CORRECTION']
+  note text
+  approved_by bigint [ref: > tblusers.user_id]
+  created_by bigint [not null, ref: > tblusers.user_id]
+  adjustment_status varchar [not null, default: 'PENDING', note: 'PENDING, APPROVED, REJECTED']
+  date timestamp [not null]
+  branch_id bigint [ref: > tblbranches.branch_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_stock_transfers {
+  transfer_id bigint [pk, increment]
+  from_branch_id bigint [not null, ref: > tblbranches.branch_id]
+  to_branch_id bigint [not null, ref: > tblbranches.branch_id]
+  ingredient_id bigint [not null, ref: > tblingredients.ingredient_id]
+  quantity double [not null]
+  transferred_by bigint [not null, ref: > tblusers.user_id]
+  transfer_date timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// CUSTOMERS & LOYALTY
+// =============================================
+
+Table tblcustomers {
+  customer_id bigint [pk, increment]
+  name varchar [not null]
+  phone varchar
+  email varchar
+  address varchar
+  gender varchar [note: 'MALE, FEMALE, OTHER']
+  dob date
+  notes text
+  status varchar [note: 'ACTIVE, INACTIVE']
+  loyalty_points int [default: 0]
+  membership_level varchar [default: 'BRONZE']
+  firebase_uid varchar [unique]
+  password_hash varchar
+  fcm_token varchar
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// ORDERS & PAYMENTS
+// =============================================
+
+Table tblorders {
+  order_id bigint [pk, increment]
+  order_no varchar [not null, unique]
+  branch_id bigint [not null, ref: > tblbranches.branch_id]
+  cashier_user_id bigint [ref: > tblusers.user_id]
+  customer_id bigint [ref: > tblcustomers.customer_id]
+  order_type varchar [not null, note: 'DINE_IN, TAKEAWAY, DELIVERY']
+  status varchar [not null, note: 'PENDING, PAID, PREPARING, READY, COMPLETED, VOID, REFUND']
+  note text
+  sub_total double [not null, default: 0]
+  discount_amount double [default: 0]
+  tax_amount double [not null, default: 0]
+  total_amount double [not null, default: 0]
+  points_redeemed int [default: 0]
+  status_reason text
+  approved_by_id bigint [ref: > tblusers.user_id]
+  delivery_address varchar
+  delivery_phone varchar
+  delivery_note varchar
+  delivery_fee double
+  table_no varchar
+  customer_name varchar
+  customer_phone varchar
+  order_source varchar [note: 'POS, MOBILE, QR_WEB']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_order_items {
+  order_item_id bigint [pk, increment]
+  order_id bigint [not null, ref: > tblorders.order_id]
+  menu_item_id bigint [not null, ref: > tblmenu_items.menu_item_id]
+  variant_id bigint [ref: > tblvariants.variant_id]
+  qty int [not null]
+  unit_price double [not null]
+  discount_amount double
+  addons text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_order_item_addons {
+  order_item_id bigint [ref: > tbl_order_items.order_item_id]
+  addon_id bigint [ref: > tbladdons.addon_id]
+
+  indexes {
+    (order_item_id, addon_id) [pk]
+  }
+}
+
+Table tblpayments {
+  payment_id bigint [pk, increment]
+  order_id bigint [not null, ref: > tblorders.order_id]
+  method varchar [not null, note: 'CASH, CARD, QR']
+  paid_amount double [not null]
+  change_amount double
+  transaction_id varchar
+  payment_status varchar [not null, note: 'PENDING, PAID, FAILED, REFUNDED']
+  paid_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_pos_order_adjustments {
+  pos_order_adjustment_id bigint [pk, increment]
+  order_id bigint [not null, ref: > tblorders.order_id]
+  type varchar [not null, note: 'VOID, REFUND']
+  amount double [not null]
+  reason text
+  requested_by bigint [not null]
+  approved_by bigint
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// SHIFTS & CASH DRAWER
+// =============================================
+
+Table tblshifts {
+  shift_id bigint [pk, increment]
+  employee_id bigint [not null, ref: > tblemployees.employee_id]
+  shift_start timestamp [not null]
+  shift_end timestamp
+  start_cash double [not null]
+  end_cash double
+  branch_id bigint [not null, ref: > tblbranches.branch_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+Table tbl_drawer_actions {
+  drawer_action_id bigint [pk, increment]
+  user_id bigint [not null, ref: > tblusers.user_id]
+  type varchar [not null, note: 'PAY_OUT, CASH_DROP, NO_SALE_OPEN']
+  amount double [not null]
+  reason text
+  action_time timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// ATTENDANCE
+// =============================================
+
+Table tblattendance {
+  attendance_id bigint [pk, increment]
+  employee_id bigint [not null, ref: > tblemployees.employee_id]
+  check_in timestamp [not null]
+  check_out timestamp
+  late_minute int
+  status varchar [not null, note: 'PRESENT, LATE, ABSENT']
+  note text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// EXPENSES
+// =============================================
+
+Table tblexpenses {
+  expense_id bigint [pk, increment]
+  title varchar [not null]
+  description text
+  amount double [not null]
+  date date [not null]
+  category varchar [not null, note: 'Utilities, Salary, Rent, Supplies']
+  branch_id bigint [ref: > tblbranches.branch_id]
+  recorded_by bigint [ref: > tblusers.user_id]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// AUDIT LOG
+// =============================================
+
+Table tblaudit_logs {
+  log_id bigint [pk, increment]
+  user_id bigint [not null, ref: > tblusers.user_id]
+  action text [not null]
+  ip_address varchar
+  action_time timestamp [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}
+
+// =============================================
+// SYSTEM SETTINGS
+// =============================================
+
+Table tblsystem_settings {
+  id bigint [pk, increment]
+  setting_key varchar [not null, unique]
+  setting_value varchar [not null]
+  description varchar
+  setting_group varchar [not null, note: 'GENERAL, FINANCE, EMAIL']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by int
+}

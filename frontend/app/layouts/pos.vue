@@ -1742,6 +1742,7 @@ const {
   holdOrder,
   resumeOrder,
   removeHeldOrder,
+  addToCart,
 } = useCart();
 const { post, get, put } = useApi();
 const { user: authUser, logout: authLogout } = useAuth();
@@ -1754,7 +1755,7 @@ let qrPollingInterval: any = null;
 
 const fetchQrOrders = async () => {
   try {
-    const data = await get<any[]>("/orders?status=PENDING"); // backend filters by branch if not superadmin via AOP or manual
+    const data = await get<any>("/orders?status=PENDING"); // backend filters by branch if not superadmin via AOP or manual
     if (data && data.content) {
       // Filter for QR_WEB orders only (assuming backend returns all pending)
       // Note: Backend might need specific filter if volume is high
@@ -1960,15 +1961,13 @@ const checkCurrentShift = async () => {
     );
     currentShift.value = data;
     if (currentShift.value) {
-      shiftAction.value = "CLOSE";
-      // Fetch summary if closing
+      // Fetch summary if shift is active
       const summary = await get<any>(
         `/shifts/summary?userId=${authUser.value.userId}`,
         {},
       );
       currentShiftSummary.value = summary;
     } else {
-      shiftAction.value = "OPEN";
       currentShiftSummary.value = null;
     }
   } catch (e) {
@@ -2107,8 +2106,10 @@ const handleApprovedAdjustment = async (data: {
     const orderId = adjustmentTarget.value.orderId;
     const endpoint = `/orders/${orderId}/${approvalActionType.value.toLowerCase()}`;
     await put(endpoint, null, {
-      pinCode: data.pin,
-      reason: data.reason,
+      params: {
+        pinCode: data.pin,
+        reason: data.reason,
+      },
     });
     toast.success(`Order ${approvalActionType.value} successful`);
     showApprovalModal.value = false;

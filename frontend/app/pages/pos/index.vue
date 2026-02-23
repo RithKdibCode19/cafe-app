@@ -51,9 +51,9 @@
           <div
             class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-700/30 flex items-center justify-center mb-1 group-hover:bg-neutral-600/30 transition-colors"
           >
-            <span class="text-sm md:text-base">{{ cat.name.charAt(0) }}</span>
+            <span class="text-sm md:text-base">{{ trans(cat, 'name').charAt(0) }}</span>
           </div>
-          <span class="text-center line-clamp-2">{{ cat.name }}</span>
+          <span class="text-center line-clamp-2">{{ trans(cat, 'name') }}</span>
         </button>
       </aside>
 
@@ -100,7 +100,7 @@
                     : 'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50',
                 ]"
               >
-                {{ cat.name }}
+                {{ trans(cat, 'name') }}
               </button>
             </template>
           </nav>
@@ -149,7 +149,7 @@
             @click="handleCategoryDrillDown(sub)"
             class="group flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap bg-neutral-800/40 text-neutral-400 hover:bg-primary-600/10 hover:text-primary-400 border border-neutral-800 hover:border-primary-500/30 shadow-sm"
           >
-            <span>{{ sub.name }}</span>
+            <span>{{ trans(sub, 'name') }}</span>
             <svg
               v-if="sub.children && sub.children.length > 0"
               xmlns="http://www.w3.org/2000/svg"
@@ -250,7 +250,7 @@
                     class="text-xl font-bold text-white flex items-center gap-3"
                   >
                     <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span>
-                    {{ group.name }}
+                    {{ trans(group, 'name') }}
                   </h2>
                   <div
                     class="h-px flex-1 bg-gradient-to-r from-neutral-800 to-transparent"
@@ -275,7 +275,7 @@
                       <img
                         v-if="item.imageUrl"
                         :src="item.imageUrl"
-                        :alt="item.name"
+                        :alt="trans(item, 'name')"
                         loading="lazy"
                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -327,7 +327,7 @@
                       <h3
                         class="font-bold text-neutral-200 text-sm leading-snug line-clamp-2 h-10 mb-1"
                       >
-                        {{ item.name }}
+                        {{ trans(item, 'name') }}
                       </h3>
                     </div>
                   </button>
@@ -350,7 +350,7 @@
       >
         <div class="p-4 border-b border-neutral-700 bg-neutral-900/50">
           <h3 class="text-lg font-bold text-white">Select Size</h3>
-          <p class="text-neutral-400 text-sm">{{ selectedItem.name }}</p>
+          <p class="text-neutral-400 text-sm">{{ trans(selectedItem, 'name') }}</p>
         </div>
         <div class="p-5 grid grid-cols-3 gap-3">
           <button
@@ -410,7 +410,7 @@
           </div>
           <div class="flex-1">
             <h3 class="text-lg font-bold text-white leading-tight">
-              {{ selectedItem.name }}
+              {{ trans(selectedItem, 'name') }}
             </h3>
             <p class="text-primary-400 font-mono">
               ${{
@@ -460,7 +460,7 @@
                     : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-600',
                 ]"
               >
-                <span class="text-sm font-medium">{{ addOn.name }}</span>
+                <span class="text-sm font-medium">{{ trans(addOn, 'name') }}</span>
                 <span class="text-xs font-bold text-primary-400"
                   >+${{ addOn.price.toFixed(2) }}</span
                 >
@@ -519,6 +519,7 @@ definePageMeta({
 
 const { get } = useApi();
 const { addToCart, addToCartWithAddOns, clearCart } = useCart();
+const { trans } = useTrans();
 
 // --- Types ---
 interface AddOn {
@@ -659,7 +660,7 @@ const filteredItems = computed(() => {
   }
   if (debouncedSearchQuery.value) {
     const q = debouncedSearchQuery.value.toLowerCase();
-    result = result.filter((item) => item.name.toLowerCase().includes(q));
+    result = result.filter((item) => trans(item, 'name').toLowerCase().includes(q));
   }
   return result;
 });
@@ -830,7 +831,7 @@ const handleAddToCart = (item: MenuItem) => {
   itemNotes.value = "";
   selectedVariant.value = null;
   if (item.variants && item.variants.length > 0) {
-    selectedVariant.value = item.variants[0];
+    selectedVariant.value = item.variants[0] ?? null;
     showVariantModal.value = true;
   } else {
     showAddOnModal.value = true;
@@ -888,7 +889,11 @@ const fetchData = async () => {
       get<MenuItem[]>("/menu-items"),
     ]);
     rootCategories.value = cats || [];
-    menuItems.value = items || [];
+    // Map category.categoryId to top-level categoryId for filtering/grouping
+    menuItems.value = (items || []).map((item: any) => ({
+      ...item,
+      categoryId: item.categoryId || item.category?.categoryId,
+    }));
   } catch (err) {
     console.error("Fetch Error", err);
   } finally {

@@ -13,7 +13,7 @@
         <div class="flex items-center gap-3">
           <!-- Icon -->
           <component
-            :is="getIcon(category.name)"
+            :is="getIcon(tr(category, 'name'))"
             :class="[
               'w-5 h-5 transition-colors',
               selectedCategory === category.categoryId
@@ -22,7 +22,7 @@
             ]"
           />
 
-          <span class="font-medium text-sm">{{ category.name }}</span>
+          <span class="font-medium text-sm">{{ tr(category, 'name') }}</span>
         </div>
 
         <div class="flex items-center gap-2">
@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import { h } from "vue";
+const { tr } = useTrans();
 
 interface Category {
   categoryId: number;
