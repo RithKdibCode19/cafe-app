@@ -29,103 +29,125 @@ class _BranchSelectScreenState extends State<BranchSelectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.background,
-        ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(Icons.coffee_rounded, color: AppTheme.background, size: 24),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Select Branch',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -1,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Choose a destination to experience our premium craft coffee.',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Consumer<MenuProvider>(
-                  builder: (context, menu, _) {
-                    if (menu.isLoading) {
-                      return _buildShimmer();
-                    }
-                    if (menu.error != null) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.cloud_off_rounded, size: 64, color: AppTheme.surfaceLight),
-                              const SizedBox(height: 24),
-                              Text(
-                                menu.error!,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: 140,
-                                height: 48,
-                                child: ElevatedButton(
-                                  onPressed: () => menu.loadBranches(),
-                                  child: const Text('RETRY'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
-                      itemCount: menu.branches.length,
-                      itemBuilder: (context, index) {
-                        final branch = menu.branches[index];
-                        return _BranchCard(
-                          branch: branch,
-                          onTap: () {
-                            context.read<CartProvider>().setBranch(branch.branchId);
-                            menu.selectBranch(branch);
-                            widget.onBranchSelected(branch);
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cafe_bg.png',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
+          Positioned.fill(
+            child: Container(
+              color: AppTheme.background.withValues(alpha: 0.94),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo_app.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Select Branch',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Choose a destination to experience our premium craft coffee.',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Consumer<MenuProvider>(
+                    builder: (context, menu, _) {
+                      if (menu.isLoading) {
+                        return _buildShimmer();
+                      }
+                      if (menu.error != null) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.cloud_off_rounded, size: 64, color: AppTheme.surfaceLight),
+                                const SizedBox(height: 24),
+                                Text(
+                                  menu.error!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: 140,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    onPressed: () => menu.loadBranches(),
+                                    child: const Text('RETRY'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+                        itemCount: menu.branches.length,
+                        itemBuilder: (context, index) {
+                          final branch = menu.branches[index];
+                          return _BranchCard(
+                            branch: branch,
+                            onTap: () {
+                              context.read<CartProvider>().setBranch(branch.branchId);
+                              menu.selectBranch(branch);
+                              widget.onBranchSelected(branch);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

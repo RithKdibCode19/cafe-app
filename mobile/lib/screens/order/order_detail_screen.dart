@@ -79,15 +79,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_order != null ? 'ORD-${_order!.orderNo}' : 'Order Details'),
+        title: Text(_order != null ? '#${_order!.orderNo}' : 'Order Details'),
         elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : _order == null
               ? const Center(child: Text('Order not found'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+              : Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Image.asset(
+                        'assets/images/cafe_bg.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        color: AppTheme.background.withValues(alpha: 0.94),
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -197,6 +210,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ],
                   ),
                 ),
+        ],
+      ),
       bottomNavigationBar: _order != null && _order!.status == 'PENDING'
           ? SafeArea(
               child: Padding(
@@ -283,11 +298,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (_order?.status) {
       case 'PENDING':
         return AppTheme.warning;
+      case 'PAID':
+        return const Color(0xFF42A5F5);
       case 'CONFIRMED':
       case 'PREPARING':
         return Colors.blueAccent;
+      case 'READY':
+        return const Color(0xFF26A69A);
       case 'COMPLETED':
         return AppTheme.success;
+      case 'VOID':
+      case 'REFUND':
       case 'CANCELLED':
         return AppTheme.error;
       default:
@@ -299,11 +320,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (_order?.status) {
       case 'PENDING':
         return Icons.timer_rounded;
+      case 'PAID':
+        return Icons.payment_rounded;
       case 'CONFIRMED':
       case 'PREPARING':
         return Icons.coffee_maker_rounded;
+      case 'READY':
+        return Icons.check_circle_outline_rounded;
       case 'COMPLETED':
         return Icons.verified_rounded;
+      case 'VOID':
+      case 'REFUND':
       case 'CANCELLED':
         return Icons.cancel_rounded;
       default:

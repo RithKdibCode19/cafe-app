@@ -44,7 +44,7 @@ public class OrderEntity extends BaseEntity {
     private BranchEntity branch;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cashier_user_id")
+    @JoinColumn(name = "cashier_user_id", nullable = true)
     private UserEntity cashierUser; // nullable for mobile orders
 
     @ManyToOne(fetch = FetchType.LAZY)

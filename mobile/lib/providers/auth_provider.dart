@@ -62,7 +62,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = (e is ApiException) ? e.message : e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
@@ -89,7 +89,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      _error = (e is ApiException) ? e.message : e.toString();
       _isLoading = false;
       notifyListeners();
       return false;

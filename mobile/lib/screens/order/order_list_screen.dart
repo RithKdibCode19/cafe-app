@@ -111,11 +111,17 @@ class _OrderCard extends StatelessWidget {
     switch (order.status) {
       case 'PENDING':
         return AppTheme.warning;
+      case 'PAID':
+        return const Color(0xFF42A5F5);
       case 'CONFIRMED':
       case 'PREPARING':
         return Colors.blueAccent;
+      case 'READY':
+        return const Color(0xFF26A69A);
       case 'COMPLETED':
         return AppTheme.success;
+      case 'VOID':
+      case 'REFUND':
       case 'CANCELLED':
         return AppTheme.error;
       default:
@@ -160,7 +166,7 @@ class _OrderCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'ORD-${order.orderNo}',
+                    '#${order.orderNo}',
                     style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 0.5),
                   ),
                   Container(
@@ -187,7 +193,7 @@ class _OrderCard extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
                     child: Icon(
                       order.orderType == 'DELIVERY' ? Icons.delivery_dining_rounded : Icons.local_mall_rounded,
                       size: 16,

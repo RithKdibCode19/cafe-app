@@ -2,45 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Premium Coffee-inspired color palette
-  static const Color primary = Color(0xFFC69C6D);      // Refined gold/latte
-  static const Color primaryDark = Color(0xFFA67C52);   // Deep roasted caramel
-  static const Color primaryLight = Color(0xFFE5C9A9);  // Milky froth
-  static const Color accent = Color(0xFFFFD700);        // Pure gold for highlights
-  static const Color background = Color(0xFF0F0D0B);    // Immersive obsidian
-  static const Color surface = Color(0xFF1C1815);       // Rich mocha surface
-  static const Color surfaceLight = Color(0xFF2C2622);  // Lighter mocha accent
-  static const Color textPrimary = Color(0xFFFDFCFB);   // Crisp pearl white
-  static const Color textSecondary = Color(0xFF9E8E7D);  // Muted coffee dust
+  // Warm Cream/Brown Coffee palette — matching auth screens
+  static const Color primary = Color(0xFF9B6B47);       // Warm brown button
+  static const Color primaryDark = Color(0xFF7A5335);    // Deep coffee
+  static const Color primaryLight = Color(0xFFC69C6D);   // Golden latte
+  static const Color accent = Color(0xFFD4A574);         // Warm caramel
+  static const Color background = Color(0xFFF5EDE3);     // Cream bg
+  static const Color surface = Color(0xFFF7F0E8);        // Card cream
+  static const Color surfaceLight = Color(0xFFE8DDD0);   // Border / divider  
+  static const Color textPrimary = Color(0xFF3E2C23);    // Dark brown text
+  static const Color textSecondary = Color(0xFF9E8B7D);  // Muted coffee dust
   static const Color success = Color(0xFF66BB6A);
-  static const Color error = Color(0xFFEF5350);
-  static const Color warning = Color(0xFFFFA726);
+  static const Color error = Color(0xFFD32F2F);
+  static const Color warning = Color(0xFFF5A623);
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: background,
       primaryColor: primary,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: const ColorScheme.light(
         primary: primary,
         secondary: accent,
         surface: surface,
         error: error,
-        onPrimary: background,
+        onPrimary: Colors.white,
         onSurface: textPrimary,
       ),
       textTheme: GoogleFonts.outfitTextTheme(
-        ThemeData.dark().textTheme,
+        ThemeData.light().textTheme,
       ).apply(
         bodyColor: textPrimary,
         displayColor: textPrimary,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: background.withValues(alpha: 0.8),
+        backgroundColor: background,
         foregroundColor: textPrimary,
         elevation: 0,
         centerTitle: false,
+        scrolledUnderElevation: 0,
         titleTextStyle: GoogleFonts.outfit(
           fontSize: 22,
           fontWeight: FontWeight.w700,
@@ -58,18 +59,18 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surface,
+        fillColor: const Color(0xFFFFFCF8),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: surfaceLight),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: surfaceLight, width: 0.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: surfaceLight),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: surfaceLight, width: 0.5),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primary, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: primaryLight, width: 1.5),
         ),
         hintStyle: const TextStyle(color: textSecondary),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -77,20 +78,22 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: background,
-          elevation: 4,
+          foregroundColor: Colors.white,
+          elevation: 0,
           shadowColor: primary.withValues(alpha: 0.4),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            letterSpacing: 0.3,
           ),
         ),
       ),
+      dividerColor: surfaceLight,
+      dialogBackgroundColor: surface,
     );
   }
 }

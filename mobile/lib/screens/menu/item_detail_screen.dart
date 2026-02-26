@@ -60,6 +60,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       menuItemId: _detail!.menuItemId,
       name: _detail!.name,
       imageUrl: _detail!.imageUrl,
+      basePrice: _detail!.basePrice,
       selectedVariant: _selectedVariant,
       selectedAddOns: _selectedAddOns.toList(),
       qty: _qty,
@@ -102,6 +103,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               ? const Center(child: Text('Item not found'))
               : Stack(
                   children: [
+                    Positioned.fill(
+                      child: Image.asset(
+                        'assets/images/cafe_bg.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        color: AppTheme.background.withValues(alpha: 0.94),
+                      ),
+                    ),
                     SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,11 +198,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                 ),
                                 const SizedBox(height: 24),
                                 
-                                // Description (if added later, dummy for now)
-                                Text(
-                                  'Freshly brewed with premium beans. Perfectly roasted to bring out the rich, complex flavors and a smooth, velvety finish.',
-                                  style: TextStyle(color: AppTheme.textSecondary, height: 1.5, fontSize: 13),
-                                ),
+                                // Description
+                                if (_detail!.description != null && _detail!.description!.isNotEmpty)
+                                  Text(
+                                    _detail!.description!,
+                                    style: TextStyle(color: AppTheme.textSecondary, height: 1.5, fontSize: 13),
+                                  )
+                                else
+                                  Text(
+                                    'Crafted with care using the finest ingredients for a memorable experience.',
+                                    style: TextStyle(color: AppTheme.textSecondary, height: 1.5, fontSize: 13),
+                                  ),
                                 
                                 // Configuration Section
                                 const SizedBox(height: 32),
@@ -227,7 +245,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                             child: Text(
                                               v.size,
                                               style: TextStyle(
-                                                color: selected ? AppTheme.background : AppTheme.textPrimary,
+                                                color: selected ? Colors.white : AppTheme.textPrimary,
                                                 fontWeight: FontWeight.w800,
                                                 fontSize: 13,
                                               ),
@@ -270,7 +288,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                         subtitle: Text('+\$${addon.price.toStringAsFixed(2)}',
                                             style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
                                         activeColor: AppTheme.primary,
-                                        checkColor: AppTheme.background,
+                                        checkColor: Colors.white,
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                       ),
@@ -310,7 +328,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 140),
+                                const SizedBox(height: 200),
                               ],
                             ),
                           ),
@@ -327,7 +345,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                           child: Container(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                             decoration: BoxDecoration(
                               color: AppTheme.background.withValues(alpha: 0.8),
                               border: Border(top: BorderSide(color: AppTheme.surfaceLight.withValues(alpha: 0.5))),
@@ -351,7 +369,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       Text(
                                         '\$${_totalPrice.toStringAsFixed(2)}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: AppTheme.textPrimary,
                                           fontWeight: FontWeight.w900,
                                           fontSize: 24,
                                         ),
@@ -368,7 +386,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       onPressed: _addToCart,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppTheme.primary,
-                                        foregroundColor: AppTheme.background,
+                                        foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                         elevation: 8,
                                         shadowColor: AppTheme.primary.withValues(alpha: 0.4),

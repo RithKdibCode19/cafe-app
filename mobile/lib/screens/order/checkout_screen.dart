@@ -108,13 +108,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Checkout Details'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 160),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cafe_bg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: AppTheme.background.withValues(alpha: 0.94),
+            ),
+          ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, kToolbarHeight + 40, 20, 220),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -124,9 +140,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Row(
               children: [
                 Expanded(
+                  child: _orderTypeChip('DINE_IN', Icons.restaurant_rounded, cart),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
                   child: _orderTypeChip('TAKEAWAY', Icons.shopping_bag_outlined, cart),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _orderTypeChip('DELIVERY', Icons.delivery_dining, cart),
                 ),
@@ -337,11 +357,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
+        ],
+      ),
       bottomNavigationBar: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
             decoration: BoxDecoration(
               color: AppTheme.background.withValues(alpha: 0.8),
               border: Border(top: BorderSide(color: AppTheme.surfaceLight.withValues(alpha: 0.5))),
@@ -366,7 +388,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         Text(
                           '\$${cart.totalAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.textPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 24,
                           ),
@@ -383,11 +405,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         onPressed: _isPlacing ? null : _placeOrder,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primary,
-                          foregroundColor: AppTheme.background,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                         child: _isPlacing
-                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.background))
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                             : const Text('CONFIRM ORDER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
                       ),
                     ),
@@ -434,12 +456,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: selected ? AppTheme.background : AppTheme.textSecondary, size: 28),
+            Icon(icon, color: selected ? Colors.white : AppTheme.textSecondary, size: 28),
             const SizedBox(height: 8),
             Text(
               type,
               style: TextStyle(
-                color: selected ? AppTheme.background : AppTheme.textSecondary,
+                color: selected ? Colors.white : AppTheme.textSecondary,
                 fontWeight: FontWeight.w900,
                 fontSize: 12,
                 letterSpacing: 1,

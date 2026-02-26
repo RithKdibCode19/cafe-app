@@ -71,6 +71,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _currentTab = 0;
   bool _showRegister = false;
+  final _browseNavKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +97,7 @@ class _AppShellState extends State<AppShell> {
         children: [
           // Tab 0: Browse (Branch → Menu)
           Navigator(
-            key: const ValueKey('browse'),
+            key: _browseNavKey,
             onGenerateRoute: (_) => MaterialPageRoute(
               builder: (_) => _BrowseFlow(),
             ),
@@ -128,6 +129,33 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: FloatingNavBar(
         currentIndex: _currentTab,
         onTap: (i) => setState(() => _currentTab = i),
+        onCartTap: () {
+          // Switch to menu tab if not already there
+          if (_currentTab != 0) {
+            setState(() => _currentTab = 0);
+          }
+          // Navigate to cart within the browse tab's navigator
+          final navState = _browseNavKey.currentState;
+          if (navState != null) {
+            navState.push(
+              MaterialPageRoute(
+                builder: (_) => CartScreen(
+                  onCheckout: () {
+                    navState.push(
+                      MaterialPageRoute(
+                        builder: (_) => CheckoutScreen(
+                          onOrderPlaced: () {
+                            navState.popUntil((route) => route.isFirst);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -143,8 +171,13 @@ class _BrowseFlowState extends State<_BrowseFlow> {
   void initState() {
     super.initState();
     // Load branches immediately if they haven't been loaded
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MenuProvider>().loadBranches();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final menu = context.read<MenuProvider>();
+      await menu.loadBranches();
+      // Sync auto-selected branch to cart so orders have a valid branchId
+      if (mounted && menu.selectedBranch != null) {
+        context.read<CartProvider>().setBranch(menu.selectedBranch!.branchId);
+      }
     });
   }
 

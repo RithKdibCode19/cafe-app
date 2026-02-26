@@ -6,9 +6,9 @@ class ApiConfig {
   // For Chrome/web: use localhost
   // For Android emulator: use 10.0.2.2
   // For real device: use your machine's local IP
-  static const String baseUrl = 'http://localhost:8081/api/mobile';
+  // static const String baseUrl = 'http://localhost:8081/api/mobile';
   
-  // static const String baseUrl = 'https://cafeos.shop/api/mobile';
+  static const String baseUrl = 'https://cafeos.shop/api/mobile';
 
   // Timeout in seconds
   static const int connectTimeout = 15;

@@ -51,170 +51,185 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
     final cart = context.watch<CartProvider>();
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => BranchSelectScreen(
-                              onBranchSelected: (branch) {
-                                context.read<MenuProvider>().selectBranch(branch);
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  menu.selectedBranch?.name ?? 'Select Branch',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cafe_bg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: AppTheme.background.withValues(alpha: 0.94),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => BranchSelectScreen(
+                                  onBranchSelected: (branch) {
+                                    context.read<MenuProvider>().selectBranch(branch);
+                                    Navigator.of(context).pop();
+                                  },
                                 ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down, size: 20, color: AppTheme.primary),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      menu.selectedBranch?.name ?? 'Select Branch',
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.keyboard_arrow_down, size: 20, color: AppTheme.primary),
+                                  ],
+                                ),
+                                if (menu.selectedBranch?.location != null)
+                                  Text(
+                                    menu.selectedBranch!.location!,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                  ),
                               ],
                             ),
-                            if (menu.selectedBranch?.location != null)
-                              Text(
-                                menu.selectedBranch!.location!,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textSecondary,
-                                    ),
-                              ),
-                          ],
+                          ),
                         ),
+                      ),
+                      IconButton(
+                        onPressed: widget.onSearchTap,
+                        icon: const Icon(Icons.search, color: AppTheme.textPrimary),
+                      ),
+                      Stack(
+                        children: [
+                          IconButton(
+                            onPressed: widget.onCartTap,
+                            icon: const Icon(Icons.shopping_bag_outlined,
+                                color: AppTheme.textPrimary),
+                          ),
+                          if (cart.itemCount > 0)
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${cart.itemCount}',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Loyalty Pulse (Glassmorphism card)
+                _buildLoyaltyPulse(context),
+                
+                const SizedBox(height: 24),
+                
+                // Featured Items
+                if (menu.menuCategories.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Featured for you',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: widget.onSearchTap,
-                    icon: const Icon(Icons.search, color: AppTheme.textPrimary),
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        onPressed: widget.onCartTap,
-                        icon: const Icon(Icons.shopping_bag_outlined,
-                            color: AppTheme.textPrimary),
-                      ),
-                      if (cart.itemCount > 0)
-                        Positioned(
-                          right: 4,
-                          top: 4,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: AppTheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${cart.itemCount}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.background,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                  const SizedBox(height: 12),
+                  _buildFeaturedSection(menu),
+                  const SizedBox(height: 24),
                 ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Loyalty Pulse (Glassmorphism card)
-            _buildLoyaltyPulse(context),
-            
-            const SizedBox(height: 24),
-            
-            // Featured Items
-            if (menu.menuCategories.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Featured for you',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildFeaturedSection(menu),
-              const SizedBox(height: 24),
-            ],
 
-            // Category tabs
-            if (menu.menuCategories.isNotEmpty && _tabController != null)
-              Container(
-                height: 44,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  labelColor: AppTheme.background,
-                  unselectedLabelColor: AppTheme.textSecondary,
-                  indicator: BoxDecoration(
-                    color: AppTheme.primary,
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                // Category tabs
+                if (menu.menuCategories.isNotEmpty && _tabController != null)
+                  Container(
+                    height: 44,
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: AppTheme.textSecondary,
+                      indicator: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
+                      dividerColor: Colors.transparent,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      tabs: menu.menuCategories
+                          .map((c) => Tab(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Text(c.name,
+                                      style: const TextStyle(
+                                          fontSize: 14, fontWeight: FontWeight.w700)),
+                                ),
+                              ))
+                          .toList(),
+                    ),
                   ),
-                  dividerColor: Colors.transparent,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                  tabs: menu.menuCategories
-                      .map((c) => Tab(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Text(c.name,
-                                  style: const TextStyle(
-                                      fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                // Menu grid
+                Expanded(
+                  child: menu.isLoading
+                      ? _buildShimmer()
+                      : menu.menuCategories.isEmpty
+                          ? const Center(child: Text('No menu items available'))
+                          : TabBarView(
+                              controller: _tabController,
+                              children: menu.menuCategories
+                                  .map((cat) => _buildMenuGrid(cat.items))
+                                  .toList(),
                             ),
-                          ))
-                      .toList(),
                 ),
-              ),
-            const SizedBox(height: 8),
-            // Menu grid
-            Expanded(
-              child: menu.isLoading
-                  ? _buildShimmer()
-                  : menu.menuCategories.isEmpty
-                      ? const Center(child: Text('No menu items available'))
-                      : TabBarView(
-                          controller: _tabController,
-                          children: menu.menuCategories
-                              .map((cat) => _buildMenuGrid(cat.items))
-                              .toList(),
-                        ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       // Floating cart bar
       bottomNavigationBar: cart.isEmpty
@@ -250,7 +265,7 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
                           child: Text(
                             '${cart.itemCount}',
                             style: const TextStyle(
-                              color: AppTheme.background,
+                              color: Colors.white,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -260,7 +275,7 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
                           child: Text(
                             'View Cart',
                             style: TextStyle(
-                              color: AppTheme.background,
+                              color: Colors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
@@ -269,7 +284,7 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
                         Text(
                           '\$${cart.subtotal.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            color: AppTheme.background,
+                            color: Colors.white,
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
                           ),
@@ -478,84 +493,111 @@ class _MenuItemCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        onTap: item.isAvailable ? onTap : null,
+        child: Stack(
           children: [
-            // Image
-            Expanded(
-              flex: 3,
-              child: SizedBox(
-                width: double.infinity,
-                child: Hero(
-                  tag: 'item_image_${item.menuItemId}',
-                  child: item.imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: item.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
-                            color: AppTheme.surfaceLight,
-                            child: const Icon(Icons.coffee, color: AppTheme.textSecondary),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            color: AppTheme.surfaceLight,
-                            child: const Icon(Icons.coffee, color: AppTheme.textSecondary),
-                          ),
-                        )
-                      : Container(
-                          color: AppTheme.surfaceLight,
-                          child: const Icon(Icons.coffee, size: 40, color: AppTheme.textSecondary),
-                        ),
-                ),
-              ),
-            ),
-            // Info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      item.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Hero(
+                      tag: 'item_image_${item.menuItemId}',
+                      child: item.imageUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: item.imageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                color: AppTheme.surfaceLight,
+                                child: const Center(child: Icon(Icons.coffee, color: AppTheme.textSecondary)),
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: AppTheme.surfaceLight,
+                                child: const Center(child: Icon(Icons.coffee, color: AppTheme.textSecondary)),
+                              ),
+                            )
+                          : Container(
+                              color: AppTheme.surfaceLight,
+                              child: const Center(child: Icon(Icons.coffee, size: 40, color: AppTheme.textSecondary)),
+                            ),
                     ),
-                    Row(
+                  ),
+                ),
+                // Info
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '\$${item.displayPrice.toStringAsFixed(2)}',
+                          item.name,
                           style: const TextStyle(
-                            color: AppTheme.primary,
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontSize: 13,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (!item.isAvailable)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.error.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '\$${item.displayPrice.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: AppTheme.primary,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                              ),
                             ),
-                            child: const Text(
-                              'Sold out',
-                              style: TextStyle(color: AppTheme.error, fontSize: 10),
-                            ),
-                          ),
+                            if (item.isAvailable)
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.add_rounded, color: Colors.white, size: 18),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
+                ),
+              ],
+            ),
+            // Sold out overlay
+            if (!item.isAvailable)
+              Positioned.fill(
+                child: Container(
+                  color: AppTheme.background.withValues(alpha: 0.6),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.error.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'SOLD OUT',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

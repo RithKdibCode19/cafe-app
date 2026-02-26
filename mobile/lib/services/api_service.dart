@@ -60,9 +60,18 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+      // Extract the most useful error message
+      String message = body['error'] ?? body['message'] ?? 'Request failed';
+      // If there are validation details, show those instead
+      if (body['details'] != null && body['details'] is Map) {
+        final details = body['details'] as Map;
+        if (details.isNotEmpty) {
+          message = details.values.join(', ');
+        }
+      }
       throw ApiException(
         statusCode: response.statusCode,
-        message: body['error'] ?? body['message'] ?? 'Request failed',
+        message: message,
       );
     }
   }

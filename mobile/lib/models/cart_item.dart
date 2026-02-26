@@ -4,6 +4,7 @@ class CartItem {
   final int menuItemId;
   final String name;
   final String? imageUrl;
+  final double basePrice;
   final Variant? selectedVariant;
   final List<AddOn> selectedAddOns;
   int qty;
@@ -13,6 +14,7 @@ class CartItem {
     required this.menuItemId,
     required this.name,
     this.imageUrl,
+    this.basePrice = 0,
     this.selectedVariant,
     this.selectedAddOns = const [],
     this.qty = 1,
@@ -20,7 +22,7 @@ class CartItem {
   });
 
   double get unitPrice {
-    double price = selectedVariant?.price ?? 0;
+    double price = selectedVariant?.price ?? basePrice;
     for (final addon in selectedAddOns) {
       price += addon.price;
     }
@@ -42,7 +44,7 @@ class CartItem {
       'qty': qty,
       if (selectedVariant != null) 'variantId': selectedVariant!.variantId,
       if (selectedAddOns.isNotEmpty)
-        'addOnIds': selectedAddOns.map((a) => a.addOnId).toList(),
+        'addonIds': selectedAddOns.map((a) => a.addOnId).toList(),
     };
   }
 }

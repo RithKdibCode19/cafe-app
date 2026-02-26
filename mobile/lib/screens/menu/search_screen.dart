@@ -50,121 +50,165 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 40,
-        titleSpacing: 0,
-        title: Container(
-          height: 48,
-          margin: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.surfaceLight.withValues(alpha: 0.5)),
-          ),
-          child: TextField(
-            controller: _searchController,
-            autofocus: true,
-            style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 15),
-            decoration: InputDecoration(
-              hintText: 'Search our craft menu...',
-              border: InputBorder.none,
-              prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primary, size: 20),
-              hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.normal),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.cancel_rounded, color: AppTheme.textSecondary, size: 18),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _results = []);
-                      },
-                    )
-                  : null,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cafe_bg.png',
+              fit: BoxFit.cover,
             ),
-            onChanged: _search,
           ),
-        ),
-        elevation: 0,
-      ),
-      body: _isSearching
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : _results.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+          Positioned.fill(
+            child: Container(
+              color: AppTheme.background.withValues(alpha: 0.94),
+            ),
+          ),
+          Column(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+                  child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(color: AppTheme.surface, shape: BoxShape.circle),
-                        child: Icon(
-                          _searchController.text.isEmpty ? Icons.travel_explore_rounded : Icons.search_off_rounded,
-                          size: 48,
-                          color: AppTheme.primary.withValues(alpha: 0.5),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppTheme.surfaceLight.withValues(alpha: 0.5)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 15),
+                            decoration: InputDecoration(
+                              hintText: 'Search our craft menu...',
+                              border: InputBorder.none,
+                              prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primary, size: 20),
+                              hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.normal),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.cancel_rounded, color: AppTheme.textSecondary, size: 18),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() => _results = []);
+                                      },
+                                    )
+                                  : null,
+                            ),
+                            onChanged: _search,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        _searchController.text.isEmpty ? 'Discover something new' : 'No results found',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _searchController.text.isEmpty ? 'Type to find your favorite craft brew.' : 'Try a different keyword or category.',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                  itemCount: _results.length,
-                  itemBuilder: (context, index) {
-                    final item = _results[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.surfaceLight.withValues(alpha: 0.5)),
-                      ),
-                      child: ListTile(
-                        onTap: () => widget.onItemTap(item.menuItemId),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        leading: Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: AppTheme.background,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(Icons.coffee_rounded, color: AppTheme.primary, size: 28),
-                        ),
-                        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            item.categoryName ?? 'Craft',
-                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5),
-                          ),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '\$${item.displayPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: AppTheme.primary,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppTheme.surfaceLight),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
                 ),
+              ),
+              Expanded(
+                child: _isSearching
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                    : _results.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(color: AppTheme.surface, shape: BoxShape.circle),
+                                  child: Icon(
+                                    _searchController.text.isEmpty ? Icons.travel_explore_rounded : Icons.search_off_rounded,
+                                    size: 48,
+                                    color: AppTheme.primary.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  _searchController.text.isEmpty ? 'Discover something new' : 'No results found',
+                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _searchController.text.isEmpty ? 'Type to find your favorite craft brew.' : 'Try a different keyword or category.',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                            itemCount: _results.length,
+                            itemBuilder: (context, index) {
+                              final item = _results[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surface,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppTheme.surfaceLight.withValues(alpha: 0.5)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ListTile(
+                                  onTap: () => widget.onItemTap(item.menuItemId),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  leading: Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Icon(Icons.coffee_rounded, color: AppTheme.primary, size: 28),
+                                  ),
+                                  title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      item.categoryName ?? 'Craft',
+                                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+                                    ),
+                                  ),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '\$${item.displayPrice.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          color: AppTheme.primary,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppTheme.surfaceLight),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

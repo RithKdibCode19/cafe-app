@@ -33,6 +33,7 @@ public class MenuItemService {
         this.branchStockService = branchStockService;
     }
 
+    @Transactional(readOnly = true)
     public List<MenuItemResponseDTO> getAllMenuItems(Long branchId) {
         List<MenuItemEntity> entities = menuItemRepository.findAllActive();
         List<MenuItemResponseDTO> dtos = entities.stream()
