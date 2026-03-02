@@ -94,25 +94,8 @@ public class MobileMenuController {
         // Build categories with their items
         List<MobileMenuDTO.CategoryWithItems> categoryWithItems = new ArrayList<>();
         for (CategoryEntity cat : rootCategories) {
-            List<MobileMenuDTO.MenuItemInfo> items = menuItems.stream()
-                    .filter(item -> item.getIsAvailable() != null && item.getIsAvailable())
-                    .filter(item -> item.getCategory() != null &&
-                            item.getCategory().getCategoryId().equals(cat.getCategoryId()))
-                    .map(this::toMenuItemInfo)
-                    .collect(Collectors.toList());
-
-            // Include sub-categories' items too
-            if (cat.getChildren() != null) {
-                for (CategoryEntity child : cat.getChildren()) {
-                    List<MobileMenuDTO.MenuItemInfo> childItems = menuItems.stream()
-                            .filter(item -> item.getIsAvailable() != null && item.getIsAvailable())
-                            .filter(item -> item.getCategory() != null &&
-                                    item.getCategory().getCategoryId().equals(child.getCategoryId()))
-                            .map(this::toMenuItemInfo)
-                            .collect(Collectors.toList());
-                    items.addAll(childItems);
-                }
-            }
+            List<MobileMenuDTO.MenuItemInfo> items = new ArrayList<>();
+            collectItemsRecursive(cat, menuItems, items);
 
             if (!items.isEmpty()) {
                 categoryWithItems.add(MobileMenuDTO.CategoryWithItems.builder()
@@ -181,6 +164,24 @@ public class MobileMenuController {
     }
 
     // ========== Mappers ==========
+
+    private void collectItemsRecursive(CategoryEntity category, List<MenuItemEntity> allItems, List<MobileMenuDTO.MenuItemInfo> result) {
+        // Collect items from current category
+        List<MobileMenuDTO.MenuItemInfo> currentItems = allItems.stream()
+                .filter(item -> item.getIsAvailable() != null && item.getIsAvailable())
+                .filter(item -> item.getCategory() != null &&
+                        item.getCategory().getCategoryId().equals(category.getCategoryId()))
+                .map(this::toMenuItemInfo)
+                .collect(Collectors.toList());
+        result.addAll(currentItems);
+
+        // Recursively collect from children
+        if (category.getChildren() != null) {
+            for (CategoryEntity child : category.getChildren()) {
+                collectItemsRecursive(child, allItems, result);
+            }
+        }
+    }
 
     private MobileMenuDTO.BranchInfo toBranchInfo(BranchEntity branch) {
         return MobileMenuDTO.BranchInfo.builder()

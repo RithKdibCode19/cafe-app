@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.cache.annotation.CacheEvict;
 
 import com.example.backend.dto.common.ApiResponse;
 import com.example.backend.dto.report.DashboardStatsDTO;
@@ -122,6 +123,7 @@ public class ReportController {
     }
 
     @PostMapping("/seed-inventory")
+    @CacheEvict(value = "menu-items", allEntries = true)
     public ResponseEntity<ApiResponse<String>> seedInventoryData() {
         try {
             dataSeeder.seedRealisticInventoryData();

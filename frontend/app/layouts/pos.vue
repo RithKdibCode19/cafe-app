@@ -161,11 +161,24 @@
         v-if="showAttendanceBanner"
         class="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-2.5 flex items-center justify-between gap-3 animate-slide-down"
       >
-        <div class="flex items-center gap-2 text-yellow-400 text-sm font-medium">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        <div
+          class="flex items-center gap-2 text-yellow-400 text-sm font-medium"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 flex-shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+            />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <span>You haven't clocked in today.</span>
           <NuxtLink
@@ -179,7 +192,14 @@
           @click="dismissAttendanceBanner"
           class="text-yellow-500/50 hover:text-yellow-400 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path d="M18 6L6 18" />
             <path d="m6 6 12 12" />
           </svg>
@@ -1856,7 +1876,7 @@ const checkAttendanceStatus = async () => {
   if (!empId || isNaN(Number(empId))) return; // Guard against NaN
   try {
     const res = await get<any>(`/attendance/status/${empId}`);
-    showAttendanceBanner.value = !(res?.clockedIn);
+    showAttendanceBanner.value = !res?.clockedIn;
   } catch {
     // Silently fail — don't block POS
   }
@@ -2160,7 +2180,8 @@ const openOrderHistory = async () => {
       size: 20,
       sort: "createdAt,desc",
     });
-    recentOrders.value = data.content || [];
+    const pageData = data?.data;
+    recentOrders.value = pageData?.content || [];
   } catch (e) {
     toast.error("Failed to load order history");
   } finally {
@@ -2346,10 +2367,11 @@ const completeOrder = async () => {
     };
 
     const response = await post<any>("/orders", payload);
+    const orderResponse = response?.data;
 
     // Fetch receipt data
-    if ((response && response.orderData?.orderId) || response?.orderId) {
-      const orderId = response.orderData?.orderId || response.orderId;
+    if ((orderResponse && orderResponse.orderId) || response?.orderId) {
+      const orderId = orderResponse?.orderId || response.orderId;
       lastOrderId.value = orderId;
       try {
         const receiptResponse = await get<any>(`/receipts/${orderId}`);

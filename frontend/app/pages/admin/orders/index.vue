@@ -139,9 +139,19 @@
                   class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500"
                 >
                   <div class="flex flex-col gap-1">
-                    <span class="font-medium text-neutral-900 dark:text-white">{{ order.orderType }}</span>
-                    <span v-if="order.tableNo" class="text-[10px] bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded-md w-fit font-bold">Table {{ order.tableNo }}</span>
-                    <span class="text-[10px] text-neutral-400 font-medium uppercase tracking-tighter">{{ order.orderSource || 'POS' }}</span>
+                    <span
+                      class="font-medium text-neutral-900 dark:text-white"
+                      >{{ order.orderType }}</span
+                    >
+                    <span
+                      v-if="order.tableNo"
+                      class="text-[10px] bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded-md w-fit font-bold"
+                      >Table {{ order.tableNo }}</span
+                    >
+                    <span
+                      class="text-[10px] text-neutral-400 font-medium uppercase tracking-tighter"
+                      >{{ order.orderSource || "POS" }}</span
+                    >
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -513,7 +523,7 @@
       </div>
 
       <!-- New Approval Modal (PIN + Reason) -->
-      <ApprovalModal 
+      <ApprovalModal
         v-model="showApprovalModal"
         :action-type="approvalActionType"
         :loading="submittingAdjustment"
@@ -551,7 +561,7 @@ const pageSize = 20;
 const adjustmentTarget = ref<any | null>(null);
 const submittingAdjustment = ref(false);
 const showApprovalModal = ref(false);
-const approvalActionType = ref<'VOID' | 'REFUND'>('VOID');
+const approvalActionType = ref<"VOID" | "REFUND">("VOID");
 
 // -- Fetch Logic --
 const fetchOrders = async () => {
@@ -574,13 +584,18 @@ const fetchOrders = async () => {
 
     const data = await get<any>("/orders", params);
 
+    // Handle Standardized ApiResponse structure
+    const pageData = data?.data;
+
     // Handle Page response structure
-    if (data && data.content) {
-      orders.value = data.content;
-      totalPages.value = data.totalPages;
-      totalElements.value = data.totalElements;
+    if (pageData && pageData.content) {
+      orders.value = pageData.content;
+      totalPages.value = pageData.totalPages;
+      totalElements.value = pageData.totalElements;
+    } else if (Array.isArray(pageData)) {
+      orders.value = pageData;
     } else if (Array.isArray(data)) {
-      // Fallback if backend not ready (though it should be)
+      // Direct array fallback
       orders.value = data;
     } else {
       orders.value = [];
@@ -631,7 +646,10 @@ const initiateAdjustment = (order: any, type: "VOID" | "REFUND") => {
   selectedOrder.value = null;
 };
 
-const handleApprovedAdjustment = async (data: { pin: string, reason: string }) => {
+const handleApprovedAdjustment = async (data: {
+  pin: string;
+  reason: string;
+}) => {
   if (!adjustmentTarget.value) return;
 
   submittingAdjustment.value = true;
@@ -641,10 +659,10 @@ const handleApprovedAdjustment = async (data: { pin: string, reason: string }) =
 
     const endpoint = `/orders/${orderId}/${type.toLowerCase()}`;
     await put(endpoint, null, {
-        params: {
-            pinCode: data.pin,
-            reason: data.reason
-        }
+      params: {
+        pinCode: data.pin,
+        reason: data.reason,
+      },
     });
 
     await fetchOrders();
