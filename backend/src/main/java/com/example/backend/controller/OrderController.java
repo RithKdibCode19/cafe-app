@@ -148,9 +148,9 @@ public class OrderController {
      * GET /api/orders/cashier/{cashierUserId}
      */
     @GetMapping("/cashier/{cashierUserId}")
-    public ResponseEntity<List<OrderResponseDTO>> getOrdersByCashier(@PathVariable Long cashierUserId) {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByCashier(@PathVariable Long cashierUserId) {
         List<OrderResponseDTO> orders = orderService.getOrdersByCashier(cashierUserId);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -159,7 +159,7 @@ public class OrderController {
      * /api/orders/date-range?startDate=2024-01-01T00:00:00&endDate=2024-01-31T23:59:59
      */
     @GetMapping("/date-range")
-    public ResponseEntity<List<OrderResponseDTO>> getOrdersByDateRange(
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByDateRange(
             @RequestParam String startDate,
             @RequestParam String endDate) {
 
@@ -168,7 +168,7 @@ public class OrderController {
         LocalDateTime end = LocalDateTime.parse(endDate, formatter);
 
         List<OrderResponseDTO> orders = orderService.getOrdersByDateRange(start, end);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -176,10 +176,10 @@ public class OrderController {
      * GET /api/orders/search?orderNo=ORD-123
      */
     @GetMapping("/search")
-    public ResponseEntity<List<OrderResponseDTO>> searchOrdersByOrderNo(
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> searchOrdersByOrderNo(
             @RequestParam String orderNo) {
         List<OrderResponseDTO> orders = orderService.searchOrdersByOrderNo(orderNo);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -187,9 +187,9 @@ public class OrderController {
      * GET /api/orders/today/{branchId}
      */
     @GetMapping("/today/{branchId}")
-    public ResponseEntity<List<OrderResponseDTO>> getTodayOrdersForBranch(@PathVariable Long branchId) {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getTodayOrdersForBranch(@PathVariable Long branchId) {
         List<OrderResponseDTO> orders = orderService.getTodayOrdersForBranch(branchId);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Today's orders retrieved successfully"));
     }
 
     /**
@@ -217,9 +217,9 @@ public class OrderController {
      * GET /api/orders/void
      */
     @GetMapping("/void")
-    public ResponseEntity<List<OrderResponseDTO>> getVoidOrders() {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getVoidOrders() {
         List<OrderResponseDTO> orders = orderService.getOrdersByStatus("VOID");
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Voided orders retrieved successfully"));
     }
 
     /**

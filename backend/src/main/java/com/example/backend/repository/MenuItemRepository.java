@@ -15,6 +15,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItemEntity, Long> 
     List<MenuItemEntity> findAllActive();
 
     java.util.Optional<MenuItemEntity> findByNameAndDeletedAtIsNull(String name);
+    java.util.List<MenuItemEntity> findByName(String name);
 
     @Query("SELECT m FROM MenuItemEntity m WHERE m.deletedAt IS NULL AND LOWER(m.name) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<MenuItemEntity> searchByName(@org.springframework.data.repository.query.Param("query") String query);

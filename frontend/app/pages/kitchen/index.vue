@@ -77,9 +77,19 @@
                         {{ formatTime(order.createdAt) }}</span
                       >
                       <!-- QR Order Badge -->
-                      <div v-if="order.orderSource === 'QR_WEB'" class="flex items-center gap-1.5 mt-1">
-                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">📱 QR ORDER</span>
-                        <span v-if="order.tableNo" class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30">TABLE {{ order.tableNo }}</span>
+                      <div
+                        v-if="order.orderSource === 'QR_WEB'"
+                        class="flex items-center gap-1.5 mt-1"
+                      >
+                        <span
+                          class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30"
+                          >📱 QR ORDER</span
+                        >
+                        <span
+                          v-if="order.tableNo"
+                          class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30"
+                          >TABLE {{ order.tableNo }}</span
+                        >
                       </div>
                     </div>
                     <div class="text-right">
@@ -114,7 +124,9 @@
                           >
                             <span
                               class="text-[10px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-700"
-                              >{{ item.variant.name || item.variant.size }}</span
+                              >{{
+                                item.variant.name || item.variant.size
+                              }}</span
                             >
                           </div>
                           <div
@@ -231,9 +243,19 @@
                       >{{ order.orderType }}</span
                     >
                     <!-- QR Order Badge -->
-                    <div v-if="order.orderSource === 'QR_WEB'" class="flex items-center gap-1.5 mt-1">
-                      <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30">📱 QR</span>
-                      <span v-if="order.tableNo" class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30">T{{ order.tableNo }}</span>
+                    <div
+                      v-if="order.orderSource === 'QR_WEB'"
+                      class="flex items-center gap-1.5 mt-1"
+                    >
+                      <span
+                        class="text-[10px] font-black px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30"
+                        >📱 QR</span
+                      >
+                      <span
+                        v-if="order.tableNo"
+                        class="text-[10px] font-black px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30"
+                        >T{{ order.tableNo }}</span
+                      >
                     </div>
                   </div>
                   <div
@@ -352,8 +374,16 @@
                 <p class="text-xs text-neutral-400 mb-4">
                   {{ order.items.length }} Items •
                   {{ formatTime(order.updatedAt || order.createdAt) }}
-                  <span v-if="order.orderSource === 'QR_WEB'" class="ml-1 text-fuchsia-400 font-bold">📱 QR</span>
-                  <span v-if="order.tableNo" class="ml-1 text-primary-400 font-bold">Table {{ order.tableNo }}</span>
+                  <span
+                    v-if="order.orderSource === 'QR_WEB'"
+                    class="ml-1 text-fuchsia-400 font-bold"
+                    >📱 QR</span
+                  >
+                  <span
+                    v-if="order.tableNo"
+                    class="ml-1 text-primary-400 font-bold"
+                    >Table {{ order.tableNo }}</span
+                  >
                 </p>
 
                 <button
@@ -414,7 +444,7 @@ const totalPendingItems = computed(() => {
 
   allOrders.forEach((order) => {
     order.items.forEach((item: any) => {
-      const itemName = item.menuItem?.name || 'Unknown';
+      const itemName = item.menuItem?.name || "Unknown";
       summary[itemName] = (summary[itemName] || 0) + item.qty;
     });
   });
@@ -427,16 +457,22 @@ const totalPendingItems = computed(() => {
 const fetchOrders = async () => {
   try {
     const [pendingRes, paidRes, preparingRes, readyRes] = await Promise.all([
-      get<any[]>("/orders/status/PENDING"),
-      get<any[]>("/orders/status/PAID"),
-      get<any[]>("/orders/status/PREPARING"),
-      get<any[]>("/orders/status/READY"),
+      get<any>("/orders/status/PENDING"),
+      get<any>("/orders/status/PAID"),
+      get<any>("/orders/status/PREPARING"),
+      get<any>("/orders/status/READY"),
     ]);
 
     const oldPendingIds = new Set(pendingOrders.value.map((o) => o.orderId));
     // Combine PENDING and PAID. Sort by ID or CreatedAt implicitly?
     // Usually lists are returned sorted by DB. We might want to sort them manually if needed.
-    const newPending = [...(pendingRes || []), ...(paidRes || [])].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    const newPending = [
+      ...(pendingRes?.data || []),
+      ...(paidRes?.data || []),
+    ].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
     // Check for new orders to play sound
     if (
@@ -447,14 +483,17 @@ const fetchOrders = async () => {
     }
 
     pendingOrders.value = newPending;
-    preparingOrders.value = preparingRes || [];
-    readyOrders.value = readyRes || [];
+    preparingOrders.value = preparingRes?.data || [];
+    readyOrders.value = readyRes?.data || [];
 
-    console.log('KDS Debug - Pending:', pendingOrders.value.length);
-    console.log('KDS Debug - Preparing:', preparingOrders.value.length);
-    console.log('KDS Debug - Ready:', readyOrders.value.length);
+    console.log("KDS Debug - Pending:", pendingOrders.value.length);
+    console.log("KDS Debug - Preparing:", preparingOrders.value.length);
+    console.log("KDS Debug - Ready:", readyOrders.value.length);
     if (newPending.length > 0) {
-      console.log('KDS Sample Order Item Structure:', JSON.stringify(newPending[0].items?.[0], null, 2));
+      console.log(
+        "KDS Sample Order Item Structure:",
+        JSON.stringify(newPending[0].items?.[0], null, 2),
+      );
     }
   } catch (err) {
     console.error("Failed to fetch kitchen orders", err);

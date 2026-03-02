@@ -666,44 +666,45 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private CategoryEntity createCategory(String name, String desc, CategoryEntity parent) {
-        return categoryRepository.findByName(name).filter(c -> 
-            (parent == null && c.getParent() == null) || 
-            (parent != null && c.getParent() != null && parent.getCategoryId().equals(c.getParent().getCategoryId()))
-        ).orElseGet(() -> {
-            CategoryEntity cat = new CategoryEntity();
+        List<CategoryEntity> existing = categoryRepository.findByName(name);
+        for (CategoryEntity c : existing) {
+            boolean sameParent = (parent == null && c.getParent() == null) || 
+                                (parent != null && c.getParent() != null && parent.getCategoryId().equals(c.getParent().getCategoryId()));
+            if (sameParent) return c;
+        }
+        CategoryEntity cat = new CategoryEntity();
             cat.setName(name);
             cat.setDescription(desc);
             cat.setParent(parent);
             return categoryRepository.save(cat);
-        });
     }
 
     private MenuItemEntity createMenuItem(CategoryEntity cat, String name, String desc, Double price) {
-        return menuItemRepository.findByName(name).filter(item -> 
-            item.getCategory().getCategoryId().equals(cat.getCategoryId())
-        ).orElseGet(() -> {
-            MenuItemEntity item = new MenuItemEntity();
-            item.setCategory(cat);
-            item.setName(name);
-            item.setBasePrice(price);
-            item.setIsAvailable(true);
-            item.setImageUrl("https://placehold.co/200?text=" + name.replace(" ", "+"));
-            return menuItemRepository.save(item);
-        });
+        List<MenuItemEntity> items = menuItemRepository.findByName(name);
+        if (!items.isEmpty()) {
+            return items.get(0);
+        }
+        MenuItemEntity item = new MenuItemEntity();
+        item.setCategory(cat);
+        item.setName(name);
+        item.setBasePrice(price);
+        item.setIsAvailable(true);
+        item.setImageUrl("https://placehold.co/200?text=" + name.replace(" ", "+"));
+        return menuItemRepository.save(item);
     }
 
     private MenuItemEntity createMenuItemWithImage(CategoryEntity cat, String name, String desc, Double price, String imageUrl) {
-        return menuItemRepository.findByName(name).filter(item -> 
-            item.getCategory().getCategoryId().equals(cat.getCategoryId())
-        ).orElseGet(() -> {
-            MenuItemEntity item = new MenuItemEntity();
-            item.setCategory(cat);
-            item.setName(name);
-            item.setBasePrice(price);
-            item.setIsAvailable(true);
-            item.setImageUrl(imageUrl);
-            return menuItemRepository.save(item);
-        });
+        List<MenuItemEntity> items = menuItemRepository.findByName(name);
+        if (!items.isEmpty()) {
+            return items.get(0);
+        }
+        MenuItemEntity item = new MenuItemEntity();
+        item.setCategory(cat);
+        item.setName(name);
+        item.setBasePrice(price);
+        item.setIsAvailable(true);
+        item.setImageUrl(imageUrl);
+        return menuItemRepository.save(item);
     }
 
 
@@ -828,19 +829,23 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private CategoryEntity getOrCreateCategory(String name, String desc, CategoryEntity parent) {
-        return categoryRepository.findByName(name).orElseGet(() -> {
-            System.out.println("Creating category: " + name);
-            return createCategory(name, desc, parent);
-        });
+        List<CategoryEntity> cats = categoryRepository.findByName(name);
+        if (!cats.isEmpty()) {
+            return cats.get(0);
+        }
+        System.out.println("Creating category: " + name);
+        return createCategory(name, desc, parent);
     }
 
     private void moveCategory(String name, CategoryEntity newParent) {
-        categoryRepository.findByName(name).ifPresent(c -> {
+        List<CategoryEntity> cats = categoryRepository.findByName(name);
+        if (!cats.isEmpty()) {
+            CategoryEntity c = cats.get(0);
             if (c.getParent() == null) { // Only move if it's a root
                 c.setParent(newParent);
                 categoryRepository.save(c);
             }
-        });
+        }
     }
     
     private void seedAmazonItems(CategoryEntity hot, CategoryEntity iced, CategoryEntity frappe, 

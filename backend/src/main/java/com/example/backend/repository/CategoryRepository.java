@@ -15,7 +15,7 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
 """)
     List<CategoryEntity> findAllActive();
 
-    java.util.Optional<CategoryEntity> findByName(String name);
+    java.util.List<CategoryEntity> findByName(String name);
 
     @Query("""
     SELECT DISTINCT c FROM CategoryEntity c
