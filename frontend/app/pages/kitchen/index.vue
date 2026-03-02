@@ -449,6 +449,13 @@ const fetchOrders = async () => {
     pendingOrders.value = newPending;
     preparingOrders.value = preparingRes || [];
     readyOrders.value = readyRes || [];
+
+    console.log('KDS Debug - Pending:', pendingOrders.value.length);
+    console.log('KDS Debug - Preparing:', preparingOrders.value.length);
+    console.log('KDS Debug - Ready:', readyOrders.value.length);
+    if (newPending.length > 0) {
+      console.log('KDS Sample Order Item Structure:', JSON.stringify(newPending[0].items?.[0], null, 2));
+    }
   } catch (err) {
     console.error("Failed to fetch kitchen orders", err);
   } finally {

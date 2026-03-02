@@ -666,31 +666,44 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private CategoryEntity createCategory(String name, String desc, CategoryEntity parent) {
-        CategoryEntity cat = new CategoryEntity();
-        cat.setName(name);
-        cat.setDescription(desc);
-        cat.setParent(parent);
-        return categoryRepository.save(cat);
+        return categoryRepository.findByName(name).filter(c -> 
+            (parent == null && c.getParent() == null) || 
+            (parent != null && c.getParent() != null && parent.getCategoryId().equals(c.getParent().getCategoryId()))
+        ).orElseGet(() -> {
+            CategoryEntity cat = new CategoryEntity();
+            cat.setName(name);
+            cat.setDescription(desc);
+            cat.setParent(parent);
+            return categoryRepository.save(cat);
+        });
     }
 
     private MenuItemEntity createMenuItem(CategoryEntity cat, String name, String desc, Double price) {
-        MenuItemEntity item = new MenuItemEntity();
-        item.setCategory(cat);
-        item.setName(name);
-        item.setBasePrice(price);
-        item.setIsAvailable(true);
-        item.setImageUrl("https://placehold.co/200?text=" + name.replace(" ", "+"));
-        return menuItemRepository.save(item);
+        return menuItemRepository.findByName(name).filter(item -> 
+            item.getCategory().getCategoryId().equals(cat.getCategoryId())
+        ).orElseGet(() -> {
+            MenuItemEntity item = new MenuItemEntity();
+            item.setCategory(cat);
+            item.setName(name);
+            item.setBasePrice(price);
+            item.setIsAvailable(true);
+            item.setImageUrl("https://placehold.co/200?text=" + name.replace(" ", "+"));
+            return menuItemRepository.save(item);
+        });
     }
 
     private MenuItemEntity createMenuItemWithImage(CategoryEntity cat, String name, String desc, Double price, String imageUrl) {
-        MenuItemEntity item = new MenuItemEntity();
-        item.setCategory(cat);
-        item.setName(name);
-        item.setBasePrice(price);
-        item.setIsAvailable(true);
-        item.setImageUrl(imageUrl);
-        return menuItemRepository.save(item);
+        return menuItemRepository.findByName(name).filter(item -> 
+            item.getCategory().getCategoryId().equals(cat.getCategoryId())
+        ).orElseGet(() -> {
+            MenuItemEntity item = new MenuItemEntity();
+            item.setCategory(cat);
+            item.setName(name);
+            item.setBasePrice(price);
+            item.setIsAvailable(true);
+            item.setImageUrl(imageUrl);
+            return menuItemRepository.save(item);
+        });
     }
 
 
@@ -869,9 +882,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void createItemIfNotExists(CategoryEntity cat, String name, Double price, String img) {
-         if (menuItemRepository.count() < 100) { // Simple guard to not overfill if running multiple times
-            // Check existence by name might suffice for seed
-             // For now just add if not super many items
+         if (menuItemRepository.findByName(name).isEmpty()) {
              MenuItemEntity item = new MenuItemEntity();
              item.setCategory(cat);
              item.setName(name);
