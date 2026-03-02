@@ -14,7 +14,7 @@ public class OrderItemResponseDTO {
     private Long orderItemId;
     private MenuItemResponseDTO menuItem;
     private VariantResponseDTO variant;
-    private Integer quantity;
+    private Integer qty;
     private Double unitPrice;
     private String note;
     private LocalDateTime createdAt;

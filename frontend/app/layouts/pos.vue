@@ -87,6 +87,28 @@
             </svg>
           </button>
 
+          <!-- Attendance Clock In/Out -->
+          <NuxtLink
+            to="/staff/terminal"
+            class="p-2 rounded-xl text-neutral-400 hover:text-success-400 hover:bg-success-500/10 transition-colors"
+            title="Staff Clock In/Out"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <polyline points="16 11 18 13 22 9" />
+            </svg>
+          </NuxtLink>
+
           <!-- Admin link -->
           <NuxtLink
             v-if="isSuperAdmin"
@@ -133,6 +155,36 @@
           </button>
         </div>
       </header>
+
+      <!-- Attendance Reminder Banner -->
+      <div
+        v-if="showAttendanceBanner"
+        class="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-2.5 flex items-center justify-between gap-3 animate-slide-down"
+      >
+        <div class="flex items-center gap-2 text-yellow-400 text-sm font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>You haven't clocked in today.</span>
+          <NuxtLink
+            to="/staff/terminal"
+            class="underline hover:text-yellow-300 font-bold"
+          >
+            Clock in now
+          </NuxtLink>
+        </div>
+        <button
+          @click="dismissAttendanceBanner"
+          class="text-yellow-500/50 hover:text-yellow-400 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
 
       <!-- Content -->
       <div class="flex-1 overflow-hidden">
@@ -1793,13 +1845,39 @@ const processQrOrder = async (order: any) => {
   }
 };
 
+// --- Attendance Reminder ---
+const showAttendanceBanner = ref(false);
+const attendanceDismissed = ref(false);
+let attendanceCheckInterval: any = null;
+
+const checkAttendanceStatus = async () => {
+  if (attendanceDismissed.value) return;
+  const empId = authUser.value?.employeeId || authUser.value?.userId;
+  if (!empId || isNaN(Number(empId))) return; // Guard against NaN
+  try {
+    const res = await get<any>(`/attendance/status/${empId}`);
+    showAttendanceBanner.value = !(res?.clockedIn);
+  } catch {
+    // Silently fail — don't block POS
+  }
+};
+
+const dismissAttendanceBanner = () => {
+  showAttendanceBanner.value = false;
+  attendanceDismissed.value = true;
+};
+
 onMounted(() => {
   fetchQrOrders();
   qrPollingInterval = setInterval(fetchQrOrders, 10000); // Poll every 10s
+  // Check attendance status
+  checkAttendanceStatus();
+  attendanceCheckInterval = setInterval(checkAttendanceStatus, 60000); // Re-check every 60s
 });
 
 onUnmounted(() => {
   if (qrPollingInterval) clearInterval(qrPollingInterval);
+  if (attendanceCheckInterval) clearInterval(attendanceCheckInterval);
 });
 
 const lastAddedItem = ref<{ id: number; name: string } | null>(null);
@@ -2187,7 +2265,7 @@ const generateKHQR = async () => {
       discountAmount: pointsDiscount.value,
       items: cartItems.value.map((item) => ({
         menuItemId: item.menuItemId,
-        quantity: item.qty,
+        qty: item.qty,
         note: item.notes || "",
       })),
     };
@@ -2251,7 +2329,7 @@ const completeOrder = async () => {
       discountAmount: manualDiscount.value,
       items: cartItems.value.map((item) => ({
         menuItemId: item.menuItemId,
-        quantity: item.qty,
+        qty: item.qty,
         unitPrice: item.price + (item.addOnTotal || 0),
         note: item.notes || "",
         addOnIds: item.addOns?.map((a) => a.addonId) || [],

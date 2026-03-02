@@ -285,7 +285,7 @@
                             : 'text-neutral-900 dark:text-white',
                         ]"
                       >
-                        {{ item.currentStock }} {{ item.unit }}
+                        {{ item.currentStock?.toFixed(2) }} {{ item.unit }}
                       </span>
                       <span
                         v-if="item.currentStock <= item.reorderLevel"
@@ -303,7 +303,7 @@
                   <td
                     class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"
                   >
-                    {{ item.reorderLevel }} {{ item.unit }}
+                    {{ item.reorderLevel?.toFixed(2) }} {{ item.unit }}
                   </td>
                   <td
                     class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"

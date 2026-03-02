@@ -335,20 +335,30 @@ const checkAccess = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const empId = parseInt(pin.value, 10);
-    // 1. Try to get shift summary
+    // 1. Verify PIN and get employee info
+    const pinRes = await post<any>(`/attendance/verify-pin`, { pin: pin.value });
+    const empId = pinRes?.employeeId;
+    const empName = pinRes?.fullName;
+    if (!empId) {
+      error.value = "Invalid PIN";
+      pin.value = "";
+      return;
+    }
+    // 2. Try to get shift summary
     try {
       const summaryRes = await get<any>(`/reports/shift/${empId}`);
       if (summaryRes?.data) {
         activeShift.value = summaryRes.data;
+        activeShift.value.employeeId = empId;
+        activeShift.value.employeeName = empName;
         return;
       }
     } catch (e) {
-      // If summary fails, it means no active shift, offer clock-in
+      // No active shift → clock in
       handleClockIn(empId);
     }
   } catch (err: any) {
-    error.value = err.data?.message || "Access Denied";
+    error.value = err.data?.message || "Invalid PIN";
     pin.value = "";
   } finally {
     loading.value = false;

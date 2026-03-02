@@ -354,20 +354,31 @@
           </div>
 
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-for="setting in settings" :key="setting.id">
+            <div v-for="setting in settings" :key="setting.id" class="relative group">
               <label
                 class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
                 :title="setting.key"
                 >{{ setting.description || setting.key }}</label
               >
-              <input
-                v-if="setting.key !== 'THEME'"
-                type="text"
-                v-model="setting.value"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              />
+              <div class="relative">
+                <input
+                  v-if="setting.key !== 'THEME'"
+                  :type="isSensitive(setting.key) && !showSettings[setting.key] ? 'password' : 'text'"
+                  v-model="setting.value"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 pr-10"
+                />
+                <button
+                  v-if="isSensitive(setting.key)"
+                  type="button"
+                  @click="showSettings[setting.key] = !showSettings[setting.key]"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                >
+                  <svg v-if="showSettings[setting.key]" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
               <select
-                v-else
+                v-if="setting.key === 'THEME'"
                 v-model="setting.value"
                 class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
               >
@@ -618,12 +629,22 @@
                 class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
                 >Bot Token</label
               >
-              <input
-                v-model="telegramConfig.botToken"
-                type="password"
-                placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-mono"
-              />
+              <div class="relative">
+                <input
+                  v-model="telegramConfig.botToken"
+                  :type="showBotToken ? 'text' : 'password'"
+                  placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-mono pr-10"
+                />
+                <button
+                  type="button"
+                  @click="showBotToken = !showBotToken"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                >
+                  <svg v-if="showBotToken" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
               <p class="text-[10px] text-neutral-400 mt-1">
                 Get from @BotFather on Telegram
               </p>
@@ -633,12 +654,22 @@
                 class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
                 >Chat ID</label
               >
-              <input
-                v-model="telegramConfig.chatId"
-                type="text"
-                placeholder="-1001234567890"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-mono"
-              />
+              <div class="relative">
+                <input
+                  v-model="telegramConfig.chatId"
+                  :type="showChatId ? 'text' : 'password'"
+                  placeholder="-1001234567890"
+                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl px-4 py-3 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-mono pr-10"
+                />
+                <button
+                  type="button"
+                  @click="showChatId = !showChatId"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                >
+                  <svg v-if="showChatId" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
               <p class="text-[10px] text-neutral-400 mt-1">
                 Your user or group chat ID
               </p>
@@ -1170,6 +1201,14 @@ const loyaltyConfig = reactive({
 const savingLoyalty = ref(false);
 const savingTelegram = ref(false);
 const testingTelegram = ref(false);
+
+// Visibility States for sensitive data
+const showBotToken = ref(false);
+const showChatId = ref(false);
+const showSettings = reactive<Record<string, boolean>>({});
+
+const sensitiveKeys = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'BAKONG_ACCOUNT_ID'];
+const isSensitive = (key: string) => sensitiveKeys.includes(key);
 
 const loadTelegramConfig = () => {
   // Load from settings array

@@ -23,4 +23,5 @@ public class BranchRequestDTO {
     private Double latitude;
     private Double longitude;
     private Integer radiusMeters;
+    private Integer tableCount;
 }

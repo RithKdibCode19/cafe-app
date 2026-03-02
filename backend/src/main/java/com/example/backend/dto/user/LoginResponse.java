@@ -14,6 +14,7 @@ public class LoginResponse {
     private String token; // JWT token
     private String roleName;
     private String employeeName;
+    private Long employeeId;
     private Long branchId;
     private String branchName;
     private java.util.List<String> permissions;

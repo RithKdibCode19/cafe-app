@@ -79,6 +79,28 @@
 
     <!-- Menu content -->
     <main v-else class="max-w-lg mx-auto px-4 pt-4 pb-28">
+      <!-- Active Order Badge -->
+      <div v-if="activeOrderNo" class="mb-6">
+        <NuxtLink
+          :to="`/menu/${branchCode}/order/${activeOrderNo}`"
+          class="flex items-center justify-between p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-2xl group transition-all hover:bg-primary-100 dark:hover:bg-primary-900/30"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest">Active Order</p>
+              <p class="text-sm font-bold text-neutral-900 dark:text-white">#{{ activeOrderNo }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-primary-600 font-bold text-xs">
+            View Status
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </NuxtLink>
+      </div>
+
       <!-- Search results -->
       <div v-if="searchMode && searchQuery">
         <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-3">
@@ -284,6 +306,7 @@ const selectedVariant = ref<any>(null)
 const selectedAddOns = ref<number[]>([])
 const itemNote = ref('')
 const modalQty = ref(1)
+const activeOrderNo = ref<string | null>(null)
 
 // Derived
 const { itemCount, total } = cart
@@ -381,6 +404,15 @@ const fetchMenu = async () => {
     error.value = true
   } finally {
     loading.value = false
+  }
+
+  // Check for active order
+  if (process.client) {
+    const savedOrder = localStorage.getItem('menu_active_order')
+    const savedBranch = localStorage.getItem('menu_active_order_branch')
+    if (savedOrder && savedBranch === branchCode) {
+      activeOrderNo.value = savedOrder
+    }
   }
 }
 

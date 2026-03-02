@@ -23,6 +23,9 @@ public interface StockInRepository extends JpaRepository<StockInEntity, Long> {
     // Find by received date range
     List<StockInEntity> findByReceivedDateBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 
+    // Find by branch and received date range
+    List<StockInEntity> findByBranchBranchIdAndReceivedDateBetweenAndDeletedAtIsNull(Long branchId, LocalDateTime startDate, LocalDateTime endDate);
+
     // Find by invoice number
     List<StockInEntity> findByInvoiceNoContainingIgnoreCaseAndDeletedAtIsNull(String invoiceNo);
 

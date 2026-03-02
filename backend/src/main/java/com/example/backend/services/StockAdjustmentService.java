@@ -91,16 +91,29 @@ public class StockAdjustmentService {
             throw new RuntimeException("Authorization PIN is required for approval");
         }
 
-        UserEntity approver = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode)
-                .orElseThrow(() -> new RuntimeException("Invalid Authorization PIN"));
-
-        // Check permission: POS_VOID or SYS_ALL
-        boolean hasPermission = approver.getRole().getPermissions().stream()
-                .anyMatch(p -> "POS_VOID".equals(p.getCode()) || "SYS_ALL".equals(p.getCode()));
-        
-        if (!hasPermission) {
-            throw new RuntimeException("User [" + approver.getEmployee().getFullName() + "] is not authorized to approve adjustments");
+        List<UserEntity> candidates = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode);
+        if (candidates.isEmpty()) {
+            throw new RuntimeException("Invalid Authorization PIN");
         }
+
+        UserEntity approver = candidates.stream()
+                .filter(u -> {
+                    // 1. Check permissions (POS_VOID/INV_ADJUST or SYS_ALL)
+                    // Note: Current code uses POS_VOID as a general "can approve sensitive action" perm
+                    boolean hasPermission = u.getRole().getPermissions().stream()
+                            .anyMatch(p -> "POS_VOID".equals(p.getCode()) || "SYS_ALL".equals(p.getCode()));
+                    if (!hasPermission) return false;
+
+                    // 2. Branch restriction: SYS_ALL can approve anywhere
+                    boolean isSystemAdmin = u.getRole().getPermissions().stream()
+                            .anyMatch(p -> "SYS_ALL".equals(p.getCode()));
+                    if (isSystemAdmin) return true;
+
+                    // 3. Others must match the branch of the adjustment
+                    return u.getEmployee().getBranch().getBranchId().equals(adjustment.getBranch().getBranchId());
+                })
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Authorization PIN is valid, but the user does not have permission for this branch"));
 
         // 1. Update Branch and Global Stock
         branchStockService.adjustStock(adjustment.getBranch().getBranchId(), 

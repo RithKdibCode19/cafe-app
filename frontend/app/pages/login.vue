@@ -131,6 +131,28 @@
           ></span>
           {{ loading ? "Signing in..." : "Sign In" }}
         </button>
+
+        <!-- Staff Clock-In Link -->
+        <NuxtLink
+          to="/staff/terminal"
+          class="w-full mt-4 flex items-center justify-center gap-2 text-neutral-500 hover:text-success-400 text-sm py-2.5 rounded-xl border border-neutral-700/50 hover:border-success-500/30 hover:bg-success-500/5 transition-all duration-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <polyline points="16 11 18 13 22 9" />
+          </svg>
+          Staff Clock-In
+        </NuxtLink>
       </form>
     </div>
 
@@ -304,11 +326,14 @@ const selectBranch = (branch: Branch) => {
 };
 
 const redirectUser = (response: any) => {
-  if (response.roleName === "ADMIN" || response.roleName === "MANAGER") {
-    // router.push("/admin");
-    window.location.href = "/admin"; // Force reload to ensure layout reflow
+  const role = response.roleName;
+  
+  if (role === "ADMIN" || role === "MANAGER") {
+    window.location.href = "/admin"; // Force reload for layout reflow
+  } else if (role === "CHEF") {
+    router.push("/kitchen");
   } else {
-    router.push("/pos");
+    router.push("/pos"); // Cashier, Barista, etc.
   }
 };
 

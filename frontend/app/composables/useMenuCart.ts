@@ -2,6 +2,7 @@
  * Customer-facing cart for QR web menu.
  * Separate from the POS useCart composable.
  */
+import { onMounted, watch } from 'vue'
 
 export interface MenuCartItem {
     menuItemId: number
@@ -21,6 +22,32 @@ export const useMenuCart = () => {
     const items = useState<MenuCartItem[]>('menuCartItems', () => [])
     const tableNo = useState<string>('menuCartTable', () => '')
     const branchCode = useState<string>('menuCartBranch', () => '')
+
+    // Persist to localStorage
+    if (process.client) {
+        onMounted(() => {
+            const savedItems = localStorage.getItem('menu_cart_items')
+            if (savedItems) items.value = JSON.parse(savedItems)
+            
+            const savedTable = localStorage.getItem('menu_cart_table')
+            if (savedTable) tableNo.value = savedTable
+            
+            const savedBranch = localStorage.getItem('menu_cart_branch')
+            if (savedBranch) branchCode.value = savedBranch
+        })
+
+        watch(items, (newItems) => {
+            localStorage.setItem('menu_cart_items', JSON.stringify(newItems))
+        }, { deep: true })
+
+        watch(tableNo, (newVal) => {
+            localStorage.setItem('menu_cart_table', newVal)
+        })
+
+        watch(branchCode, (newVal) => {
+            localStorage.setItem('menu_cart_branch', newVal)
+        })
+    }
 
     const addItem = (item: Omit<MenuCartItem, 'qty' | 'addOnTotal'> & { qty?: number; addOnTotal?: number }) => {
         // Check if same item with same variant and no add-ons already in cart

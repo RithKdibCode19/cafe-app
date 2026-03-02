@@ -11,6 +11,7 @@ import com.example.backend.model.CustomerEntity;
 import com.example.backend.repository.CustomerRepository;
 import com.example.backend.security.JwtUtils;
 import com.example.backend.services.SystemSettingService;
+import com.example.backend.services.LoyaltyService;
 
 @Service
 public class MobileAuthService {
@@ -19,13 +20,15 @@ public class MobileAuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final SystemSettingService systemSettingService;
+    private final LoyaltyService loyaltyService;
 
     public MobileAuthService(CustomerRepository customerRepository, JwtUtils jwtUtils,
-            PasswordEncoder passwordEncoder, SystemSettingService systemSettingService) {
+            PasswordEncoder passwordEncoder, SystemSettingService systemSettingService, LoyaltyService loyaltyService) {
         this.customerRepository = customerRepository;
         this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
         this.systemSettingService = systemSettingService;
+        this.loyaltyService = loyaltyService;
     }
 
     /**
@@ -154,15 +157,7 @@ public class MobileAuthService {
     }
 
     private MobileOrderDTO.CustomerProfile toCustomerProfile(CustomerEntity customer) {
-        double redeemRate = 0.01;
-        String rateStr = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
-        if (rateStr != null) {
-            try {
-                redeemRate = Double.parseDouble(rateStr);
-            } catch (NumberFormatException e) {
-                // fall back to default
-            }
-        }
+        double redeemRate = loyaltyService.getRedeemRate();
 
         return MobileOrderDTO.CustomerProfile.builder()
                 .customerId(customer.getCustomerId())

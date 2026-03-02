@@ -16,7 +16,7 @@ class AppTheme {
   static const Color error = Color(0xFFD32F2F);
   static const Color warning = Color(0xFFF5A623);
 
-  static ThemeData get darkTheme {
+  static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -94,6 +94,73 @@ class AppTheme {
       ),
       dividerColor: surfaceLight,
       dialogBackgroundColor: surface,
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF1A1614),
+      primaryColor: primary,
+      colorScheme: const ColorScheme.dark(
+        primary: primary,
+        secondary: accent,
+        surface: Color(0xFF25211E),
+        error: error,
+        onPrimary: Colors.white,
+        onSurface: Color(0xFFE8DDD0),
+      ),
+      textTheme: GoogleFonts.outfitTextTheme(
+        ThemeData.dark().textTheme,
+      ).apply(
+        bodyColor: const Color(0xFFE8DDD0),
+        displayColor: const Color(0xFFE8DDD0),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFF1A1614),
+        foregroundColor: const Color(0xFFE8DDD0),
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF25211E),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF332D29), width: 1),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF2A2522),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF332D29), width: 0.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF332D29), width: 0.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: primaryLight, width: 1.5),
+        ),
+        hintStyle: const TextStyle(color: textSecondary),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
     );
   }
 }

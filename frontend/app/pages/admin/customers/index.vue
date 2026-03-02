@@ -7,7 +7,7 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Customer Relationship Management</h1>
-          <p class="text-neutral-500 dark:text-neutral-400">Manage customer profiles and purchase history</p>
+          <p class="text-neutral-500 dark:text-neutral-400">Manage customer profiles, loyalty, and purchase history</p>
         </div>
         
         <div class="flex items-center gap-3">
@@ -28,14 +28,35 @@
         </div>
       </div>
 
+      <!-- CRM Summary Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
+          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Customers</p>
+          <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ customers.length }}</p>
+        </div>
+        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
+          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Revenue</p>
+          <p class="text-2xl font-black text-success-600">${{ totalCustomerRevenue.toFixed(2) }}</p>
+        </div>
+        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
+          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Avg Spend</p>
+          <p class="text-2xl font-black text-accent-600">${{ avgCustomerSpend.toFixed(2) }}</p>
+        </div>
+        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
+          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Gold Members</p>
+          <p class="text-2xl font-black text-warning-600">{{ goldMemberCount }}</p>
+        </div>
+      </div>
+
       <!-- Main Content Area -->
       <div class="grid lg:grid-cols-12 gap-6">
         
         <!-- Left Sidebar -->
-        <div class="lg:col-span-4 space-y-4">
+         <div class="lg:col-span-4 space-y-4">
            <div class="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
               <div class="p-4 bg-neutral-50/50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
                  <h3 class="text-xs font-black text-neutral-500 uppercase tracking-widest">{{ searchActive ? 'Search Results' : 'All Customers' }}</h3>
+                 <span class="text-[10px] font-bold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">{{ displayCustomers.length }}</span>
               </div>
               <div class="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-[600px] overflow-y-auto custom-scrollbar">
                  <template v-if="loading && customers.length === 0">
@@ -58,15 +79,21 @@
                       ]"
                     >
                        <div class="flex items-center gap-3">
-                          <div class="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-sm font-black text-primary-600">
-                             {{ cust.name?.charAt(0) }}
+                          <div :class="[
+                            'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white shadow-md',
+                            cust.membershipLevel === 'GOLD' ? 'bg-gradient-to-br from-warning-400 to-warning-600 shadow-warning-500/20' :
+                            cust.membershipLevel === 'SILVER' ? 'bg-gradient-to-br from-neutral-400 to-neutral-600 shadow-neutral-500/20' :
+                            'bg-gradient-to-br from-primary-500 to-accent-500 shadow-primary-500/20'
+                          ]">
+                             {{ cust.name?.charAt(0)?.toUpperCase() }}
                           </div>
                           <div class="flex-1 overflow-hidden">
-                             <p class="font-bold text-neutral-900 dark:text-white truncate">{{ cust.name }}</p>
-                             <p class="text-xs text-neutral-500">{{ cust.phone }}</p>
+                             <p class="font-bold text-neutral-900 dark:text-white truncate text-sm">{{ cust.name }}</p>
+                             <p class="text-[11px] text-neutral-500">{{ cust.phone }}</p>
                           </div>
-                          <div class="text-right">
-                             <p class="text-[10px] font-bold text-primary-600 bg-primary-50 dark:bg-primary-900/30 px-1.5 py-0.5 rounded">{{ cust.loyaltyPoints || 0 }} pt</p>
+                          <div class="text-right flex flex-col items-end gap-1">
+                             <span :class="getMemberBadgeClass(cust.membershipLevel)" class="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">{{ cust.membershipLevel || 'BRONZE' }}</span>
+                             <p class="text-[10px] font-bold text-primary-600">{{ cust.loyaltyPoints || 0 }} pt</p>
                           </div>
                        </div>
                     </div>
@@ -87,73 +114,125 @@
               </div>
            </div>
            <template v-else-if="history">
-              <div class="card p-6 border-l-4 border-l-primary-500 animate-in fade-in slide-in-from-right duration-300">
-                <div class="flex flex-col md:flex-row md:items-center gap-6">
-                  <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-primary-500/20">
-                    {{ history.customerName?.charAt(0)?.toUpperCase() }}
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center gap-3">
-                       <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ history.customerName }}</h2>
-                       <span :class="[
-                         'px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest',
-                         history.membershipLevel === 'GOLD' ? 'bg-warning-100 text-warning-700 border border-warning-200' :
-                         history.membershipLevel === 'SILVER' ? 'bg-neutral-100 text-neutral-700 border border-neutral-300' :
-                         'bg-orange-100 text-orange-700 border border-orange-200'
-                       ]">
-                         {{ history.membershipLevel || 'BRONZE' }} MEMBER
-                       </span>
-                       <button @click="openEditModal(history)" class="p-1 px-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-400 hover:text-primary-600 transition-colors text-[10px] font-bold uppercase tracking-widest">Edit Profile</button>
+              <!-- Profile Card -->
+              <div class="relative overflow-hidden rounded-3xl animate-in fade-in slide-in-from-right duration-300 mb-6">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-700"></div>
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0di00aC0ydjRoLTRWMzBoNHYtNGgydjRoNHY0aC00ek0wIDBoNHY0SDB6bTAgMTZoNHY0SDB6bTE2IDBoNHY0aC00em0wLTE2aDR2NGgtNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50"></div>
+                <div class="relative p-6 md:p-8">
+                  <div class="flex flex-col md:flex-row md:items-center gap-6">
+                    <div class="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-xl flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-black/20 border border-white/20">
+                      {{ history.customerName?.charAt(0)?.toUpperCase() }}
                     </div>
-                    <div class="flex flex-wrap items-center gap-4 mt-2 text-sm text-neutral-500">
-                      <span class="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        {{ history.phone }}
-                      </span>
-                      <span class="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        Since {{ formatDate(history.memberSince) }}
-                      </span>
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 flex-wrap">
+                         <h2 class="text-2xl font-black text-white">{{ history.customerName }}</h2>
+                         <span :class="[
+                           'px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest backdrop-blur-sm',
+                           history.membershipLevel === 'GOLD' ? 'bg-warning-400/30 text-warning-200 border border-warning-400/30' :
+                           history.membershipLevel === 'SILVER' ? 'bg-white/20 text-white/90 border border-white/20' :
+                           'bg-orange-400/30 text-orange-200 border border-orange-400/30'
+                         ]">
+                           {{ history.membershipLevel || 'BRONZE' }} MEMBER
+                         </span>
+                         <button @click="openEditModal(history)" class="px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest border border-white/10">Edit</button>
+                      </div>
+                      <div class="flex flex-wrap items-center gap-4 mt-2.5 text-sm text-white/70">
+                        <span class="flex items-center gap-1.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                          {{ history.phone }}
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          Since {{ formatDate(history.memberSince) }}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="flex items-center gap-2 px-6 py-3 bg-primary-100 dark:bg-primary-900/30 rounded-2xl border border-primary-200 dark:border-primary-800">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <span class="text-primary-700 dark:text-primary-400 font-black text-xl">{{ history.loyaltyPoints }} <span class="text-xs uppercase ml-1">pts</span></span>
+                    <div class="flex items-center gap-2 px-5 py-3 bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-warning-300" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      <span class="text-white font-black text-xl">{{ history.loyaltyPoints }} <span class="text-xs text-white/60 uppercase ml-0.5">pts</span></span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <!-- Stats Cards -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="card p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-transform hover:-translate-y-1">
-                  <p class="text-xs font-black text-neutral-400 uppercase tracking-widest mb-1">Total Orders</p>
-                  <p class="text-4xl font-black text-primary-600">{{ history.totalOrders }}</p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                  </div>
+                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Orders</p>
+                  <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ history.totalOrders }}</p>
                 </div>
-                <div class="card p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-transform hover:-translate-y-1">
-                  <p class="text-xs font-black text-neutral-400 uppercase tracking-widest mb-1">Total Lifetime Spend</p>
-                  <p class="text-4xl font-black text-success-600">${{ history.totalSpent?.toFixed(2) }}</p>
+                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center text-success-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                  </div>
+                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Total Spend</p>
+                  <p class="text-2xl font-black text-success-600">${{ history.totalSpent?.toFixed(2) }}</p>
                 </div>
-                <div class="card p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm transition-transform hover:-translate-y-1">
-                  <p class="text-xs font-black text-neutral-400 uppercase tracking-widest mb-1">Average Ticket</p>
-                  <p class="text-4xl font-black text-accent-600">${{ (history.totalSpent / (history.totalOrders || 1)).toFixed(2) }}</p>
+                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center text-accent-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    </div>
+                  </div>
+                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Avg Ticket</p>
+                  <p class="text-2xl font-black text-accent-600">${{ (history.totalSpent / (history.totalOrders || 1)).toFixed(2) }}</p>
+                </div>
+                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center text-warning-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                  </div>
+                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Last Visit</p>
+                  <p class="text-lg font-black text-neutral-700 dark:text-neutral-300">{{ history.lastVisit ? formatDate(history.lastVisit) : 'N/A' }}</p>
+                </div>
+              </div>
+
+              <!-- Membership Progress -->
+              <div class="card-premium p-5 relative overflow-hidden mb-6">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-black text-neutral-500 uppercase tracking-widest">Loyalty Progress</span>
+                  <span class="text-xs font-bold text-neutral-400">{{ history.loyaltyPoints }} / {{ nextTierThreshold }} pts → {{ nextTierName }}</span>
+                </div>
+                <div class="w-full h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-1000 relative" :class="tierProgressColor" :style="{ width: tierProgressPercent + '%' }">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                  </div>
                 </div>
               </div>
 
               <!-- Content Grid -->
-              <div class="grid lg:grid-cols-3 gap-6">
+              <div class="grid lg:grid-cols-3 gap-6 mb-6">
                 <!-- Favorite Items -->
-                <div class="card p-6 bg-neutral-50/50 dark:bg-neutral-800/30 border-none">
+                <div class="card-premium p-6 relative overflow-hidden">
                   <h3 class="text-sm font-black text-neutral-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     Top Favorites
                   </h3>
                   <div class="space-y-3">
-                    <div v-for="item in history.favoriteItems" :key="item.menuItemId" class="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm">
-                      <div class="overflow-hidden">
-                        <p class="font-bold text-neutral-900 dark:text-white truncate">{{ item.name }}</p>
-                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">Ordered {{ item.orderCount }}x</p>
+                    <div 
+                      v-for="(item, idx) in history.favoriteItems" 
+                      :key="item.menuItemId" 
+                      class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors group"
+                    >
+                      <div :class="[
+                        'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-white flex-shrink-0',
+                        idx === 0 ? 'bg-gradient-to-br from-warning-400 to-warning-600' :
+                        idx === 1 ? 'bg-gradient-to-br from-neutral-400 to-neutral-500' :
+                        'bg-gradient-to-br from-orange-400 to-orange-500'
+                      ]">#{{ idx + 1 }}</div>
+                      <div class="flex-1 overflow-hidden">
+                        <p class="font-bold text-neutral-900 dark:text-white truncate text-sm">{{ item.name }}</p>
+                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ item.orderCount }}x ordered</p>
                       </div>
-                      <span class="text-sm font-black text-primary-600">${{ item.totalSpent?.toFixed(2) }}</span>
+                      <span class="text-sm font-black text-primary-600 group-hover:scale-110 transition-transform">${{ item.totalSpent?.toFixed(2) }}</span>
                     </div>
                     <div v-if="!history.favoriteItems?.length" class="text-center py-12 text-neutral-400 italic text-xs">
                       No purchase history available.
@@ -230,17 +309,17 @@
 
       <!-- Customer Modal (Add/Edit) -->
       <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-         <div class="bg-white dark:bg-neutral-900 rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800 animate-in fade-in zoom-in duration-300">
-            <div class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/30">
+         <div class="bg-white dark:bg-neutral-900 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
+            <div class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/30 sticky top-0 z-10">
                <h3 class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">{{ editingCustomer ? 'Update CRM Profile' : 'New Customer' }}</h3>
                <button @click="closeModal" class="text-neutral-400 hover:text-neutral-600 transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                </button>
             </div>
             
-            <form @submit.prevent="saveCustomer" class="p-8 space-y-6">
-               <div class="space-y-4">
-                  <div>
+            <form @submit.prevent="saveCustomer" class="p-8 space-y-5">
+               <div class="grid grid-cols-2 gap-4">
+                  <div class="col-span-2">
                     <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
                     <input v-model="form.name" type="text" required class="input-modern w-full" placeholder="Customer Name" />
                   </div>
@@ -249,12 +328,38 @@
                     <input v-model="form.phone" type="text" required class="input-modern w-full" placeholder="+855 ..." />
                   </div>
                   <div>
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Email (Optional)</label>
+                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Email</label>
                     <input v-model="form.email" type="email" class="input-modern w-full" placeholder="email@example.com" />
                   </div>
                </div>
 
-               <div class="flex gap-4 pt-4">
+               <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Gender</label>
+                    <select v-model="form.gender" class="input-modern w-full">
+                      <option value="">Not Set</option>
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Date of Birth</label>
+                    <input v-model="form.dob" type="date" class="input-modern w-full" />
+                  </div>
+               </div>
+
+               <div>
+                 <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Address</label>
+                 <input v-model="form.address" type="text" class="input-modern w-full" placeholder="Street, City" />
+               </div>
+
+               <div>
+                 <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Notes</label>
+                 <textarea v-model="form.notes" rows="2" class="input-modern w-full resize-none" placeholder="Allergies, preferences, etc."></textarea>
+               </div>
+
+               <div class="flex gap-4 pt-2">
                   <button type="button" @click="closeModal" class="flex-1 py-4 text-sm font-bold text-neutral-500 hover:text-neutral-800 dark:hover:text-white transition-colors">Cancel</button>
                   <button type="submit" class="flex-1 btn-primary py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/20" :disabled="saving">
                      {{ editingCustomer ? 'Save Profile' : 'Register Member' }}
@@ -318,11 +423,52 @@ const editingCustomer = ref<any>(null)
 const form = reactive({
   name: '',
   phone: '',
-  email: ''
+  email: '',
+  gender: '',
+  dob: '',
+  address: '',
+  notes: ''
 })
 
 // Computed
 const displayCustomers = computed(() => searchActive.value ? searchResults.value : customers.value)
+
+// CRM Summary Stats
+const totalCustomerRevenue = computed(() => {
+  if (history.value) return history.value.totalSpent || 0
+  return 0
+})
+const avgCustomerSpend = computed(() => {
+  if (history.value && history.value.totalOrders > 0) return history.value.totalSpent / history.value.totalOrders
+  return 0
+})
+const goldMemberCount = computed(() => customers.value.filter((c: any) => c.membershipLevel === 'GOLD').length)
+
+// Membership Tier Progress
+const tierThresholds: Record<string, { next: string, threshold: number }> = {
+  BRONZE: { next: 'SILVER', threshold: 500 },
+  SILVER: { next: 'GOLD', threshold: 1500 },
+  GOLD: { next: 'MAX', threshold: 1500 },
+}
+const nextTierName = computed(() => {
+  const tier = history.value?.membershipLevel || 'BRONZE'
+  return tierThresholds[tier]?.next || 'MAX'
+})
+const nextTierThreshold = computed(() => {
+  const tier = history.value?.membershipLevel || 'BRONZE'
+  return tierThresholds[tier]?.threshold || 1500
+})
+const tierProgressPercent = computed(() => {
+  const pts = history.value?.loyaltyPoints || 0
+  const threshold = nextTierThreshold.value
+  return Math.min(100, (pts / threshold) * 100)
+})
+const tierProgressColor = computed(() => {
+  const tier = history.value?.membershipLevel || 'BRONZE'
+  if (tier === 'GOLD') return 'bg-gradient-to-r from-warning-400 to-warning-600'
+  if (tier === 'SILVER') return 'bg-gradient-to-r from-neutral-400 to-neutral-600'
+  return 'bg-gradient-to-r from-orange-400 to-orange-600'
+})
 
 // Actions
 const fetchAllCustomers = async () => {
@@ -388,6 +534,10 @@ const openCreateModal = () => {
   form.name = ''
   form.phone = ''
   form.email = ''
+  form.gender = ''
+  form.dob = ''
+  form.address = ''
+  form.notes = ''
   showModal.value = true
 }
 
@@ -396,6 +546,10 @@ const openEditModal = (cust: any) => {
   form.name = cust.customerName || cust.name
   form.phone = cust.phone
   form.email = cust.email || ''
+  form.gender = cust.gender || ''
+  form.dob = cust.dob || ''
+  form.address = cust.address || ''
+  form.notes = cust.notes || ''
   showModal.value = true
 }
 
@@ -440,6 +594,12 @@ const getStatusClass = (status: string) => {
   return classes[status] || 'bg-neutral-100 text-neutral-700'
 }
 
+const getMemberBadgeClass = (level: string) => {
+  if (level === 'GOLD') return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
+  if (level === 'SILVER') return 'bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300'
+  return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+}
+
 onMounted(() => {
   fetchAllCustomers()
 })
@@ -460,5 +620,12 @@ onMounted(() => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   @apply bg-neutral-200 dark:bg-neutral-800 rounded-full;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
 }
 </style>

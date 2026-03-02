@@ -53,6 +53,7 @@ public class AuthService {
 
         if (user.getEmployee() != null) {
             response.setEmployeeName(user.getEmployee().getFullName());
+            response.setEmployeeId(user.getEmployee().getEmployeeId());
             if (user.getEmployee().getBranch() != null) {
                 response.setBranchId(user.getEmployee().getBranch().getBranchId());
                 response.setBranchName(user.getEmployee().getBranch().getName());

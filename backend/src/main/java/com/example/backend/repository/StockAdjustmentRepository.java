@@ -11,4 +11,7 @@ public interface StockAdjustmentRepository extends JpaRepository<StockAdjustment
 
     java.util.List<StockAdjustmentEntity> findByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime start,
             java.time.LocalDateTime end);
+
+    java.util.List<StockAdjustmentEntity> findByBranchBranchIdAndCreatedAtBetweenAndDeletedAtIsNull(Long branchId,
+            java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

@@ -106,15 +106,15 @@
                         >
                         <div>
                           <p class="text-neutral-200 font-bold leading-tight">
-                            {{ item.name }}
+                            {{ item.menuItem?.name }}
                           </p>
                           <div
-                            v-if="item.variants"
+                            v-if="item.variant"
                             class="flex flex-wrap gap-1 mt-1"
                           >
                             <span
                               class="text-[10px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-700"
-                              >{{ item.variants }}</span
+                              >{{ item.variant.name || item.variant.size }}</span
                             >
                           </div>
                           <div
@@ -258,15 +258,15 @@
                       >
                       <div>
                         <p class="text-white font-bold leading-tight">
-                          {{ item.name }}
+                          {{ item.menuItem?.name }}
                         </p>
                         <div
-                          v-if="item.variants"
+                          v-if="item.variant"
                           class="flex flex-wrap gap-1 mt-1"
                         >
                           <span
                             class="text-[10px] bg-neutral-800 text-neutral-400 px-1.5 py-0.5 rounded border border-neutral-700"
-                            >{{ item.variants }}</span
+                            >{{ item.variant.name || item.variant.size }}</span
                           >
                         </div>
                         <div
@@ -414,7 +414,8 @@ const totalPendingItems = computed(() => {
 
   allOrders.forEach((order) => {
     order.items.forEach((item: any) => {
-      summary[item.name] = (summary[item.name] || 0) + item.qty;
+      const itemName = item.menuItem?.name || 'Unknown';
+      summary[itemName] = (summary[itemName] || 0) + item.qty;
     });
   });
 

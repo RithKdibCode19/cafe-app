@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.example.backend.dto.common.ApiResponse;
 import com.example.backend.dto.report.DashboardStatsDTO;
 import com.example.backend.dto.report.SalesReportDTO;
 import com.example.backend.dto.report.StockTransferResponseDTO;
 import com.example.backend.services.ReportService;
+import com.example.backend.seeder.DataSeeder;
 import java.util.List;
 
 @RestController
@@ -22,9 +24,11 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
+    private final DataSeeder dataSeeder;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, DataSeeder dataSeeder) {
         this.reportService = reportService;
+        this.dataSeeder = dataSeeder;
     }
 
     @GetMapping("/dashboard")
@@ -53,14 +57,15 @@ public class ReportController {
     @GetMapping("/inventory")
     public ResponseEntity<ApiResponse<com.example.backend.dto.report.InventoryReportDTO>> getInventoryReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long branchId) {
 
         if (endDate == null)
             endDate = LocalDate.now();
         if (startDate == null)
             startDate = endDate.minusDays(30);
 
-        com.example.backend.dto.report.InventoryReportDTO report = reportService.getInventoryReport(startDate, endDate);
+        com.example.backend.dto.report.InventoryReportDTO report = reportService.getInventoryReport(startDate, endDate, branchId);
         return ResponseEntity.ok(ApiResponse.success(report, "Inventory report generated successfully"));
     }
 
@@ -114,5 +119,15 @@ public class ReportController {
 
         List<StockTransferResponseDTO> transfers = reportService.getStockTransfers(startDate, endDate, branchId);
         return ResponseEntity.ok(ApiResponse.success(transfers, "Stock transfer history retrieved successfully"));
+    }
+
+    @PostMapping("/seed-inventory")
+    public ResponseEntity<ApiResponse<String>> seedInventoryData() {
+        try {
+            dataSeeder.seedRealisticInventoryData();
+            return ResponseEntity.ok(ApiResponse.success("Success", "Realistic inventory data seeded successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to seed inventory data: " + e.getMessage()));
+        }
     }
 }

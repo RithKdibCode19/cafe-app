@@ -570,6 +570,25 @@ const DigitalIcon = () =>
     ],
   );
 
+const PosIcon = () =>
+  h(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      "stroke-width": "2",
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+    },
+    [
+      h("rect", { width: "20", height: "14", x: "2", y: "3", rx: "2" }),
+      h("line", { x1: "8", x2: "16", y1: "21", y2: "21" }),
+      h("line", { x1: "12", x2: "12", y1: "17", y2: "21" }),
+    ],
+  );
+
 const {
   canAccessPOS,
   canAccessInventory,
@@ -577,6 +596,9 @@ const {
   canAccessMenu,
   canAccessReports,
   isSuperAdmin,
+  isAdmin,
+  isManager,
+  isChef,
 } = usePermissions();
 
 const expandedCategories = ref<string[]>([]);
@@ -597,89 +619,71 @@ const toggleCategory = (category: string) => {
   }
 };
 
-const rawNavigation = [
-  {
-    name: "Operations",
-    icon: DashboardIcon,
-    show: true,
-    children: [
-      { name: "Dashboard", href: "/admin", show: true },
-      { name: "Orders", href: "/admin/orders", show: canAccessPOS.value },
-      { name: "Customers", href: "/admin/customers", show: canAccessPOS.value },
-      { name: "Kitchen", href: "/kitchen", show: true },
-    ],
-  },
-  {
-    name: "Digital Menu",
-    icon: DigitalIcon,
-    show: isSuperAdmin.value || canAccessMenu.value,
-    children: [{ name: "QR Table Codes", href: "/admin/qr-codes", show: true }],
-  },
-  {
-    name: "Catalog",
-    icon: MenuIcon,
-    show: canAccessMenu.value,
-    children: [
-      { name: "Products", href: "/admin/menu", show: canAccessMenu.value },
-      {
-        name: "Categories",
-        href: "/admin/categories",
-        show: canAccessMenu.value,
-      },
-      { name: "Add-ons", href: "/admin/addons", show: canAccessMenu.value },
-    ],
-  },
-  {
-    name: "Inventory",
-    icon: InventoryIcon,
-    show: canAccessInventory.value,
-    children: [
-      {
-        name: "Stock",
-        href: "/admin/inventory",
-        show: canAccessInventory.value,
-      },
-      {
-        name: "Recipes",
-        href: "/admin/inventory/recipes",
-        show: canAccessInventory.value,
-      },
-      {
-        name: "Suppliers",
-        href: "/admin/inventory/suppliers",
-        show: canAccessInventory.value,
-      },
-      {
-        name: "Expenses",
-        href: "/admin/expenses",
-        show: canAccessReports.value,
-      },
-    ],
-  },
-  {
-    name: "Management",
-    icon: StaffIcon,
-    show: canAccessEmployees.value || isSuperAdmin.value,
-    children: [
-      {
-        name: "Staff List",
-        href: "/admin/staff",
-        show: canAccessEmployees.value,
-      },
-      {
-        name: "Performance",
-        href: "/admin/staff/performance",
-        show: canAccessEmployees.value,
-      },
-      { name: "Reports", href: "/admin/reports", show: canAccessReports.value },
-      { name: "Branches", href: "/admin/branches", show: isSuperAdmin.value },
-      { name: "Settings", href: "/admin/settings", show: isSuperAdmin.value },
-    ],
-  },
-];
-
 const navigation = computed(() => {
-  return rawNavigation
+  const isAdminOrManager = isAdmin.value || isManager.value || isSuperAdmin.value;
+  const raw = [
+    {
+      name: "POS System",
+      icon: PosIcon,
+      show: canAccessPOS.value,
+      children: [
+        { name: "Switch to POS", href: "/pos", show: true },
+      ],
+    },
+    {
+      name: "Operations",
+      icon: DashboardIcon,
+      show: true,
+      children: [
+        { name: "Dashboard", href: "/admin", show: isAdminOrManager },
+        { name: "Orders", href: "/admin/orders", show: canAccessPOS.value },
+        { name: "Customers", href: "/admin/customers", show: isAdminOrManager },
+        { name: "Kitchen", href: "/kitchen", show: isAdminOrManager || isChef.value },
+      ],
+    },
+    {
+      name: "Digital Menu",
+      icon: DigitalIcon,
+      show: isSuperAdmin.value || canAccessMenu.value,
+      children: [{ name: "QR Table Codes", href: "/admin/qr-codes", show: true }],
+    },
+    {
+      name: "Catalog",
+      icon: MenuIcon,
+      show: canAccessMenu.value,
+      children: [
+        { name: "Products", href: "/admin/menu", show: canAccessMenu.value },
+        { name: "Categories", href: "/admin/categories", show: canAccessMenu.value },
+        { name: "Add-ons", href: "/admin/addons", show: canAccessMenu.value },
+      ],
+    },
+    {
+      name: "Inventory",
+      icon: InventoryIcon,
+      show: canAccessInventory.value,
+      children: [
+        { name: "Stock", href: "/admin/inventory", show: canAccessInventory.value },
+        { name: "Recipes", href: "/admin/inventory/recipes", show: canAccessInventory.value },
+        { name: "Suppliers", href: "/admin/inventory/suppliers", show: canAccessInventory.value },
+        { name: "Expenses", href: "/admin/expenses", show: canAccessReports.value },
+      ],
+    },
+    {
+      name: "Management",
+      icon: StaffIcon,
+      show: canAccessEmployees.value || isSuperAdmin.value,
+      children: [
+        { name: "Staff List", href: "/admin/staff", show: canAccessEmployees.value },
+        { name: "Performance", href: "/admin/staff/performance", show: canAccessEmployees.value },
+        { name: "Attendance", href: "/staff/terminal", show: canAccessEmployees.value },
+        { name: "Reports", href: "/admin/reports", show: canAccessReports.value },
+        { name: "Branches", href: "/admin/branches", show: isSuperAdmin.value },
+        { name: "Settings", href: "/admin/settings", show: isSuperAdmin.value },
+      ],
+    },
+  ];
+
+  return raw
     .filter((category) => category.show)
     .map((category) => ({
       ...category,
@@ -724,11 +728,17 @@ const isCategoryActive = (category: any) => {
 const toggleDarkMode = () => {
   isDark.value = !isDark.value;
   document.documentElement.classList.toggle("dark", isDark.value);
+  localStorage.setItem('admin-theme', isDark.value ? 'dark' : 'light');
 };
 
-// Initialize dark mode from system preference
+// Initialize theme: default to light unless saved as dark
 onMounted(() => {
-  isDark.value = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const savedTheme = localStorage.getItem('admin-theme');
+  if (savedTheme === 'dark') {
+    isDark.value = true;
+  } else {
+    isDark.value = false;
+  }
   document.documentElement.classList.toggle("dark", isDark.value);
   fetchLowStockCount();
 });

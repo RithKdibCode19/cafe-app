@@ -19,6 +19,7 @@ import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 import com.example.backend.security.JwtUtils;
 import com.example.backend.services.BakongPaymentService;
+import com.example.backend.services.LoyaltyService;
 import com.example.backend.services.SystemSettingService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,16 +37,19 @@ public class MobilePaymentController {
     private final JwtUtils jwtUtils;
     private final SystemSettingService systemSettingService;
     private final PaymentRepository paymentRepository;
+    private final LoyaltyService loyaltyService;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MobilePaymentController.class);
 
     public MobilePaymentController(BakongPaymentService bakongPaymentService,
             OrderRepository orderRepository, JwtUtils jwtUtils, 
-            SystemSettingService systemSettingService, PaymentRepository paymentRepository) {
+            SystemSettingService systemSettingService, PaymentRepository paymentRepository,
+            LoyaltyService loyaltyService) {
         this.bakongPaymentService = bakongPaymentService;
         this.orderRepository = orderRepository;
         this.jwtUtils = jwtUtils;
         this.systemSettingService = systemSettingService;
         this.paymentRepository = paymentRepository;
+        this.loyaltyService = loyaltyService;
     }
 
     @PostMapping("/khqr/{orderId}")
@@ -137,6 +141,9 @@ public class MobilePaymentController {
                         // Update order status to PAID
                         order.setStatus(OrderEntity.OrderStatus.PAID);
                         orderRepository.save(order);
+
+                        // Award loyalty points
+                        loyaltyService.awardPoints(order);
 
                         // Create Payment record for consistency with POS
                         PaymentEntity payment = new PaymentEntity();

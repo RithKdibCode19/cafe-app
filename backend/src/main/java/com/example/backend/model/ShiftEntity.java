@@ -43,7 +43,7 @@ public class ShiftEntity extends BaseEntity {
     @Column(name = "shift_end")
     private LocalDateTime endTime;
 
-    @Column(name = "start_cash", nullable = false)
+    @Column(name = "start_cash")
     private Double startCash;
 
     @Column(name = "end_cash")

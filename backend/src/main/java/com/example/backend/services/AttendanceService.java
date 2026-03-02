@@ -28,13 +28,19 @@ public class AttendanceService {
     private final ShiftRepository shiftRepository; // To check against scheduled shifts
     private final AttendanceMapper attendanceMapper;
     private final QrCodeService qrCodeService;
+    private final com.example.backend.repository.UserRepository userRepository;
 
-    public AttendanceService(AttendanceRepository attendanceRepository, EmployeeRepository employeeRepository, ShiftRepository shiftRepository, AttendanceMapper attendanceMapper, QrCodeService qrCodeService) {
+    public AttendanceService(AttendanceRepository attendanceRepository, EmployeeRepository employeeRepository, ShiftRepository shiftRepository, AttendanceMapper attendanceMapper, QrCodeService qrCodeService, com.example.backend.repository.UserRepository userRepository) {
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
         this.shiftRepository = shiftRepository;
         this.attendanceMapper = attendanceMapper;
         this.qrCodeService = qrCodeService;
+        this.userRepository = userRepository;
+    }
+
+    public List<com.example.backend.model.UserEntity> findUsersByPin(String pinCode) {
+        return userRepository.findByPinCodeAndDeletedAtIsNull(pinCode);
     }
 
     // Haversine formula to calculate distance in meters
@@ -166,5 +172,36 @@ public class AttendanceService {
         attendanceMapper.updateEntityFromDTO(request, entity);
         entity.setUpdatedAt(LocalDateTime.now());
         return attendanceMapper.toResponseDTO(attendanceRepository.save(entity));
+    }
+
+    /**
+     * Check if an employee is currently clocked in (has an open attendance record).
+     */
+    public boolean isEmployeeClockedIn(Long employeeId) {
+        return attendanceRepository
+                .findTopByEmployeeEmployeeIdAndCheckOutIsNullAndDeletedAtIsNullOrderByCheckInDesc(employeeId)
+                .isPresent();
+    }
+
+    /**
+     * Auto-close all open attendance records (no check-out).
+     * Sets check-out to 8 hours after check-in and adds a note.
+     * Called by the scheduled task at end of day.
+     */
+    @Transactional
+    public int autoCloseOpenAttendance() {
+        List<AttendanceEntity> openRecords = attendanceRepository.findAllByDeletedAtIsNull().stream()
+                .filter(a -> a.getCheckOut() == null)
+                .collect(Collectors.toList());
+
+        for (AttendanceEntity record : openRecords) {
+            record.setCheckOut(record.getCheckIn().plusHours(8));
+            record.setNote((record.getNote() != null ? record.getNote() + " | " : "") 
+                    + "Auto-closed: forgot to clock out");
+            record.setUpdatedAt(LocalDateTime.now());
+            attendanceRepository.save(record);
+        }
+
+        return openRecords.size();
     }
 }

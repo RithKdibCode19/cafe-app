@@ -49,8 +49,9 @@ public class OrderService {
     private final SystemSettingService systemSettingService;
     private final BranchStockService branchStockService;
     private final FcmService fcmService;
+    private final LoyaltyService loyaltyService;
 
-    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService, BranchStockService branchStockService, FcmService fcmService) {
+    public OrderService(OrderRepository orderRepository, BranchRepository branchRepository, UserRepository userRepository, CustomerRepository customerRepository, MenuItemRepository menuItemRepository, VariantRepository variantRepository, com.example.backend.repository.AddOnRepository addOnRepository, com.example.backend.repository.RecipeRepository recipeRepository, com.example.backend.repository.IngredientRepository ingredientRepository, OrderMapper orderMapper, com.example.backend.repository.PaymentRepository paymentRepository, TelegramService telegramService, SystemSettingService systemSettingService, BranchStockService branchStockService, FcmService fcmService, LoyaltyService loyaltyService) {
         this.orderRepository = orderRepository;
         this.branchRepository = branchRepository;
         this.userRepository = userRepository;
@@ -66,6 +67,7 @@ public class OrderService {
         this.systemSettingService = systemSettingService;
         this.branchStockService = branchStockService;
         this.fcmService = fcmService;
+        this.loyaltyService = loyaltyService;
     }
 
     private void createPaymentForOrder(OrderEntity order, OrderRequestDTO request) {
@@ -178,7 +180,7 @@ public class OrderService {
                         .mapToDouble(com.example.backend.model.AddOnEntity::getPrice).sum();
             }
 
-            return (basePrice + addOnTotal) * itemRequest.getQuantity();
+            return (basePrice + addOnTotal) * itemRequest.getQty();
         }).sum();
 
         // SECURE DISCOUNT CALCULATION
@@ -194,14 +196,7 @@ public class OrderService {
             if (availablePoints < request.getPointsRedeemed()) {
                 throw new RuntimeException("Insufficient points! Hack detected.");
             }
-
-            // Dynamic redemption rate (Default 0.1)
-            double redeemRate = 0.1;
-            try {
-                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
-                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
-            } catch (Exception e) {}
-            
+            double redeemRate = loyaltyService.getRedeemRate();
             discount = request.getPointsRedeemed() * redeemRate;
         }
 
@@ -255,6 +250,8 @@ public class OrderService {
                 .map(itemRequest -> createOrderItem(order, itemRequest))
                 .collect(Collectors.toList());
         order.setItems(orderItems);
+        order.setOrderSource(request.getOrderSource() != null ? request.getOrderSource() : "POS");
+        order.setTableNo(request.getTableNo());
 
         // Calculate Subtotal from items
         double subTotal = orderItems.stream()
@@ -273,13 +270,7 @@ public class OrderService {
             if (availablePoints < request.getPointsRedeemed()) {
                 throw new RuntimeException("Insufficient loyalty points for redemption!");
             }
-            // Dynamic redemption rate (Default 0.1)
-            double redeemRate = 0.1;
-            try {
-                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
-                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
-            } catch (Exception e) {}
-            
+            double redeemRate = loyaltyService.getRedeemRate();
             discount = request.getPointsRedeemed() * redeemRate;
         }
         order.setDiscountAmount(discount);
@@ -294,9 +285,7 @@ public class OrderService {
 
         // 5.1 Process Loyalty Redemption (Point Deduction)
         if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
-            // Points already validated in Step 5
-            customer.setLoyaltyPoints(customer.getLoyaltyPoints() - request.getPointsRedeemed());
-            customerRepository.save(customer);
+            loyaltyService.deductPoints(customer, request.getPointsRedeemed());
         }
 
         // 6. Save order (cascade will save items)
@@ -313,7 +302,7 @@ public class OrderService {
 
         // 8. Update Loyalty Points
         if (savedOrder.getCustomer() != null && savedOrder.getStatus() == OrderEntity.OrderStatus.PAID) {
-            updateLoyaltyPoints(savedOrder);
+            loyaltyService.awardPoints(savedOrder);
         }
 
         // 9. Telegram Notification (Large Order Alert)
@@ -330,53 +319,13 @@ public class OrderService {
         return orderMapper.toResponseDTO(savedOrder);
     }
 
-    private void updateLoyaltyPoints(OrderEntity order) {
-        CustomerEntity customer = order.getCustomer();
-        if (customer == null)
-            return;
-
-        // Dynamic rates and thresholds
-        double earnRate = 1.0;
-        int silverThreshold = 300;
-        int goldThreshold = 1000;
-        
-        try {
-            String earnVal = systemSettingService.getValue("LOYALTY_EARN_RATE");
-            if (earnVal != null) earnRate = Double.parseDouble(earnVal);
-            
-            String silverVal = systemSettingService.getValue("LOYALTY_SILVER_THRESHOLD");
-            if (silverVal != null) silverThreshold = Integer.parseInt(silverVal);
-            
-            String goldVal = systemSettingService.getValue("LOYALTY_GOLD_THRESHOLD");
-            if (goldVal != null) goldThreshold = Integer.parseInt(goldVal);
-        } catch (Exception e) {}
-
-        // Calculate points to gain
-        int pointsToGain = (int) Math.floor(order.getTotalAmount() * earnRate);
-        int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
-        customer.setLoyaltyPoints(currentPoints + pointsToGain);
-
-        // Update Membership Level
-        int totalPoints = customer.getLoyaltyPoints();
-        if (totalPoints >= goldThreshold) {
-            customer.setMembershipLevel("GOLD");
-        } else if (totalPoints >= silverThreshold) {
-            customer.setMembershipLevel("SILVER");
-        } else {
-            customer.setMembershipLevel("BRONZE");
-        }
-
-        customerRepository.save(customer);
-    }
-
     /**
      * Get all orders
      */
     public List<OrderResponseDTO> getAllOrders() {
         List<OrderEntity> orders = orderRepository.findAll();
-        // Recalculate or map logic
         return orders.stream()
-                .filter(order -> order.getDeletedAt() == null) // Only active orders
+                .filter(order -> order.getDeletedAt() == null)
                 .map(orderMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -385,28 +334,38 @@ public class OrderService {
      * Get all orders (paginated)
      */
     @com.example.backend.security.IsolateByBranch
-    public Page<OrderResponseDTO> getAllOrdersPaginated(Pageable pageable, String status, String search, Long branchId) {
-        Page<OrderEntity> orderPage;
+    public org.springframework.data.domain.Page<OrderResponseDTO> getAllOrdersPaginated(org.springframework.data.domain.Pageable pageable, String status, String search, Long branchId) {
+        org.springframework.data.jpa.domain.Specification<OrderEntity> spec = (root, query, cb) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
 
-        if (branchId != null) {
-             // For now, we don't have a combined search+branch+status repo method, 
-             // so if branchId is present, we filter by branch.
-             // This is safe because Aspect will inject branchId for non-SuperAdmins.
-             orderPage = orderRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId, pageable);
-        } else if (search != null && !search.trim().isEmpty()) {
-            orderPage = orderRepository.findByOrderNoContainingIgnoreCaseAndDeletedAtIsNull(search.trim(), pageable);
-        } else if (status != null && !status.equalsIgnoreCase("ALL")) {
-            try {
-                OrderEntity.OrderStatus orderStatus = OrderEntity.OrderStatus.valueOf(status.toUpperCase());
-                orderPage = orderRepository.findByStatusAndDeletedAtIsNull(orderStatus, pageable);
-            } catch (IllegalArgumentException e) {
-                // Invalid status, fall back to all or empty
-                orderPage = Page.empty(pageable);
+            // 1. Mandatory filter: Not deleted
+            predicates.add(cb.isNull(root.get("deletedAt")));
+
+            // 2. Optional: Branch filter
+            if (branchId != null) {
+                predicates.add(cb.equal(root.get("branch").get("branchId"), branchId));
             }
-        } else {
-            orderPage = orderRepository.findByDeletedAtIsNull(pageable);
-        }
 
+            // 3. Optional: Status filter
+            if (status != null && !status.equalsIgnoreCase("ALL")) {
+                try {
+                    OrderEntity.OrderStatus orderStatus = OrderEntity.OrderStatus.valueOf(status.toUpperCase());
+                    predicates.add(cb.equal(root.get("status"), orderStatus));
+                } catch (IllegalArgumentException e) {
+                    // Invalid status provided, optionally handle or just continue/return empty
+                }
+            }
+
+            // 4. Optional: Search query (search in orderNo)
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(root.get("orderNo")), searchPattern));
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        org.springframework.data.domain.Page<OrderEntity> orderPage = orderRepository.findAll(spec, pageable);
         return orderPage.map(orderMapper::toResponseDTO);
     }
 
@@ -490,16 +449,30 @@ public class OrderService {
                 throw new RuntimeException("Reason is required for " + newStatus);
             }
 
-            UserEntity approver = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode)
-                    .orElseThrow(() -> new RuntimeException("Invalid Authorization PIN"));
-
-            // Check permission: POS_VOID or SYS_ALL
-            boolean hasPermission = approver.getRole().getPermissions().stream()
-                    .anyMatch(p -> "POS_VOID".equals(p.getCode()) || "SYS_ALL".equals(p.getCode()));
-            
-            if (!hasPermission) {
-                throw new RuntimeException("User [" + approver.getEmployee().getFullName() + "] is not authorized to approve " + newStatus);
+            List<UserEntity> candidates = userRepository.findByPinCodeAndDeletedAtIsNull(pinCode);
+            if (candidates.isEmpty()) {
+                throw new RuntimeException("Invalid Authorization PIN");
             }
+
+            final String requiredPerm = (newStatus == OrderEntity.OrderStatus.VOID) ? "POS_VOID" : "POS_REFUND";
+
+            UserEntity approver = candidates.stream()
+                    .filter(u -> {
+                        // 1. Check permissions (Specific permission OR SYS_ALL)
+                        boolean hasPermission = u.getRole().getPermissions().stream()
+                                .anyMatch(p -> requiredPerm.equals(p.getCode()) || "SYS_ALL".equals(p.getCode()));
+                        if (!hasPermission) return false;
+
+                        // 2. Branch restriction: SYS_ALL can approve anywhere
+                        boolean isSystemAdmin = u.getRole().getPermissions().stream()
+                                .anyMatch(p -> "SYS_ALL".equals(p.getCode()));
+                        if (isSystemAdmin) return true;
+
+                        // 3. Others must match the branch of the order
+                        return u.getEmployee().getBranch().getBranchId().equals(order.getBranch().getBranchId());
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Authorization PIN is valid, but the user does not have permission for this branch"));
 
             order.setApprovedBy(approver);
             order.setStatusReason(reason);
@@ -518,7 +491,7 @@ public class OrderService {
 
         // Award Points if becoming PAID
         if (newStatus == OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.PAID) {
-            updateLoyaltyPoints(order);
+            loyaltyService.awardPoints(order);
         }
 
         // Update Status
@@ -534,7 +507,7 @@ public class OrderService {
 
         // 2. Revert Loyalty Points if order is REFUNDED
         if (newStatus == OrderEntity.OrderStatus.REFUND && order.getCustomer() != null) {
-            revertLoyaltyPoints(order);
+            loyaltyService.revertPoints(order);
         }
 
         // Log to Audit Trail
@@ -560,26 +533,6 @@ public class OrderService {
         }
 
         return orderMapper.toResponseDTO(updatedOrder);
-    }
-
-    private void revertLoyaltyPoints(OrderEntity order) {
-        CustomerEntity customer = order.getCustomer();
-        if (customer == null)
-            return;
-
-        // Revert points based on earn rate
-        double earnRate = 1.0;
-        try {
-            String earnVal = systemSettingService.getValue("LOYALTY_EARN_RATE");
-            if (earnVal != null) earnRate = Double.parseDouble(earnVal);
-        } catch (Exception e) {}
-        
-        int pointsToRemove = (int) Math.floor(order.getTotalAmount() * earnRate);
-        int currentPoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
-
-        // Don't let points go below 0 (though in a strict world, they might)
-        customer.setLoyaltyPoints(Math.max(0, currentPoints - pointsToRemove));
-        customerRepository.save(customer);
     }
 
     /**
@@ -644,13 +597,7 @@ public class OrderService {
             int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
             // Note: Since this is an update, the points might have already been deducted.
             // But business rule says we can't modify PAID orders anyway (line 421).
-            // Dynamic redemption rate
-            double redeemRate = 0.1;
-            try {
-                String rateVal = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
-                if (rateVal != null) redeemRate = Double.parseDouble(rateVal);
-            } catch (Exception e) {}
-            
+            double redeemRate = loyaltyService.getRedeemRate();
             discount = request.getPointsRedeemed() * redeemRate;
         }
         existingOrder.setDiscountAmount(discount);
@@ -750,7 +697,7 @@ public class OrderService {
 
             for (com.example.backend.model.RecipeEntity recipe : recipes) {
                 Long ingredientId = recipe.getIngredient().getIngredientId();
-                Double needed = recipe.getQuantityNeeded() * item.getQuantity();
+                Double needed = recipe.getQuantityNeeded() * item.getQty();
                 totalIngredientsNeeded.merge(ingredientId, needed, Double::sum);
             }
         }
@@ -803,7 +750,7 @@ public class OrderService {
         orderItem.setOrder(order);
         orderItem.setMenuItem(menuItem);
         orderItem.setVariant(variant);
-        orderItem.setQty(itemRequest.getQuantity());
+        orderItem.setQty(itemRequest.getQty());
         orderItem.setUnitPrice(finalPrice); // Set secured price from DB + Addons
         orderItem.setAddOnItems(addOns);
 

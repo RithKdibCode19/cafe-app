@@ -35,8 +35,20 @@ public class CategoryService {
         // Fetch only root categories (categories with no parent)
         List<CategoryEntity> categoryEntities = categoryRepository.findRoots();
         return categoryEntities.stream()
-                .map(categoryMapper::toResponseDTO)
+                .map(this::mapWithChildren)
                 .toList();
+    }
+
+    private CategoryResponseDTO mapWithChildren(CategoryEntity entity) {
+        CategoryResponseDTO dto = categoryMapper.toResponseDTO(entity);
+        if (entity.getChildren() != null && !entity.getChildren().isEmpty()) {
+            List<CategoryResponseDTO> childDtos = entity.getChildren().stream()
+                    .filter(c -> c.getDeletedAt() == null)
+                    .map(this::mapWithChildren)
+                    .toList();
+            dto.setChildren(childDtos);
+        }
+        return dto;
     }
     public CategoryResponseDTO getCategoryById(Long id) {
         CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));

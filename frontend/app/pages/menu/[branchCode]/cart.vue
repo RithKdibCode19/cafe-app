@@ -171,6 +171,7 @@ const placeOrder = async () => {
     const request = {
       branchCode,
       tableNo: tableNo.value || null,
+      orderSource: 'QR_WEB',
       orderType: tableNo.value ? 'DINE_IN' : 'TAKEAWAY',
       note: orderNote.value || null,
       customerName: customerName.value || null,
@@ -181,6 +182,10 @@ const placeOrder = async () => {
     const response = await post<any>('/public/orders', request)
 
     if (response?.orderNo) {
+      if (process.client) {
+        localStorage.setItem('menu_active_order', response.orderNo)
+        localStorage.setItem('menu_active_order_branch', branchCode)
+      }
       clearCart()
       toast.success('Check out success!', 2000)
       router.push(`/menu/${branchCode}/order/${response.orderNo}`)

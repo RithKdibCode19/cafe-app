@@ -22,6 +22,7 @@ import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 import com.example.backend.repository.StockAdjustmentRepository;
 import com.example.backend.repository.EmployeeRepository;
+import com.example.backend.repository.BranchStockRepository;
 import com.example.backend.repository.StockTransferRepository;
 import com.example.backend.dto.report.StockTransferResponseDTO;
 import com.example.backend.model.*;
@@ -39,6 +40,7 @@ public class ReportService {
         private final com.example.backend.repository.StockInRepository stockInRepository;
         private final com.example.backend.repository.RecipeRepository recipeRepository;
         private final StockTransferRepository stockTransferRepository;
+        private final BranchStockRepository branchStockRepository;
 
         public ReportService(OrderRepository orderRepository,
                         PaymentRepository paymentRepository,
@@ -49,7 +51,8 @@ public class ReportService {
                         EmployeeRepository employeeRepository,
                         com.example.backend.repository.StockInRepository stockInRepository,
                         com.example.backend.repository.RecipeRepository recipeRepository,
-                        StockTransferRepository stockTransferRepository) {
+                        StockTransferRepository stockTransferRepository,
+                        BranchStockRepository branchStockRepository) {
                 this.orderRepository = orderRepository;
                 this.paymentRepository = paymentRepository;
                 this.ingredientRepository = ingredientRepository;
@@ -60,6 +63,7 @@ public class ReportService {
                 this.stockInRepository = stockInRepository;
                 this.recipeRepository = recipeRepository;
                 this.stockTransferRepository = stockTransferRepository;
+                this.branchStockRepository = branchStockRepository;
         }
 
         public DashboardStatsDTO getDashboardStats() {
@@ -356,7 +360,7 @@ public class ReportService {
         // ========== INVENTORY REPORT ==========
 
         public com.example.backend.dto.report.InventoryReportDTO getInventoryReport(LocalDate startDate,
-                        LocalDate endDate) {
+                        LocalDate endDate, Long branchId) {
                 com.example.backend.dto.report.InventoryReportDTO report = new com.example.backend.dto.report.InventoryReportDTO();
                 LocalDateTime start = startDate.atStartOfDay();
                 LocalDateTime end = endDate.plusDays(1).atStartOfDay();
@@ -365,25 +369,40 @@ public class ReportService {
                 report.setStartDate(startDate.format(dateFormatter));
                 report.setEndDate(endDate.format(dateFormatter));
 
-                List<com.example.backend.model.IngredientEntity> ingredients = ingredientRepository
-                                .findAllByDeletedAtIsNull();
+                Double totalValue = 0.0;
+                long lowStockCount = 0;
 
-                // Total Inventory Value
-                Double totalValue = ingredients.stream()
-                                .mapToDouble(i -> (i.getCurrentStock() != null ? i.getCurrentStock() : 0.0)
-                                                * (i.getCostPerUnit() != null ? i.getCostPerUnit() : 0.0))
-                                .sum();
+                if (branchId != null) {
+                        List<BranchStockEntity> branchStocks = branchStockRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId);
+                        totalValue = branchStocks.stream()
+                                        .mapToDouble(bs -> (bs.getCurrentStock() != null ? bs.getCurrentStock() : 0.0)
+                                                        * (bs.getIngredient() != null && bs.getIngredient().getCostPerUnit() != null ? bs.getIngredient().getCostPerUnit() : 0.0))
+                                        .sum();
+
+                        lowStockCount = branchStocks.stream()
+                                        .filter(bs -> bs.getCurrentStock() <= bs.getReorderLevel())
+                                        .count();
+                } else {
+                        List<com.example.backend.model.IngredientEntity> ingredients = ingredientRepository
+                                        .findAllByDeletedAtIsNull();
+
+                        totalValue = ingredients.stream()
+                                        .mapToDouble(i -> (i.getCurrentStock() != null ? i.getCurrentStock() : 0.0)
+                                                        * (i.getCostPerUnit() != null ? i.getCostPerUnit() : 0.0))
+                                        .sum();
+
+                        lowStockCount = ingredients.stream()
+                                        .filter(i -> i.getCurrentStock() <= i.getReorderLevel())
+                                        .count();
+                }
+
                 report.setTotalInventoryValue(totalValue);
-
-                // Low stock count
-                long lowStockCount = ingredients.stream()
-                                .filter(i -> i.getCurrentStock() <= i.getReorderLevel())
-                                .count();
                 report.setLowStockItemsCount((int) lowStockCount);
 
                 // Wastage Analysis
-                List<com.example.backend.model.StockAdjustmentEntity> adjustments = stockAdjustmentRepository
-                                .findByCreatedAtBetweenAndDeletedAtIsNull(start, end);
+                List<com.example.backend.model.StockAdjustmentEntity> adjustments = (branchId != null)
+                        ? stockAdjustmentRepository.findByBranchBranchIdAndCreatedAtBetweenAndDeletedAtIsNull(branchId, start, end)
+                        : stockAdjustmentRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end);
 
                 Map<String, com.example.backend.dto.report.InventoryReportDTO.WastageSummary> wastageMap = new HashMap<>();
                 Double totalWasteCost = 0.0;
@@ -549,7 +568,6 @@ public class ReportService {
                 com.example.backend.dto.report.StockMovementReportDTO report = new com.example.backend.dto.report.StockMovementReportDTO();
                 LocalDateTime start = startDate.atStartOfDay();
                 LocalDateTime end = endDate.plusDays(1).atStartOfDay();
-                LocalDateTime now = LocalDateTime.now();
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
                 report.setStartDate(startDate.format(dateFormatter));
@@ -564,17 +582,22 @@ public class ReportService {
                 List<String> recommendations = new ArrayList<>();
 
                 // Fetch all movements once to optimize
-                Map<Long, List<StockInEntity>> stockInMap = stockInRepository
-                                .findByReceivedDateBetweenAndDeletedAtIsNull(start, end)
+                Map<Long, List<StockInEntity>> stockInMap = ((branchId != null)
+                                ? stockInRepository.findByBranchBranchIdAndReceivedDateBetweenAndDeletedAtIsNull(branchId, start, end)
+                                : stockInRepository.findByReceivedDateBetweenAndDeletedAtIsNull(start, end))
                                 .stream().collect(Collectors.groupingBy(si -> si.getIngredient().getIngredientId()));
 
-                Map<Long, List<StockAdjustmentEntity>> adjMap = stockAdjustmentRepository
-                                .findByCreatedAtBetweenAndDeletedAtIsNull(start, end)
+                Map<Long, List<StockAdjustmentEntity>> adjMap = ((branchId != null)
+                                ? stockAdjustmentRepository.findByBranchBranchIdAndCreatedAtBetweenAndDeletedAtIsNull(branchId, start, end)
+                                : stockAdjustmentRepository.findByCreatedAtBetweenAndDeletedAtIsNull(start, end))
                                 .stream().filter(a -> a.getStatus() == StockAdjustmentEntity.AdjustmentStatus.APPROVED)
                                 .collect(Collectors.groupingBy(a -> a.getIngredient().getIngredientId()));
 
                 // Pre-calculate sales stock out per ingredient using optimized SQL
-                List<Object[]> usageResults = orderRepository.calculateIngredientUsageForPeriod(start, end);
+                List<Object[]> usageResults = (branchId != null)
+                                ? orderRepository.calculateIngredientUsageForBranchAndPeriod(start, end, branchId)
+                                : orderRepository.calculateIngredientUsageForPeriod(start, end);
+                
                 Map<Long, Double> salesStockOut = new HashMap<>();
                 for (Object[] row : usageResults) {
                         Long ingId = row[0] != null ? ((Number) row[0]).longValue() : null;
@@ -584,9 +607,15 @@ public class ReportService {
                         }
                 }
 
-                // Also need movements between end date and now to calculate "Closing Stock" as of endDate
-                // MovementAfterEnd = StockIn(End to Now) + Adj(End to Now) - Sales(End to Now)
-                // ClosingStock(End) = CurrentStock - MovementAfterEnd
+                // If branchId is specified, we need the current branch stock for closing stock
+                Map<Long, Double> branchCurrentStockMap = new HashMap<>();
+                Map<Long, Double> branchReorderLevelMap = new HashMap<>();
+                if (branchId != null) {
+                        branchStockRepository.findByBranchBranchIdAndDeletedAtIsNull(branchId).forEach(bs -> {
+                                branchCurrentStockMap.put(bs.getIngredient().getIngredientId(), bs.getCurrentStock());
+                                branchReorderLevelMap.put(bs.getIngredient().getIngredientId(), bs.getReorderLevel());
+                        });
+                }
 
                 for (IngredientEntity ing : ingredients) {
                         Long ingId = ing.getIngredientId();
@@ -603,14 +632,10 @@ public class ReportService {
                         double sold = salesStockOut.getOrDefault(ingId, 0.0);
 
                         // 4. Closing Stock at end date
-                        // Simplified: Since we don't have a full historical snapshot, 
-                        // we calculate back from current stock if end date is near.
-                        // For this MVP, we'll assume current stock if endDate is today.
-                        double closing = ing.getCurrentStock() != null ? ing.getCurrentStock() : 0.0;
+                        double closing = (branchId != null) 
+                                ? branchCurrentStockMap.getOrDefault(ingId, 0.0)
+                                : (ing.getCurrentStock() != null ? ing.getCurrentStock() : 0.0);
                         
-                        // If endDate is in the past, we'd need to subtract movements from endDate to now.
-                        // (Skipping for brevity in first pass, assuming report is generated for recent periods)
-
                         // 5. Opening Stock
                         double opening = closing - (received + adjusted - sold);
 
@@ -638,7 +663,12 @@ public class ReportService {
                         if (wastagePct > 10.0) {
                                 recommendations.add("High wastage for " + ing.getName() + " (" + String.format("%.1f", wastagePct) + "%). Inspect storage conditions.");
                         }
-                        if (opening < (ing.getReorderLevel() != null ? ing.getReorderLevel() : 0.0)) {
+                        
+                        double reorderLevel = (branchId != null) 
+                                ? branchReorderLevelMap.getOrDefault(ingId, 0.0)
+                                : (ing.getReorderLevel() != null ? ing.getReorderLevel() : 0.0);
+                        
+                        if (opening < reorderLevel) {
                                 recommendations.add(ing.getName() + " was low at start of period. Consider increasing safety stock.");
                         }
                 }

@@ -152,12 +152,12 @@
                       : 'text-success-400',
                   ]"
                 >
-                  {{ item.currentStock }} {{ item.ingredient.unit }}
+                  {{ item.currentStock?.toFixed(2) }} {{ item.ingredient.unit }}
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
                 <span class="text-xs font-bold text-neutral-400"
-                  >{{ item.reorderLevel }} {{ item.ingredient.unit }}</span
+                  >{{ item.reorderLevel?.toFixed(2) }} {{ item.ingredient.unit }}</span
                 >
               </td>
               <td class="px-6 py-4 text-center">

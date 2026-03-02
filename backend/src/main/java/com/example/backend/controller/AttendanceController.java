@@ -81,4 +81,34 @@ public class AttendanceController {
             @Valid @RequestBody AttendanceRequestDTO request) {
         return ResponseEntity.ok(attendanceService.updateAttendance(id, request));
     }
+
+    @GetMapping("/status/{id}")
+    public ResponseEntity<java.util.Map<String, Object>> getAttendanceStatus(@PathVariable Long id) {
+        boolean clockedIn = attendanceService.isEmployeeClockedIn(id);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("clockedIn", clockedIn);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/verify-pin")
+    public ResponseEntity<java.util.Map<String, Object>> verifyPin(@RequestBody java.util.Map<String, String> body) {
+        String pinCode = body.get("pin");
+        if (pinCode == null || pinCode.isEmpty()) {
+            throw new RuntimeException("PIN is required");
+        }
+        java.util.List<com.example.backend.model.UserEntity> users = attendanceService.findUsersByPin(pinCode);
+        if (users.isEmpty()) {
+            throw new RuntimeException("Invalid PIN");
+        }
+        com.example.backend.model.UserEntity user = users.get(0);
+        com.example.backend.model.EmployeeEntity emp = user.getEmployee();
+        if (emp == null) {
+            throw new RuntimeException("No employee linked to this user");
+        }
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("employeeId", emp.getEmployeeId());
+        result.put("fullName", emp.getFullName());
+        result.put("userId", user.getUserId());
+        return ResponseEntity.ok(result);
+    }
 }

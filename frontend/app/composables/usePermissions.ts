@@ -9,6 +9,22 @@ export const usePermissions = () => {
         return user.value?.roleName || 'GUEST'
     })
 
+    const isSuperAdmin = computed(() => {
+        return role.value === 'ADMIN' || permissions.value.includes('SYS_ALL')
+    })
+
+    const isAdmin = computed(() => {
+        return role.value === 'ADMIN'
+    })
+
+    const isManager = computed(() => {
+        return role.value === 'MANAGER'
+    })
+
+    const isChef = computed(() => {
+        return role.value === 'CHEF'
+    })
+
     const hasPermission = (code: string) => {
         if (isSuperAdmin.value) return true
         return permissions.value.includes(code)
@@ -18,14 +34,6 @@ export const usePermissions = () => {
         if (isSuperAdmin.value) return true
         return codes.some(code => permissions.value.includes(code))
     }
-
-    const isSuperAdmin = computed(() => {
-        return role.value === 'ADMIN' || permissions.value.includes('SYS_ALL')
-    })
-
-    const isManager = computed(() => {
-        return role.value === 'MANAGER'
-    })
 
     /**
      * Permission Groups
@@ -42,7 +50,9 @@ export const usePermissions = () => {
         hasPermission,
         hasAnyPermission,
         isSuperAdmin,
+        isAdmin,
         isManager,
+        isChef,
         canAccessPOS,
         canAccessInventory,
         canAccessEmployees,

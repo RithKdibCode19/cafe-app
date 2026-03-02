@@ -25,6 +25,7 @@ import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.VariantRepository;
 import com.example.backend.services.FcmService;
 import com.example.backend.services.SystemSettingService;
+import com.example.backend.services.LoyaltyService;
 
 @Service
 public class MobileOrderService {
@@ -37,7 +38,7 @@ public class MobileOrderService {
     private final AddOnRepository addOnRepository;
     private final SystemSettingService systemSettingService;
     private final FcmService fcmService;
-
+    private final LoyaltyService loyaltyService;
     public MobileOrderService(
             OrderRepository orderRepository,
             BranchRepository branchRepository,
@@ -46,7 +47,8 @@ public class MobileOrderService {
             VariantRepository variantRepository,
             AddOnRepository addOnRepository,
             SystemSettingService systemSettingService,
-            FcmService fcmService) {
+            FcmService fcmService,
+            LoyaltyService loyaltyService) {
         this.orderRepository = orderRepository;
         this.branchRepository = branchRepository;
         this.customerRepository = customerRepository;
@@ -55,6 +57,7 @@ public class MobileOrderService {
         this.addOnRepository = addOnRepository;
         this.systemSettingService = systemSettingService;
         this.fcmService = fcmService;
+        this.loyaltyService = loyaltyService;
     }
 
     /**
@@ -164,24 +167,23 @@ public class MobileOrderService {
             if (customer.getLoyaltyPoints() < request.getPointsRedeemed()) {
                 throw new RuntimeException("Insufficient loyalty points");
             }
-            // Fetch redeem rate from settings (default to 0.01 if not found, i.e., 100 points = $1)
-            double redeemRate = 0.01;
-            String rateStr = systemSettingService.getValue("LOYALTY_REDEEM_RATE");
-            if (rateStr != null) {
-                try {
-                    redeemRate = Double.parseDouble(rateStr);
-                } catch (NumberFormatException e) {
-                    // fall back to default
-                }
-            }
             
+            double redeemRate = loyaltyService.getRedeemRate();
             double discount = request.getPointsRedeemed() * redeemRate;
+            
+            // Adjust points if discount exceeds total
+            int actualPointsToRedeem = request.getPointsRedeemed();
+            if (discount > order.getTotalAmount()) {
+                discount = order.getTotalAmount();
+                actualPointsToRedeem = (int) Math.ceil(discount / redeemRate);
+            }
+
             order.setDiscountAmount(discount);
             order.setTotalAmount(Math.max(0.0, order.getTotalAmount() - discount));
+            order.setPointsRedeemed(actualPointsToRedeem);
 
             // Deduct points
-            customer.setLoyaltyPoints(customer.getLoyaltyPoints() - request.getPointsRedeemed());
-            customerRepository.save(customer);
+            loyaltyService.deductPoints(customer, actualPointsToRedeem);
         }
 
         OrderEntity saved = orderRepository.save(order);
@@ -234,9 +236,7 @@ public class MobileOrderService {
 
         // Refund loyalty points if any were used
         if (order.getPointsRedeemed() != null && order.getPointsRedeemed() > 0) {
-            CustomerEntity customer = order.getCustomer();
-            customer.setLoyaltyPoints(customer.getLoyaltyPoints() + order.getPointsRedeemed());
-            customerRepository.save(customer);
+            loyaltyService.refundPoints(order.getCustomer(), order.getPointsRedeemed());
         }
 
         OrderEntity saved = orderRepository.save(order);

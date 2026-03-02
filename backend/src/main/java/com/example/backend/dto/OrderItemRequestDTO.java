@@ -18,7 +18,7 @@ public class OrderItemRequestDTO {
 
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be positive")
-    private Integer quantity;
+    private Integer qty;
 
     private Double unitPrice;
 
@@ -43,12 +43,12 @@ public class OrderItemRequestDTO {
         this.variantId = variantId;
     }
 
-    public Integer getQuantity() {
-        return quantity;
+    public Integer getQty() {
+        return qty;
     }
 
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+    public void setQty(Integer qty) {
+        this.qty = qty;
     }
 
     public Double getUnitPrice() {

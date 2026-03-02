@@ -27,6 +27,8 @@ public class OrderResponseDTO {
     private Integer pointsRedeemed;
     private String statusReason;
     private String approvedByName;
+    private String orderSource;
+    private String tableNo;
     private List<OrderItemResponseDTO> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

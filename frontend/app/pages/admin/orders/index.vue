@@ -138,7 +138,11 @@
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500"
                 >
-                  {{ order.orderType }}
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium text-neutral-900 dark:text-white">{{ order.orderType }}</span>
+                    <span v-if="order.tableNo" class="text-[10px] bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded-md w-fit font-bold">Table {{ order.tableNo }}</span>
+                    <span class="text-[10px] text-neutral-400 font-medium uppercase tracking-tighter">{{ order.orderSource || 'POS' }}</span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
@@ -376,6 +380,21 @@
                   {{ selectedOrder.status }}
                 </span>
               </div>
+              <div>
+                <p
+                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
+                >
+                  Source
+                </p>
+                <p class="text-sm font-medium dark:text-white">
+                  {{ selectedOrder.orderSource || "POS" }}
+                  <span
+                    v-if="selectedOrder.tableNo"
+                    class="text-primary-600 ml-1"
+                    >(Table {{ selectedOrder.tableNo }})</span
+                  >
+                </p>
+              </div>
             </div>
 
             <!-- Items -->
@@ -512,7 +531,7 @@ definePageMeta({
   layout: false,
 });
 
-const { get, post } = useApi();
+const { get, post, put } = useApi();
 const toast = useToast();
 
 // -- State --
@@ -622,8 +641,10 @@ const handleApprovedAdjustment = async (data: { pin: string, reason: string }) =
 
     const endpoint = `/orders/${orderId}/${type.toLowerCase()}`;
     await put(endpoint, null, {
-        pinCode: data.pin,
-        reason: data.reason
+        params: {
+            pinCode: data.pin,
+            reason: data.reason
+        }
     });
 
     await fetchOrders();

@@ -19,6 +19,7 @@ public class BranchResponseDTO {
     private Double latitude;
     private Double longitude;
     private Integer radiusMeters;
+    private Integer tableCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

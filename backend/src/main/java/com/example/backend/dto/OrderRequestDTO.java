@@ -34,6 +34,9 @@ public class OrderRequestDTO {
 
     private String note;
 
+    private String orderSource;
+    private String tableNo;
+
     private Double discountAmount;
 
     @NotEmpty(message = "Order items are required")

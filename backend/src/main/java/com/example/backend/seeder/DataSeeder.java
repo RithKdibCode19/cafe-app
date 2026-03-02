@@ -35,11 +35,13 @@ public class DataSeeder implements CommandLineRunner {
     private final ExpenseRepository expenseRepository;
     private final AttendanceRepository attendanceRepository;
     private final StockAdjustmentRepository stockAdjustmentRepository;
+    private final StockInRepository stockInRepository;
     private final PasswordEncoder passwordEncoder;
     private final SystemSettingRepository systemSettingRepository;
     private final AddOnRepository addOnRepository;
     private final VariantRepository variantRepository;
     private final BranchStockRepository branchStockRepository;
+    private final SupplierRepository supplierRepository;
     private final java.util.Random random = new java.util.Random();
 
     public DataSeeder(BranchRepository branchRepository,
@@ -55,11 +57,13 @@ public class DataSeeder implements CommandLineRunner {
             ExpenseRepository expenseRepository,
             AttendanceRepository attendanceRepository,
             StockAdjustmentRepository stockAdjustmentRepository,
+            StockInRepository stockInRepository,
             PermissionRepository permissionRepository,
             SystemSettingRepository systemSettingRepository,
             AddOnRepository addOnRepository,
             VariantRepository variantRepository,
             BranchStockRepository branchStockRepository,
+            SupplierRepository supplierRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.branchRepository = branchRepository;
         this.roleRepository = roleRepository;
@@ -76,9 +80,11 @@ public class DataSeeder implements CommandLineRunner {
         this.expenseRepository = expenseRepository;
         this.attendanceRepository = attendanceRepository;
         this.stockAdjustmentRepository = stockAdjustmentRepository;
+        this.stockInRepository = stockInRepository;
         this.addOnRepository = addOnRepository;
         this.variantRepository = variantRepository;
         this.branchStockRepository = branchStockRepository;
+        this.supplierRepository = supplierRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -90,6 +96,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSettings();
         seedAddOns();
         seedVariants();
+        seedSuppliers();
 
         // 2. Check data state BEFORE ensureUserPasswords (which may create a SYSTEM branch)
         long branchCount = branchRepository.count();
@@ -108,6 +115,7 @@ public class DataSeeder implements CommandLineRunner {
              try {
                  seedHeavyData();
                  seedBranchStock();
+                 seedStockMovements();
                  System.out.println("Heavy data seeding completed successfully!");
              } catch (Exception e) {
                  System.err.println("ERROR during heavy data seeding: " + e.getMessage());
@@ -571,8 +579,14 @@ public class DataSeeder implements CommandLineRunner {
         for (UserEntity user : allUsers) {
             // We force reset everything to '1234' so the user doesn't get confused
             user.setPassword(passwordEncoder.encode("1234"));
+            
+            // Also ensure PIN is set (default '1234' if null/empty)
+            if (user.getPinCode() == null || user.getPinCode().isEmpty()) {
+                user.setPinCode("1234");
+            }
+            
             userRepository.save(user);
-            System.out.println("Forced password '1234' for user: " + user.getUserName());
+            System.out.println("Forced creds for user: " + user.getUserName());
         }
     }
 
@@ -868,6 +882,30 @@ public class DataSeeder implements CommandLineRunner {
          }
     }
 
+    public void seedRealisticInventoryData() {
+        seedSuppliers();
+        seedBranchStock();
+        seedStockMovements();
+    }
+
+    private void seedSuppliers() {
+        if (supplierRepository.count() > 0) return;
+        System.out.println("Seeding suppliers...");
+        createSupplier("Global Wholesale", "123 Supply Rd", "contact@global.com", "555-9000");
+        createSupplier("Fresh Farms Ltd", "45 Farm Ln", "orders@freshfarms.com", "555-9001");
+        createSupplier("Beverage Co", "88 Drink St", "sales@bevco.com", "555-9002");
+    }
+
+    private void createSupplier(String name, String addr, String email, String phone) {
+        SupplierEntity s = new SupplierEntity();
+        s.setName(name);
+        s.setAddress(addr);
+        s.setEmail(email);
+        s.setPhone(phone);
+        s.setStatus(SupplierEntity.Status.ACTIVE);
+        supplierRepository.save(s);
+    }
+
     private void seedBranchStock() {
         System.out.println("Seeding branch stock...");
         List<BranchEntity> branches = branchRepository.findAll();
@@ -892,6 +930,74 @@ public class DataSeeder implements CommandLineRunner {
                 }
             }
         }
-        System.out.println("Branch stock seeding complete.");
+    }
+
+    private void seedStockMovements() {
+        System.out.println("Seeding realistic stock movements...");
+        List<BranchEntity> branches = branchRepository.findAll();
+        List<IngredientEntity> ingredients = ingredientRepository.findAll();
+        List<SupplierEntity> suppliers = supplierRepository.findAllByDeletedAtIsNull();
+        UserEntity adminUser = userRepository.findByUserNameAndDeletedAtIsNull("admin").orElse(null);
+        if (adminUser == null) return;
+
+        LocalDate today = LocalDate.now();
+        Random random = new Random();
+
+        for (BranchEntity branch : branches) {
+            if ("SYSTEM".equals(branch.getCode())) continue;
+
+            for (IngredientEntity ingredient : ingredients) {
+                SupplierEntity supplier = suppliers.isEmpty() ? null : suppliers.get(random.nextInt(suppliers.size()));
+                
+                // 1. Initial Stock In (e.g., 60 days ago)
+                createStockIn(branch, ingredient, adminUser, supplier, today.minusDays(60), 
+                    1000.0 + random.nextDouble() * 1000.0, ingredient.getCostPerUnit());
+
+                // 2. Periodic Restocks (every 10-15 days)
+                for (int d = 45; d > 0; d -= (10 + random.nextInt(10))) {
+                    if (random.nextDouble() > 0.3) {
+                         createStockIn(branch, ingredient, adminUser, supplier, today.minusDays(d), 
+                            500.0 + random.nextDouble() * 500.0, ingredient.getCostPerUnit());
+                    }
+                }
+
+                // 3. Random Adjustments (Wastage/Damage)
+                for (int d = 50; d > 0; d -= (5 + random.nextInt(15))) {
+                    if (random.nextDouble() > 0.6) {
+                        createStockAdjustment(branch, ingredient, adminUser, today.minusDays(d), 
+                            -(2.0 + random.nextDouble() * 15.0), 
+                            StockAdjustmentEntity.StockAdjustmentReason.WASTAGE, "Periodic wastage");
+                    }
+                }
+            }
+        }
+    }
+
+    private void createStockIn(BranchEntity branch, IngredientEntity ing, UserEntity user, SupplierEntity supplier, LocalDate date, Double qty, Double cost) {
+        StockInEntity stockIn = new StockInEntity();
+        stockIn.setBranch(branch);
+        stockIn.setIngredient(ing);
+        stockIn.setSupplier(supplier);
+        stockIn.setReceivedBy(user.getUserId());
+        stockIn.setReceivedDate(date.atTime(LocalTime.of(9, 0)));
+        stockIn.setQtyIn(qty);
+        stockIn.setUnitCost(cost);
+        stockIn.setTotalCost(qty * cost);
+        stockIn.setInvoiceNo("INV-" + date.toString().replace("-", "") + "-" + random.nextInt(1000));
+        stockInRepository.save(stockIn);
+    }
+
+    private void createStockAdjustment(BranchEntity branch, IngredientEntity ing, UserEntity user, LocalDate date, Double qty, StockAdjustmentEntity.StockAdjustmentReason reason, String note) {
+        StockAdjustmentEntity adj = new StockAdjustmentEntity();
+        adj.setBranch(branch);
+        adj.setIngredient(ing);
+        adj.setCreatedBy(user);
+        adj.setApprovedBy(user);
+        adj.setDate(date.atTime(LocalTime.of(16, 0)));
+        adj.setQtyChange(qty);
+        adj.setReasonType(reason);
+        adj.setNote(note);
+        adj.setStatus(StockAdjustmentEntity.AdjustmentStatus.APPROVED);
+        stockAdjustmentRepository.save(adj);
     }
 }

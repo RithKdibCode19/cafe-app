@@ -44,15 +44,18 @@ public class EmployeePerformanceService {
         List<AttendanceEntity> attendance = attendanceRepository.findByCheckInBetweenAndDeletedAtIsNull(start, end);
         List<DrawerActionEntity> drawerActions = drawerActionRepository.findByActionTimeBetween(start, end);
 
-        // Grouping
+        // Grouping — filter out orders without cashier/employee (e.g., QR/mobile orders)
         Map<Long, List<OrderEntity>> ordersByEmployee = orders.stream()
                 .filter(o -> o.getStatus() == OrderEntity.OrderStatus.PAID || o.getStatus() == OrderEntity.OrderStatus.COMPLETED)
+                .filter(o -> o.getCashierUser() != null && o.getCashierUser().getEmployee() != null)
                 .collect(Collectors.groupingBy(o -> o.getCashierUser().getEmployee().getEmployeeId()));
 
         Map<Long, List<AttendanceEntity>> attendanceByEmployee = attendance.stream()
+                .filter(a -> a.getEmployee() != null)
                 .collect(Collectors.groupingBy(a -> a.getEmployee().getEmployeeId()));
 
         Map<Long, List<DrawerActionEntity>> drawerByEmployee = drawerActions.stream()
+                .filter(d -> d.getUser() != null && d.getUser().getEmployee() != null)
                 .collect(Collectors.groupingBy(d -> d.getUser().getEmployee().getEmployeeId()));
 
         List<EmployeePerformanceDTO> report = new ArrayList<>();

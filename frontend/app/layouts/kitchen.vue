@@ -40,6 +40,7 @@
 
       <div class="flex items-center gap-6">
         <NuxtLink
+          v-if="canAccessPOS"
           to="/pos"
           class="hidden md:flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700 text-xs font-bold uppercase tracking-widest transition-colors"
         >
@@ -67,9 +68,30 @@
           <span class="text-xl font-mono font-bold">{{ currentTime }}</span>
         </div>
         <NuxtLink
+          v-if="canAccessDashboard"
           to="/admin"
-          class="p-2 text-neutral-500 hover:text-white transition-colors"
+          class="flex items-center gap-2 px-4 py-2 bg-primary-600/10 hover:bg-primary-600/20 rounded-lg border border-primary-500/20 text-xs font-bold uppercase tracking-widest text-primary-400 transition-colors"
           title="Admin Dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+          </svg>
+          Dashboard
+        </NuxtLink>
+        <button
+          @click="logout"
+          class="p-2 text-neutral-500 hover:text-white transition-colors"
+          title="Logout"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +105,7 @@
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-        </NuxtLink>
+        </button>
       </div>
     </header>
 
@@ -95,7 +117,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+
+const { role, canAccessPOS } = usePermissions();
+const { logout: authLogout } = useAuth();
+const toast = useToast();
+
+// Use direct role string check — more reliable than computed permission refs
+const canAccessDashboard = computed(() => {
+  const r = role.value;
+  return r === 'ADMIN' || r === 'MANAGER';
+});
+
+const logout = async () => {
+  authLogout();
+  toast.success("Logged out successfully");
+};
 
 const currentTime = ref("");
 let timer: any;

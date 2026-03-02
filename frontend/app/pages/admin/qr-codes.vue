@@ -57,17 +57,19 @@
             min="1"
             max="100"
             class="input"
+            @change="generateQRCodes"
           />
         </div>
       </div>
 
       <div class="flex gap-3 mt-6">
         <button
-          @click="generateQRCodes"
-          :disabled="!selectedBranch || !baseUrl"
+          @click="saveConfiguration"
+          :disabled="!selectedBranch || isSaving"
           class="btn-primary"
         >
           <svg
+            v-if="!isSaving"
             class="w-4 h-4"
             fill="none"
             stroke="currentColor"
@@ -77,10 +79,11 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M12 4v16m8-8H4"
+              d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
             />
           </svg>
-          Generate QR Codes
+          <span v-else class="loading loading-spinner loading-xs"></span>
+          Save Configuration
         </button>
         <button
           v-if="qrCodes.length > 0"
@@ -126,15 +129,15 @@
 
         <!-- QR Code Component -->
         <div class="flex justify-center mb-3">
-            <!-- Wrapped in a div to capture the canvas from the component if needed, 
+          <!-- Wrapped in a div to capture the canvas from the component if needed, 
                  but QrcodeVue renders a canvas we can ref directly via :ref but it might be a component ref -->
-             <qrcode-vue
-                :value="qr.url"
-                :size="200"
-                level="H"
-                class="rounded-lg"
-                :id="'qr-canvas-' + qr.tableNo"
-             />
+          <qrcode-vue
+            :value="qr.url"
+            :size="200"
+            level="H"
+            class="rounded-lg"
+            :id="'qr-canvas-' + qr.tableNo"
+          />
         </div>
 
         <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
@@ -199,7 +202,7 @@
 </template>
 
 <script setup lang="ts">
-import QrcodeVue from 'qrcode.vue';
+import QrcodeVue from "qrcode.vue";
 definePageMeta({ layout: "admin" });
 
 const { get } = useApi();
@@ -210,6 +213,9 @@ const selectedBranch = ref<any>(null);
 const baseUrl = ref("");
 const numberOfTables = ref(10);
 const qrCodes = ref<{ tableNo: number; url: string }[]>([]);
+const isSaving = ref(false);
+const { put } = useApi();
+const { success, error: toastError } = useToast();
 
 // Fetch branches
 const fetchBranches = async () => {
@@ -229,7 +235,16 @@ onMounted(() => {
   }
 });
 
-const generateQRCodes = async () => {
+watch(selectedBranch, (newBranch) => {
+  if (newBranch) {
+    numberOfTables.value = newBranch.tableCount || 10;
+    generateQRCodes();
+  } else {
+    qrCodes.value = [];
+  }
+});
+
+const generateQRCodes = () => {
   if (!selectedBranch.value || !baseUrl.value) return;
 
   // Generate QR code data
@@ -239,12 +254,34 @@ const generateQRCodes = async () => {
   }));
 };
 
+const saveConfiguration = async () => {
+  if (!selectedBranch.value) return;
+
+  isSaving.value = true;
+  try {
+    await put(`/branches/update/${selectedBranch.value.branchId}`, {
+      ...selectedBranch.value,
+      tableCount: numberOfTables.value,
+    });
+    // Update local branch data
+    selectedBranch.value.tableCount = numberOfTables.value;
+    success("Configuration saved successfully");
+  } catch (e) {
+    console.error("Failed to save branch configuration:", e);
+    toastError("Failed to save configuration");
+  } finally {
+    isSaving.value = false;
+  }
+};
+
 // Helper to get canvas from the rendered component (QrcodeVue renders a canvas)
 const getCanvasFromId = (tableNo: number): HTMLCanvasElement | null => {
-    // We are using :id on the QrcodeVue component which passes it to the canvas
-    const canvas = document.getElementById(`qr-canvas-${tableNo}`) as HTMLCanvasElement;
-    return canvas;
-}
+  // We are using :id on the QrcodeVue component which passes it to the canvas
+  const canvas = document.getElementById(
+    `qr-canvas-${tableNo}`,
+  ) as HTMLCanvasElement;
+  return canvas;
+};
 
 const downloadQR = (tableNo: number) => {
   const canvas = getCanvasFromId(tableNo);

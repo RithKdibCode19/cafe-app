@@ -54,7 +54,9 @@ class CafeApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Cafe App',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.light, // Specifically set to light as per "default theme light" request
         home: const AppShell(),
       ),
     );

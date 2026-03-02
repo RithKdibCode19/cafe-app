@@ -14,6 +14,8 @@ public interface ShiftMapper {
 
     ShiftMapper INSTANCE = Mappers.getMapper(ShiftMapper.class);
 
+    @Mapping(source = "startTime", target = "shiftStart")
+    @Mapping(source = "endTime", target = "shiftEnd")
     ShiftResponseDTO toResponseDTO(ShiftEntity entity);
 
     @Mapping(target = "employee", ignore = true)
@@ -23,6 +25,10 @@ public interface ShiftMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(source = "shiftStart", target = "startTime")
+    @Mapping(source = "shiftEnd", target = "endTime")
+    @Mapping(target = "startCash", ignore = true)
+    @Mapping(target = "endCash", ignore = true)
     ShiftEntity toEntity(ShiftRequestDTO requestDTO);
 
     @Mapping(target = "employee", ignore = true)
@@ -32,5 +38,9 @@ public interface ShiftMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(source = "shiftStart", target = "startTime")
+    @Mapping(source = "shiftEnd", target = "endTime")
+    @Mapping(target = "startCash", ignore = true)
+    @Mapping(target = "endCash", ignore = true)
     void updateEntityFromDTO(ShiftRequestDTO requestDTO, @MappingTarget ShiftEntity entity);
 }

@@ -44,6 +44,9 @@ public class BranchEntity extends BaseEntity {
     @Column(name = "radius_meters")
     private Integer radiusMeters = 100; // Default 100 meters
 
+    @Column(name = "table_count")
+    private Integer tableCount = 0;
+
     // Manual Getters/Setters
     public Long getBranchId() { return branchId; }
     public void setBranchId(Long branchId) { this.branchId = branchId; }
@@ -68,4 +71,7 @@ public class BranchEntity extends BaseEntity {
 
     public Integer getRadiusMeters() { return radiusMeters; }
     public void setRadiusMeters(Integer radiusMeters) { this.radiusMeters = radiusMeters; }
+
+    public Integer getTableCount() { return tableCount; }
+    public void setTableCount(Integer tableCount) { this.tableCount = tableCount; }
 }

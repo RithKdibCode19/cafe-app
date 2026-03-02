@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.example.backend.model.OrderEntity;
 
 @Repository
-public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+public interface OrderRepository extends JpaRepository<OrderEntity, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<OrderEntity> {
 
         // Find by branch
         List<OrderEntity> findByBranchBranchIdAndDeletedAtIsNull(Long branchId);
@@ -168,6 +168,16 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
                         "GROUP BY r.ingredient.ingredientId")
         List<Object[]> calculateIngredientUsageForPeriod(@Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
+
+        @Query("SELECT r.ingredient.ingredientId, SUM(CAST(oi.qty AS Double) * r.quantityNeeded) " +
+                        "FROM OrderEntity o JOIN o.items oi JOIN RecipeEntity r ON r.menuItem.menuItemId = oi.menuItem.menuItemId " +
+                        "WHERE o.status = 'PAID' AND o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+                        "AND o.branch.branchId = :branchId " +
+                        "AND o.deletedAt IS NULL " +
+                        "GROUP BY r.ingredient.ingredientId")
+        List<Object[]> calculateIngredientUsageForBranchAndPeriod(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate,
+                        @Param("branchId") Long branchId);
 
         @Query("SELECT TO_CHAR(o.createdAt, 'YYYY-MM-DD') as dateStr, SUM(o.totalAmount), COUNT(o) " +
                         "FROM OrderEntity o WHERE o.status = 'PAID' AND o.createdAt >= :startDate " +

@@ -21,7 +21,21 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <select
+            v-model="selectedBranchId"
+            class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm appearance-none cursor-pointer hover:border-primary-500 transition-colors"
+          >
+            <option :value="null">All Branches</option>
+            <option
+              v-for="branch in branches"
+              :key="branch.branchId"
+              :value="branch.branchId"
+            >
+              {{ branch.name }}
+            </option>
+          </select>
+
           <input
             type="date"
             v-model="startDate"
@@ -332,7 +346,7 @@
                   class="flex justify-between mt-1 text-[10px] text-neutral-400 font-bold uppercase tracking-tighter"
                 >
                   <span>{{ w.occurrence }} Occurrences</span>
-                  <span>{{ w.quantity }} units lost</span>
+                  <span>{{ w.quantity?.toFixed(2) }} units lost</span>
                 </div>
               </div>
               <div
@@ -447,6 +461,8 @@ const startDate = ref(
   new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
 );
 const endDate = ref(new Date().toISOString().split("T")[0]);
+const selectedBranchId = ref<number | null>(null);
+const branches = ref<any[]>([]);
 const loading = ref(true);
 const report = ref<any>(null);
 const movementReport = ref<any>(null);
@@ -462,15 +478,25 @@ const filteredMovements = computed(() => {
   );
 });
 
+const fetchBranches = async () => {
+    try {
+        const res = await get<any[]>('/branches');
+        if (res) branches.value = res;
+    } catch (err) {
+        console.error('Failed to fetch branches', err);
+    }
+}
+
 const fetchReport = async () => {
   loading.value = true;
   try {
+    const branchParam = selectedBranchId.value ? `&branchId=${selectedBranchId.value}` : '';
     const [auditRes, moveRes] = await Promise.all([
       get<any>(
-        `/reports/inventory?startDate=${startDate.value}&endDate=${endDate.value}`,
+        `/reports/inventory?startDate=${startDate.value}&endDate=${endDate.value}${branchParam}`,
       ),
       get<any>(
-        `/reports/stock-movement?startDate=${startDate.value}&endDate=${endDate.value}`,
+        `/reports/stock-movement?startDate=${startDate.value}&endDate=${endDate.value}${branchParam}`,
       ),
     ]);
 
@@ -484,11 +510,13 @@ const fetchReport = async () => {
 };
 
 onMounted(() => {
+  fetchBranches();
   fetchReport();
 });
 
 const downloadAudit = () => {
-  const endpoint = `/api/import-export/export/inventory?start=${startDate.value}&end=${endDate.value}`;
+  const branchParam = selectedBranchId.value ? `&branchId=${selectedBranchId.value}` : '';
+  const endpoint = `/api/import-export/export/inventory?start=${startDate.value}&end=${endDate.value}${branchParam}`;
   download(
     endpoint,
     `inventory_audit_${startDate.value}_to_${endDate.value}.xlsx`,

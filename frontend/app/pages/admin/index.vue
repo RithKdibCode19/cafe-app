@@ -5,7 +5,7 @@
       <div class="flex items-end justify-between">
         <div>
           <h2 class="text-[28px] font-black text-neutral-900 dark:text-white tracking-tight leading-none mb-2">
-            Good Morning, {{ authUser?.employeeName?.split(' ')[0] || 'Admin' }}
+            {{ greeting }}, {{ authUser?.employeeName?.split(' ')[0] || 'Admin' }}
           </h2>
           <p class="text-neutral-500 dark:text-neutral-400 font-medium">Here's what's happening at your cafe today.</p>
         </div>
@@ -176,17 +176,27 @@
               <div class="h-10 w-full skeleton-shimmer"></div>
               <div class="h-4 w-3/4 skeleton-shimmer"></div>
             </div>
-            <div v-else-if="lowStockIngredients.length > 0" class="space-y-4">
-              <div class="flex items-center gap-3 p-3 bg-primary-500/5 rounded-xl border border-primary-500/10">
-                <div class="w-8 h-8 rounded-lg bg-primary-500 text-white flex items-center justify-center">
+            <div v-else-if="lowStockIngredients.length > 0" class="space-y-3">
+              <div class="flex items-center gap-3 p-3 bg-warning-500/5 rounded-xl border border-warning-500/10">
+                <div class="w-8 h-8 rounded-lg bg-warning-500 text-white flex items-center justify-center flex-shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest leading-none mb-1">Attention Required</p>
-                  <p class="text-sm font-bold text-neutral-900 dark:text-white leading-none">{{ lowStockIngredients.length }} items running low</p>
+                  <p class="text-xs font-black text-warning-600 dark:text-warning-400 uppercase tracking-widest leading-none mb-1">Low Stock</p>
+                  <p class="text-sm font-bold text-neutral-900 dark:text-white leading-none">{{ lowStockIngredients.length }} items need restocking</p>
                 </div>
               </div>
-              <NuxtLink to="/admin/inventory" class="block w-full text-center py-2 text-xs font-black text-primary-600 dark:text-primary-400 hover:underline uppercase tracking-widest">Manage Stock</NuxtLink>
+              <div class="space-y-2 max-h-32 overflow-y-auto">
+                <div
+                  v-for="item in lowStockIngredients.slice(0, 5)"
+                  :key="item.ingredientId || item.name"
+                  class="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800/30"
+                >
+                  <span class="text-xs font-bold text-neutral-700 dark:text-neutral-300 truncate">{{ item.name }}</span>
+                  <span class="text-[10px] font-bold text-error-500 bg-error-50 dark:bg-error-900/20 px-2 py-0.5 rounded-full">{{ item.currentStock?.toFixed(1) || 0 }} / {{ item.minStock || 0 }} {{ item.unit || '' }}</span>
+                </div>
+              </div>
+              <NuxtLink to="/admin/inventory" class="block w-full text-center py-2 text-xs font-black text-primary-600 dark:text-primary-400 hover:underline uppercase tracking-widest">Manage Stock →</NuxtLink>
             </div>
             <div v-else class="text-center py-4">
                <div class="w-12 h-12 mx-auto mb-2 rounded-2xl bg-success-500/10 flex items-center justify-center text-success-600">
@@ -272,9 +282,18 @@
 <script setup lang="ts">
 import { h, ref, onMounted, computed } from 'vue'
 const { get } = useApi()
+const { user: authUser } = useAuth()
 
 definePageMeta({
   layout: false
+})
+
+// -- Greeting based on time of day --
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good Morning'
+  if (hour < 17) return 'Good Afternoon'
+  return 'Good Evening'
 })
 
 // -- Interfaces --
