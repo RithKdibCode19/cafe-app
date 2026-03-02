@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.dto.OrderRequestDTO;
 import com.example.backend.dto.OrderResponseDTO;
+import com.example.backend.dto.common.ApiResponse;
 import com.example.backend.services.OrderService;
 
 import com.example.backend.dto.VariantResponseDTO;
@@ -45,9 +46,9 @@ public class OrderController {
      * POST /api/orders
      */
     @PostMapping
-    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO request) {
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(@Valid @RequestBody OrderRequestDTO request) {
         OrderResponseDTO response = orderService.createOrder(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Order created successfully"));
     }
 
     /**
@@ -55,9 +56,9 @@ public class OrderController {
      * POST /api/orders/add
      */
     @PostMapping("/add")
-    public ResponseEntity<OrderResponseDTO> addOrder(@Valid @RequestBody OrderRequestDTO request) {
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> addOrder(@Valid @RequestBody OrderRequestDTO request) {
         OrderResponseDTO response = orderService.createOrder(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Order added successfully"));
     }
 
     /**
@@ -65,14 +66,14 @@ public class OrderController {
      * GET /api/orders?page=0&size=20&status=PENDING&search=ORD-123
      */
     @GetMapping
-    public ResponseEntity<Page<OrderResponseDTO>> getAllOrders(
+    public ResponseEntity<ApiResponse<Page<OrderResponseDTO>>> getAllOrders(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long branchId) {
         
         Page<OrderResponseDTO> orders = orderService.getAllOrdersPaginated(pageable, status, search, branchId);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -80,9 +81,9 @@ public class OrderController {
      * GET /api/orders/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrderById(@PathVariable Long id) {
         OrderResponseDTO order = orderService.getOrderById(id);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(ApiResponse.success(order, "Order retrieved successfully"));
     }
 
     /**
@@ -90,11 +91,11 @@ public class OrderController {
      * PUT /api/orders/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<OrderResponseDTO> updateOrder(
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrder(
             @PathVariable Long id,
             @Valid @RequestBody OrderRequestDTO request) {
         OrderResponseDTO response = orderService.updateOrder(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Order updated successfully"));
     }
 
     /**
@@ -102,13 +103,14 @@ public class OrderController {
      * PUT /api/orders/{id}/status
      */
     @PutMapping("/{id}/status")
-    public ResponseEntity<OrderResponseDTO> updateOrderStatus(
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(
             @PathVariable Long id,
             @RequestParam String status,
             @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, status, pinCode, reason));
+        OrderResponseDTO response = orderService.updateOrderStatus(id, status, pinCode, reason);
+        return ResponseEntity.ok(ApiResponse.success(response, "Order status updated successfully"));
     }
 
     /**
@@ -116,9 +118,9 @@ public class OrderController {
      * DELETE /api/orders/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null, "Order deleted successfully"));
     }
 
     /**
@@ -126,9 +128,9 @@ public class OrderController {
      * GET /api/orders/branch/{branchId}
      */
     @GetMapping("/branch/{branchId}")
-    public ResponseEntity<List<OrderResponseDTO>> getOrdersByBranch(@PathVariable Long branchId) {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByBranch(@PathVariable Long branchId) {
         List<OrderResponseDTO> orders = orderService.getOrdersByBranch(branchId);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -136,9 +138,9 @@ public class OrderController {
      * GET /api/orders/status/{status}
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<OrderResponseDTO>> getOrdersByStatus(@PathVariable String status) {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getOrdersByStatus(@PathVariable String status) {
         List<OrderResponseDTO> orders = orderService.getOrdersByStatus(status.toUpperCase());
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     /**
@@ -195,9 +197,9 @@ public class OrderController {
      * GET /api/orders/pending
      */
     @GetMapping("/pending")
-    public ResponseEntity<List<OrderResponseDTO>> getPendingOrders() {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getPendingOrders() {
         List<OrderResponseDTO> orders = orderService.getOrdersByStatus("PENDING");
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Pending orders retrieved successfully"));
     }
 
     /**
@@ -205,9 +207,9 @@ public class OrderController {
      * GET /api/orders/paid
      */
     @GetMapping("/paid")
-    public ResponseEntity<List<OrderResponseDTO>> getPaidOrders() {
+    public ResponseEntity<ApiResponse<List<OrderResponseDTO>>> getPaidOrders() {
         List<OrderResponseDTO> orders = orderService.getOrdersByStatus("PAID");
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders, "Paid orders retrieved successfully"));
     }
 
     /**
@@ -225,9 +227,9 @@ public class OrderController {
      * PUT /api/orders/{id}/pay
      */
     @PutMapping("/{id}/pay")
-    public ResponseEntity<OrderResponseDTO> markOrderAsPaid(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> markOrderAsPaid(@PathVariable Long id) {
         OrderResponseDTO response = orderService.updateOrderStatus(id, "PAID", null, "Payment Received");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Order marked as paid"));
     }
 
     /**
@@ -235,13 +237,13 @@ public class OrderController {
      * PUT /api/orders/{id}/void
      */
     @PutMapping("/{id}/void")
-    public ResponseEntity<OrderResponseDTO> voidOrder(
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> voidOrder(
             @PathVariable Long id,
             @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
         OrderResponseDTO response = orderService.updateOrderStatus(id, "VOID", pinCode, reason);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Order voided successfully"));
     }
 
     /**
@@ -249,12 +251,12 @@ public class OrderController {
      * PUT /api/orders/{id}/refund
      */
     @PutMapping("/{id}/refund")
-    public ResponseEntity<OrderResponseDTO> refundOrder(
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> refundOrder(
             @PathVariable Long id,
             @RequestParam(required = false) String pinCode,
             @RequestParam(required = false) String reason) {
 
         OrderResponseDTO response = orderService.updateOrderStatus(id, "REFUND", pinCode, reason);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Order refunded successfully"));
     }
 }
