@@ -66,6 +66,7 @@ public class ReportService {
                 this.branchStockRepository = branchStockRepository;
         }
 
+        @Transactional(readOnly = true)
         public DashboardStatsDTO getDashboardStats() {
                 DashboardStatsDTO stats = new DashboardStatsDTO();
 

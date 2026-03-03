@@ -44,11 +44,11 @@ export default defineNuxtConfig({
 
   // Runtime config for API communication
   runtimeConfig: {
-    // These values are only available on the server
-    apiBase: process.env.NUXT_API_BASE_INTERNAL || 'http://localhost:8081',
+    // This will be overridden by NUXT_API_BASE_INTERNAL env var
+    apiBaseInternal: 'http://backend:8081/api',
 
     public: {
-      // These values are available on both server and client
+      // This will be overridden by NUXT_PUBLIC_API_BASE env var
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     }
   },
@@ -61,10 +61,10 @@ export default defineNuxtConfig({
 
   // Nitro server configuration
   nitro: {
-    // Proxy API requests to backend during development
+    // Proxy API requests during development (legacy)
     devProxy: {
       '/api': {
-        target: 'http://localhost:8081',
+        target: 'http://backend:8081',
         changeOrigin: true
       }
     },

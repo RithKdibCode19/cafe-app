@@ -151,6 +151,7 @@ public class IngredientService {
     /**
      * Get low stock ingredients
      */
+    @Transactional(readOnly = true)
     public List<IngredientResponseDTO> getLowStockIngredients() {
         List<IngredientEntity> ingredients = ingredientRepository
                 .findLowStockIngredients();

@@ -1,14 +1,12 @@
 class ApiConfig {
-  // Change this to your backend URL
-  // For Android emulator: 10.0.2.2
-  // For iOS simulator: localhost
-  // For real device: your machine's local IP
-  // For Chrome/web: use localhost
-  // For Android emulator: use 10.0.2.2
-  // For real device: use your machine's local IP
-  static const String baseUrl = 'http://localhost:8081/api/mobile';
+  // Use 10.0.2.2 for Android emulator to access host localhost
+  // Use your machine's local IP (e.g., 192.168.1.x) for physical devices
+  // Use 127.0.0.1 or localhost for web/desktop
   
-  // static const String baseUrl = 'https://cafeos.shop/api/mobile';
+  static const String baseUrl = 'http://10.0.2.2:8081/api/mobile';
+  
+  // Example for real device (replace with your IP)
+  // static const String baseUrl = 'http://192.168.1.5:8081/api/mobile';
 
   // Timeout in seconds
   static const int connectTimeout = 15;

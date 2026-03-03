@@ -56,6 +56,20 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
       # Additional Spring Boot configs
       SPRING_PROFILES_ACTIVE: prod
+
+            # Bakong Payment API
+      BAKONG_API_URL: ${BAKONG_API_URL}
+      BAKONG_API_KEY: ${BAKONG_API_KEY}
+
+      # JWT Security
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      # Cloudinary
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      
     networks:
       - cafe-network
     healthcheck:
